@@ -1,0 +1,276 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    line-height: 1.6;
+}
+/* تصميم الهيدر */
+.top-nav {
+    background: linear-gradient(to right, #f8f9fa, #464747);
+    color: white;
+    padding: 1rem 2rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    position: relative;
+}
+
+.logo img {
+    vertical-align: middle;
+    cursor: pointer;
+}
+* زر القائمة المنسدلة للجوال */
+.menu-toggle {
+    display: none; /* مخفي افتراضيًا */
+    background: none;
+    border: none;
+    color: white;
+    font-size: 1.5rem;
+    cursor: pointer;
+}
+
+/* أيقونة المستخدم مع قائمة منسدلة */
+.user-menu {
+    position: relative;
+}
+
+.user-toggle {
+    display: flex;
+    align-items: center;
+    background: none;
+    border: none;
+    color: rgb(60, 58, 58);
+    font-size: 1.5rem;
+    cursor: pointer;
+}
+
+.user-toggle span {
+    margin-right: 0.5rem;
+    font-size: 1rem;
+}
+
+.dropdown-menu {
+    display: none;
+    position: absolute;
+    left: 100%; /* تغيير من right:0 إلى left:100% */
+    top: 0;
+    padding: 0;
+    margin-left: 10px;
+    border-left: #000 solid 2px;
+    min-width: auto;
+    white-space: nowrap; /* منع تكسر النص */
+    list-style: none;
+    z-index: 100;
+}
+
+.dropdown-menu li {
+    margin: 0.5rem 0;
+}
+
+.dropdown-menu a {
+    color: white;
+    text-decoration: none;
+    padding: 0.5rem 1rem;
+    display: block;
+    transition: background 0.3s;
+}
+
+.dropdown-menu a:hover {
+    background: #555;
+}
+
+/* استجابة */
+@media (max-width: 768px) {
+    .dropdown-menu {
+        right: auto;
+        left: 0;
+    }
+}
+
+.login-icon {
+    color: rgb(4, 4, 4);
+    font-size: 1.5rem;
+    text-decoration: none;
+    transition: color 0.3s;
+}
+
+.login-icon:hover {
+    color: #f9ca24;
+}
+
+/* شريط التنقل الرئيسي */
+.main-nav {
+    background: #444;
+    padding: 1rem 0;
+    position: sticky;
+    top: 0;
+    z-index: 1000;
+}
+
+.main-nav ul {
+    list-style: none;
+    display: flex;
+    justify-content: center;
+    gap: 2rem;
+    margin: 0 auto;
+    padding: 0;
+}
+
+.main-nav a {
+    color: white;
+    text-decoration: none;
+    font-weight: bold;
+    transition: color 0.3s;
+}
+
+.main-nav a:hover {
+    color: #f9ca24;
+}
+
+
+/* استجابة */
+@media (max-width: 768px) {
+    .main-nav ul {
+        flex-direction: column;
+        align-items: center;
+        gap: 1rem;
+    }
+}
+/* قسم البحث */
+.search-section {
+    padding: 2rem;
+    background: #f4f4f4;
+    text-align: center;
+}
+
+.search-container {
+    max-width: 800px;
+    margin: 0 auto;
+    display: flex;
+    gap: 1rem;
+    flex-wrap: wrap;
+    justify-content: center;
+}
+
+.search-box {
+    padding: 0.5rem;
+    width: 300px;
+    border: 2px solid #ddd;
+    border-radius: 5px;
+}
+
+.search-btn {
+    padding: 0.5rem 1.5rem;
+    background: #f9ca24;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background 0.3s;
+}
+
+.search-btn:hover {
+    background: #f6e58d;
+}
+
+/* عرض الكتب */
+.books-grid {
+    padding: 2rem;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 2rem;
+}
+
+.book-card {
+    border: 1px solid #ddd;
+    border-radius: 10px;
+    overflow: hidden;
+    transition: transform 0.3s;
+}
+
+.book-card:hover {
+    transform: translateY(-5px);
+}
+
+.book-image {
+    height: 20px;
+    background: #f4f4f4;
+}
+
+.book-info {
+    padding: 1rem;
+}
+
+.book-title {
+    font-size: 1.2rem;
+    margin-bottom: 0.5rem;
+}
+
+/* الفوتر */
+footer {
+    background: #333;
+    color: white;
+    padding: 2rem;
+    text-align: center;
+    margin-top: 2rem;
+}
+
+footer a {
+    color: #f9ca24;
+    margin: 0 0.5rem;
+    text-decoration: none;
+}
+
+/* استجابة */
+@media (max-width: 768px) {
+    .main-nav ul {
+        flex-direction: column;
+        align-items: center;
+        gap: 1rem;
+    }
+
+    .search-container {
+        flex-direction: column;
+        gap: 1rem;
+    }
+
+    .search-box {
+        width: 100%;
+    }
+}
+/* استجابة للجوال */
+@media (max-width: 768px) {
+    .menu-toggle {
+        display: block; /* ظهور زر القائمة المنسدلة */
+    }
+
+    .main-nav ul {
+        display: none; /* إخفاء الروابط افتراضيًا */
+        flex-direction: column;
+        align-items: center;
+        gap: 1rem;
+        background: #444;
+        position: absolute;
+        top: 100%;
+        left: 0;
+        width: 100%;
+        padding: 1rem 0;
+    }
+
+    .main-nav ul.active {
+        display: flex; /* عرض الروابط عند النقر على زر القائمة */
+    }
+}
+.card-img{
+    width: 105px;
+    /* العرض الثابت */
+    height: 200px;
+    background-color: #f6e58d;
+    /* الارتفاع الثابت */
+    overflow: hidden;
+    margin: 0 auto;
+    /* توسيط الصورة أفقيًا */
+}

@@ -1,0 +1,2997 @@
+<?php
+session_start();
+include 'includes/config.php';
+include 'includes/header.php';
+?>
+
+<!-- شريط التنقل -->
+<nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+    <div class="container">
+        <a class="navbar-brand" href="index.php">المكتبة الذكية</a>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarNav">
+            <ul class="navbar-nav ms-auto">
+                <?php if(isset($_SESSION['user_id'])): ?>
+                    <li class="nav-item">
+                        <a class="nav-link" href="user/dashboard.php">لوحة التحكم</a>
+                    </li>
+                    <?php if($_SESSION['user_type'] == 'admin'): ?>
+                        <li class="nav-item">
+                            <a class="nav-link" href="admin/dashboard.php">الإدارة</a>
+                        </li>
+                    <?php endif; ?>
+                    <li class="nav-item">
+                        <a class="nav-link" href="logout.php">تسجيل الخروج</a>
+                    </li>
+                <?php else: ?>
+                    <li class="nav-item">
+                        <a class="nav-link" href="login.php">تسجيل الدخول</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="register.php">تسجيل جديد</a>
+                    </li>
+                <?php endif; ?>
+            </ul>
+        </div>
+    </div>
+</nav>
+
+<!-- محتوى الصفحة الرئيسية -->
+<div class="container my-5">
+    <h1 class="text-center mb-4">مرحبًا بكم في المكتبة الذكية</h1>
+    
+    <!-- قسم الكتب الفيزيائية -->
+    <div class="row mb-5">
+        <h3 class="mb-3">الكتب الفيزيائية</h3>
+        <?php
+        $sql = "SELECT * FROM books WHERE type = 'physical' AND quantity > 0";
+        $result = $conn->query($sql);
+        
+        if($result->num_rows > 0):
+            while($row = $result->fetch_assoc()):
+        ?>
+        <div class="col-md-4 mb-4">
+            <div class="card h-100">
+                <div class="card-body">
+                    <h5 class="card-title"><?php echo $row['title']; ?></h5>
+                    <p class="card-text">
+                        <strong>المؤلف:</strong> <?php echo $row['author']; ?><br>
+                        <strong>المتبقي:</strong> <?php echo $row['quantity']; ?>
+                    </p>
+                    <?php if(isset($_SESSION['user_id'])): ?>
+                        <a href="process.php?borrow=<?php echo $row['id']; ?>" 
+                           class="btn btn-primary" 
+                           onclick="return confirm('هل تريد استعارة هذا الكتاب؟')">
+                            استعارة الكتاب
+                        </a>
+                    <?php else: ?>
+                        <button class="btn btn-secondary" 
+                                data-bs-toggle="modal" 
+                                data-bs-target="#loginModal">
+                            سجل دخول للاستعارة
+                        </button>
+                    <?php endif; ?>
+                </div>
+            </div>
+        </div>
+        <?php endwhile; else: ?>
+        <div class="col-12">
+            <div class="alert alert-warning">لا توجد كتب فيزيائية متاحة حاليًا</div>
+        </div>
+        <?php endif; ?>
+    </div>
+
+    <!-- قسم الكتب الإلكترونية -->
+    <div class="row">
+        <h3 class="mb-3">الكتب الإلكترونية</h3>
+        <?php
+        $sql = "SELECT * FROM books WHERE type = 'e-book'";
+        $result = $conn->query($sql);
+        
+        if($result->num_rows > 0):
+            while($row = $result->fetch_assoc()):
+        ?>
+        <div class="col-md-4 mb-4">
+            <div class="card h-100">
+                <div class="card-body">
+                    <h5 class="card-title"><?php echo $row['title']; ?></h5>
+                    <p class="card-text">
+                        <strong>المؤلف:</strong> <?php echo $row['author']; ?><br>
+                        <strong>السعر:</strong> <?php echo $row['price']; ?> ر.س
+                    </p>
+                    <?php if(isset($_SESSION['user_id'])): ?>
+                        <a href="process.php?buy=<?php echo $row['id']; ?>" 
+                           class="btn btn-success" 
+                           onclick="return confirm('هل تريد شراء هذا الكتاب؟')">
+                            شراء الكتاب
+                        </a>
+                    <?php else: ?>
+                        <button class="btn btn-secondary" 
+                                data-bs-toggle="modal" 
+                                data-bs-target="#loginModal">
+                            سجل دخول للشراء
+                        </button>
+                    <?php endif; ?>
+                </div>
+            </div>
+        </div>
+        <?php endwhile; else: ?>
+        <div class="col-12">
+            <div class="alert alert-warning">لا توجد كتب إلكترونية متاحة حاليًا</div>
+        </div>
+        <?php endif; ?>
+    </div>
+</div>
+
+<!-- مودال تسجيل الدخول -->
+<div class="modal fade" id="loginModal">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">تسجيل الدخول مطلوب</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p>يجب تسجيل الدخول لإكمال هذه العملية</p>
+                <a href="login.php" class="btn btn-primary">تسجيل الدخول</a>
+                <a href="register.php" class="btn btn-secondary">إنشاء حساب</a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<?php
+include 'includes/footer.php';
+$conn->close();
+?>
+
+
+
+//////////////////////////////////////////////////////////////////////////////////////////
+
+
+<?php
+session_start();
+?>
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>المكتبة الذكية</title>
+    
+    <!-- Bootstrap 5 -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    
+    <!-- الخطوط العربية -->
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&display=swap" rel="stylesheet">
+    
+    <!-- CSS مخصص -->
+    <style>
+        .navbar-brand img {
+            height: 40px;
+            margin-left: 15px;
+        }
+        
+        .nav-link {
+            transition: all 0.3s ease;
+        }
+        
+        .nav-link:hover {
+            transform: translateY(-2px);
+        }
+    </style>
+</head>
+<body class="d-flex flex-column min-vh-100">
+
+<nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+    <div class="container-fluid">
+        <!-- اللوغو على اليمين -->
+        <a class="navbar-brand ms-3" href="index.php">
+            <img src="assets/images/logo.png" alt="شعار المكتبة">
+        </a>
+        
+        <!-- زر القائمة المنسدلة للأجهزة الصغيرة -->
+        <button class="navbar-toggler me-auto" type="button" data-bs-toggle="collapse" data-bs-target="#mainNav">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+
+        <!-- عناصر التنقل على اليسار -->
+        <div class="collapse navbar-collapse" id="mainNav">
+            <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+                <?php if(isset($_SESSION['user_id'])): ?>
+                    <!-- عناصر المستخدم المسجل -->
+                    <li class="nav-item">
+                        <a class="nav-link" href="user/dashboard.php">لوحة التحكم</a>
+                    </li>
+                    <?php if($_SESSION['user_type'] == 'admin'): ?>
+                        <li class="nav-item">
+                            <a class="nav-link text-warning" href="admin/dashboard.php">لوحة الإدارة</a>
+                        </li>
+                    <?php endif; ?>
+                    <li class="nav-item">
+                        <a class="nav-link" href="../logout.php">تسجيل الخروج</a>
+                    </li>
+                <?php else: ?>
+                    <!-- عناصر الزوار -->
+                    <li class="nav-item">
+                        <a class="nav-link" href="../login.php">تسجيل الدخول</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="../register.php">إنشاء حساب</a>
+                    </li>
+                <?php endif; ?>
+            </ul>
+            
+            <!-- معلومات المستخدم -->
+            <?php if(isset($_SESSION['user_id'])): ?>
+                <div class="d-flex align-items-center text-white ms-3">
+                    <span class="me-2">مرحبًا، <?php echo htmlspecialchars($_SESSION['user_name']); ?></span>
+                    <span class="badge bg-light text-dark">
+                        <?php echo ($_SESSION['user_type'] == 'admin') ? 'مدير' : 'مستخدم'; ?>
+                    </span>
+                </div>
+            <?php endif; ?>
+        </div>
+    </div>
+</nav>
+
+<!-- بداية المحتوى الرئيسي -->
+<main class="flex-grow-1">
+
+/////////////////////////////////////////////////////////////////////////////////////
+
+<?php
+require __DIR__ . '/../../includes/config.php'; // تعديل المسار حسب موقع الملف
+require __DIR__ . '/../../includes/header.php';
+
+// التحقق من صلاحيات المسؤول
+if($_SESSION['user_type'] != 'admin'){
+    header("Location: ../index.php");
+}
+?>
+
+<div class="container mt-5">
+    <h2>لوحة التحكم الإدارية</h2>
+    
+    <!-- إضافة كتاب جديد -->
+    <form action="../process.php" method="POST">
+        <div class="mb-3">
+            <input type="text" name="title" placeholder="عنوان الكتاب" class="form-control">
+        </div>
+        <div class="mb-3">
+            <input type="text" name="author" placeholder="المؤلف" class="form-control">
+        </div>
+        <button type="submit" name="add_book" class="btn btn-success">إضافة كتاب</button>
+    </form>
+</div>
+
+<?php include 'footer.php'; ?>
+
+////////////////////////////////////////////////////////////////////////////
+
+1. سير عملية الاستعارة:
+الخطوة 1: طلب الاستعارة من المستخدم
+
+المستخدم يتصفح الكتب في index.php.
+
+عند الضغط على زر "استعارة الكتاب"، يُرسل طلب إلى process.php.
+
+الخطوة 2: معالجة الطلب في process.php
+
+التحقق من:
+
+وجود جلسة مستخدم نشطة.
+
+صحة CSRF Token (للحماية من الهجمات).
+
+توفر الكتاب في قاعدة البيانات.
+
+الخطوة 3: إدخال البيانات في قاعدة البيانات
+
+إضافة سجل جديد في جدول borrow_requests بحالة pending.
+
+تقليل كمية الكتاب في جدول books بمقدار 1.
+
+الخطوة 4: مراجعة الطلب من قبل المدير
+
+المدير يرى الطلبات في لوحة التحكم (admin/dashboard.php).
+
+يغير حالة الطلب إلى approved أو rejected.
+
+الخطوة 5: إشعار المستخدم
+
+في حالة الرفض: تعود الكمية إلى جدول books.
+
+في حالة القبول: يحتفظ بالكمية المخصومة.
+
+2. الملفات المتأثرة:
+الملف	الوظيفة
+index.php	عرض الكتب المتاحة مع زر الاستعارة.
+process.php	معالجة طلب الاستعارة وإدارة العمليات.
+admin/dashboard.php	لوحة تحكم المدير لمراجعة الطلبات.
+includes/config.php	إعدادات اتصال قاعدة البيانات.
+includes/header.php	تصميم الهيدر المشترك.
+3. دور المدير في العملية:
+الوصول إلى الطلبات:
+
+يستعرض قائمة الطلبات عبر لوحة التحكم (admin/dashboard.php).
+
+يستخدم نموذجًا لتغيير حالة كل طلب.
+
+الموافقة أو الرفض:
+
+عند الموافقة: يبقى الكتاب مخصومًا من الكمية.
+
+عند الرفض: تُعاد الكمية إلى جدول books.
+//////////////////////////////////////////////////////////////////////////
+
+<?php
+// ملف admin/dashboard.php
+require __DIR__ . '/../includes/config.php';
+require __DIR__ . '/../includes/header.php';
+
+// التحقق من الصلاحيات
+if (!isset($_SESSION['user_id']) ){
+    header("Location: " . BASE_URL . "login.php");
+    exit();
+}
+
+if ($_SESSION['user_type'] != 'admin') {
+    header("Location: " . BASE_URL . "index.php");
+    exit();
+}
+
+
+// جلب جميع طلبات الاستعارة مع تفاصيل المستخدم والكتاب
+$stmt = $conn->prepare("
+    SELECT 
+        br.id AS request_id,
+        u.name AS user_name,
+        b.title AS book_title,
+        br.request_date,
+        br.status 
+    FROM 
+        borrow_requests br
+    JOIN 
+        users u ON br.user_id = u.id
+    JOIN 
+        books b ON br.book_id = b.id
+    ORDER BY 
+        br.request_date DESC
+");
+$stmt->execute();
+$requests = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
+
+// دوال مساعدة
+require __DIR__ . '/../includes/functions.php';
+?>
+
+
+<div class="container mt-5">
+    <h2 class="mb-4">لوحة التحكم الإدارية</h2>
+    
+    <!-- إضافة كتاب جديد -->
+    <form action="<?= BASE_URL ?>process.php" method="POST">
+        <div class="row g-3">
+            <div class="col-md-6">
+                <input type="text" name="title" placeholder="عنوان الكتاب" class="form-control" required>
+            </div>
+            <div class="col-md-6">
+                <input type="text" name="author" placeholder="المؤلف" class="form-control" required>
+            </div>
+            <div class="col-md-4">
+                <select name="type" class="form-select" required>
+                    <option value="physical">كتاب فيزيائي</option>
+                    <option value="e-book">كتاب إلكتروني</option>
+                </select>
+            </div>
+            <div class="col-md-4">
+                <input type="number" name="quantity" placeholder="الكمية" class="form-control" required>
+            </div>
+            <div class="col-md-4">
+                <input type="number" step="0.01" name="price" placeholder="السعر" class="form-control" required>
+            </div>
+            <div class="col-12">
+                <button type="submit" name="add_book" class="btn btn-success">
+                    <i class="fas fa-plus-circle me-2"></i>إضافة كتاب
+                </button>
+            </div>
+        </div>
+    </form>
+</div>
+
+
+    <title>لوحة التحكم - طلبات الاستعارة</title>
+</head>
+<body>
+    <div class="container py-5">
+        <h2 class="mb-4">إدارة طلبات الاستعارة</h2>
+        
+        <?php include __DIR__ . '/../includes/alerts.php'; ?>
+
+        <div class="table-responsive">
+            <table class="table table-striped table-hover">
+                <thead class="table-dark">
+                    <tr>
+                        <th>#</th>
+                        <th>المستخدم</th>
+                        <th>الكتاب</th>
+                        <th>تاريخ الطلب</th>
+                        <th>الحالة</th>
+                        <th>الإجراءات</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <?php foreach ($requests as $index => $request): ?>
+                    <tr>
+                        <td><?= $index + 1 ?></td>
+                        <td><?= htmlspecialchars($request['user_name']) ?></td>
+                        <td><?= htmlspecialchars($request['book_title']) ?></td>
+                        <td><?= date('Y/m/d H:i', strtotime($request['request_date'])) ?></td>
+                        <td>
+                            <span class="badge bg-<?= getStatusColor($request['status']) ?>">
+                                <?= getStatusText($request['status']) ?>
+                            </span>
+                        </td>
+                        <td>
+                            <form method="POST" action="<?= BASE_URL ?>admin/process_request.php" class="d-flex gap-2">
+                                <input type="hidden" name="request_id" value="<?= $request['request_id'] ?>">
+                                <select name="action" class="form-select form-select-sm" required>
+                                    <option value="approve" <?= $request['status'] === 'approved' ? 'disabled' : '' ?>>موافقة</option>
+                                    <option value="reject" <?= $request['status'] === 'rejected' ? 'disabled' : '' ?>>رفض</option>
+                                </select>
+                                <button type="submit" class="btn btn-sm btn-primary">
+                                    <i class="fas fa-save"></i>
+                                </button>
+                            </form>
+                        </td>
+                    </tr>
+                    <?php endforeach; ?>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <?php include __DIR__ . '/../includes/footer.php'; ?>
+</body>
+</html>
+
+/////////////////////////////////////////////////////////////////////////////////////////
+
+<?php
+
+require __DIR__ . '/../includes/config.php';
+
+
+// التحقق من تسجيل الدخول
+if (!isset($_SESSION['user_id']) || $_SESSION['user_type'] != 'user') {
+    header("Location: ../login.php");
+    exit();
+}
+
+$user_id = $_SESSION['user_id'];
+$error = $success = '';
+
+// تحديث البيانات
+if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['update_profile'])) {
+    $name = mysqli_real_escape_string($conn, $_POST['name']);
+    $email = mysqli_real_escape_string($conn, $_POST['email']);
+    $password = mysqli_real_escape_string($conn, $_POST['password']);
+    
+    // التحقق من البريد الإلكتروني
+    $check_sql = "SELECT id FROM users WHERE email = '$email' AND id != $user_id";
+    $check_result = $conn->query($check_sql);
+    
+    if ($check_result->num_rows > 0) {
+        $error = "البريد الإلكتروني مسجل مسبقاً";
+    } else {
+        // تحديث كلمة المرور إذا تم إدخالها
+        $password_update = '';
+        if (!empty($password)) {
+            $hashed_password = password_hash($password, PASSWORD_DEFAULT);
+            $password_update = ", password = '$hashed_password'";
+        }
+        
+        $sql = "UPDATE users 
+                SET name = '$name', email = '$email' $password_update 
+                WHERE id = $user_id";
+        
+        if ($conn->query($sql) === TRUE) {
+            $success = "تم تحديث البيانات بنجاح";
+            $_SESSION['user_name'] = $name; // تحديث الجلسة
+        } else {
+            $error = "خطأ في التحديث: " . $conn->error;
+        }
+    }
+}
+
+// جلب البيانات الحالية
+$sql = "SELECT * FROM users WHERE id = $user_id";
+$result = $conn->query($sql);
+$user = $result->fetch_assoc();
+?>
+
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card shadow">
+                <div class="card-header bg-info text-white">
+                    <h5 class="card-title mb-0">تعديل الملف الشخصي</h5>
+                </div>
+                <div class="card-body">
+                    <?php if ($error): ?>
+                        <div class="alert alert-danger"><?php echo $error; ?></div>
+                    <?php endif; ?>
+                    
+                    <?php if ($success): ?>
+                        <div class="alert alert-success"><?php echo $success; ?></div>
+                    <?php endif; ?>
+
+                    <form method="POST" action="">
+                        <div class="mb-3">
+                            <label class="form-label">الاسم الكامل</label>
+                            <input type="text" name="name" class="form-control" 
+                                   value="<?php echo $user['name']; ?>" required>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label class="form-label">البريد الإلكتروني</label>
+                            <input type="email" name="email" class="form-control" 
+                                   value="<?php echo $user['email']; ?>" required>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label class="form-label">كلمة المرور الجديدة (اختياري)</label>
+                            <input type="password" name="password" class="form-control">
+                            <small class="text-muted">اتركه فارغاً إذا لم ترغب في التغيير</small>
+                        </div>
+                        
+                        <button type="submit" name="update_profile" class="btn btn-primary">
+                            حفظ التغييرات
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+///////////////////////////////////////////////////////////////////////////////////
+
+<?php
+// ملف index.php
+session_start();
+require __DIR__ . '/includes/config.php';
+require __DIR__ . '/includes/header.php';
+
+// استعلامات الكتب
+$physical_books = $conn->query("SELECT * FROM books WHERE type = 'physical' AND quantity > 0");
+$e_books = $conn->query("SELECT * FROM books WHERE type = 'e-book'");
+
+?>
+
+<div class="container my-5">
+    <h1 class="text-center mb-4">مرحبًا بكم في المكتبة الذكية</h1>
+
+    <!-- قسم الكتب الفيزيائية -->
+    <div class="row mb-5">
+        <h3 class="mb-3">الكتب الفيزيائية</h3>
+        <?php if($physical_books->num_rows > 0): ?>
+        <?php while($book = $physical_books->fetch_assoc()): ?>
+        <div class="col-md-4 mb-4">
+            <div class="card h-100">
+                <div class="card-body">
+                    <h5 class="card-title"><?= htmlspecialchars($book['title']) ?></h5>
+                    <p class="card-text">
+                        <strong>المؤلف:</strong> <?= htmlspecialchars($book['author']) ?><br>
+                        <strong>المتبقي:</strong> <?= $book['quantity'] ?>
+                    </p>
+                    <?php if(isset($_SESSION['user_id'])): ?>
+
+                        <form method="POST" action="process.php" style="display: inline;">
+                        <input type="hidden" name="csrf_token" value="<?= $_SESSION['csrf_token'] ?>">
+                          <button type="submit" name="borrow_book" class="btn btn-primary"
+                             onclick="return confirm('هل تريد استعارة هذا الكتاب؟')">
+                            استعارة الكتاب
+                          </button>   
+                        <input type="hidden" name="book_id" value="<?= $book['id'] ?>">                        
+                        </form>
+                 
+                    <?php else: ?>
+                    <button class="btn btn-secondary" data-bs-toggle="modal" data-bs-target="#loginModal">
+                        سجل دخول للاستعارة
+                    </button>
+                    <?php endif; ?>
+                </div>
+            </div>
+        </div>
+        <?php endwhile; ?>
+        <?php else: ?>
+        <div class="col-12">
+            <div class="alert alert-warning">لا توجد كتب فيزيائية متاحة حاليًا</div>
+        </div>
+        <?php endif; ?>
+    </div>
+
+    <!-- قسم الكتب الإلكترونية -->
+    <div class="row">
+        <h3 class="mb-3">الكتب الإلكترونية</h3>
+        <?php if($e_books->num_rows > 0): ?>
+        <?php while($book = $e_books->fetch_assoc()): ?>
+        <div class="col-md-4 mb-4">
+            <div class="card h-100">
+                <div class="card-body">
+                    <h5 class="card-title"><?= htmlspecialchars($book['title']) ?></h5>
+                    <p class="card-text">
+                        <strong>المؤلف:</strong> <?= htmlspecialchars($book['author']) ?><br>
+                        <strong>السعر:</strong> <?= $book['price'] ?> ر.س
+                    </p>
+                    <?php if(isset($_SESSION['user_id'])): ?>
+                    <a href="<?= BASE_URL ?>process.php?buy=<?= $book['id'] ?>" class="btn btn-success"
+                        onclick="return confirm('هل تريد شراء هذا الكتاب؟')">
+                        شراء الكتاب
+                    </a>
+                    <?php else: ?>
+                    <button class="btn btn-secondary" data-bs-toggle="modal" data-bs-target="#loginModal">
+                        سجل دخول للشراء
+                    </button>
+                    <?php endif; ?>
+                </div>
+            </div>
+        </div>
+        <?php endwhile; ?>
+        <?php else: ?>
+        <div class="col-12">
+            <div class="alert alert-warning">لا توجد كتب إلكترونية متاحة حاليًا</div>
+        </div>
+        <?php endif; ?>
+    </div>
+</div>
+
+<?php
+
+require __DIR__ . '/includes/footer.php';
+?>
+
+
+*//////////////////////////////////////////////////////////////////////////////////////////
+
+<?php
+// ملف index.php
+session_start();
+require __DIR__ . '/includes/config.php';
+require __DIR__ . '/includes/header.php';
+
+// استعلامات الكتب
+$physical_books = $conn->query("SELECT * FROM books WHERE type = 'physical' AND quantity > 0");
+$e_books = $conn->query("SELECT * FROM books WHERE type = 'e-book'");
+
+?>
+
+<div class="container my-5">
+    <h1 class="text-center mb-4">مرحبًا بكم في المكتبة الذكية</h1>
+
+    <!-- قسم الكتب الفيزيائية -->
+    <div class="container py-5">
+        <!-- العنوان الرئيسي -->
+        <div class="row mb-4">
+            <div class="col-12">
+                <h2 class="fw-bold border-bottom pb-3">الكتب الفيزيائية</h2>
+            </div>
+        </div>
+
+        <?php if($physical_books->num_rows > 0): ?>
+            <div class="row g-4">
+        <?php while($book = $physical_books->fetch_assoc()): ?>
+
+       
+            <div class="col-6 col-md-4 col-lg-2"> <!-- تعديل الأعمدة لعرض 6 بطاقات في الصف -->
+            <div class="card h-100 shadow-sm">
+                    <img src="<?= BASE_URL ?>assets/images/books/<?= $book['cover_image'] ?>" class="card-img-top"
+                        alt="غلاف الكتاب" style="height: 200px; object-fit: cover;">
+                        <div class="card-body d-flex flex-column">
+                        <h5 class="card-title fs-6"><?= htmlspecialchars($book['title']) ?></h5>
+                        <p class="card-text text-muted small">
+                            <strong>المؤلف:</strong> <?= htmlspecialchars($book['author']) ?><br>
+                            <strong>المتبقي:</strong> <?= $book['quantity'] ?>
+                        </p>
+
+                        <?php if(isset($_SESSION['user_id'])): ?>
+
+                        <form method="POST" action="process.php" style="display: inline;">
+                            <input type="hidden" name="csrf_token" value="<?= $_SESSION['csrf_token'] ?>">
+                            <button type="submit" name="borrow_book" class="btn btn-primary w-100 btn-sm"
+                                onclick="return confirm('هل تريد استعارة هذا الكتاب؟')">
+                                استعارة الكتاب
+                            </button>
+                            <input type="hidden" name="book_id" value="<?= $book['id'] ?>">
+                        </form>
+                    </div>
+
+                    <?php else: ?>
+
+                    <button class="btn btn-secondary" data-bs-toggle="modal" data-bs-target="#loginModal">
+                        سجل دخول للاستعارة
+                    </button>
+
+                    <?php endif; ?>
+
+                </div>
+            </div>
+        </div>
+        
+        <?php endwhile; ?>
+        <?php else: ?>
+        <div class="col-12">
+            <div class="alert alert-warning">لا توجد كتب فيزيائية متاحة حاليًا</div>
+        </div>
+        <?php endif; ?>
+    </div>
+
+    <!-- قسم الكتب الإلكترونية -->
+    <div class="row">
+        <h3 class="mb-3">الكتب الإلكترونية</h3>
+        <?php if($e_books->num_rows > 0): ?>
+        <?php while($book = $e_books->fetch_assoc()): ?>
+        <div class="col-md-4 mb-4">
+            <div class="card h-100">
+                <div class="card-body">
+                    <h5 class="card-title"><?= htmlspecialchars($book['title']) ?></h5>
+                    <p class="card-text">
+                        <strong>المؤلف:</strong> <?= htmlspecialchars($book['author']) ?><br>
+                        <strong>السعر:</strong> <?= $book['price'] ?> ر.س
+                    </p>
+                    <?php if(isset($_SESSION['user_id'])): ?>
+                    <a href="<?= BASE_URL ?>process.php?buy=<?= $book['id'] ?>" class="btn btn-success"
+                        onclick="return confirm('هل تريد شراء هذا الكتاب؟')">
+                        شراء الكتاب
+                    </a>
+                    <?php else: ?>
+                    <button class="btn btn-secondary" data-bs-toggle="modal" data-bs-target="#loginModal">
+                        سجل دخول للشراء
+                    </button>
+                    <?php endif; ?>
+                </div>
+            </div>
+        </div>
+        <?php endwhile; ?>
+        <?php else: ?>
+        <div class="col-12">
+            <div class="alert alert-warning">لا توجد كتب إلكترونية متاحة حاليًا</div>
+        </div>
+        <?php endif; ?>
+    </div>
+</div>
+
+<?php
+
+require __DIR__ . '/includes/footer.php';
+?>
+
+/////////////////////////////////////////////////////////////////////////////
+
+<?php
+// ملف index.php
+session_start();
+require __DIR__ . '/includes/config.php';
+require __DIR__ . '/includes/header.php';
+// استعلامات الكتب
+$physical_books = $conn->query("SELECT * FROM books WHERE type = 'physical' AND quantity > 0");
+$e_books = $conn->query("SELECT * FROM books WHERE type = 'e-book'");?>
+<!-- قسم الكتب الفيزيائية -->
+<div class="container py-5">
+    <!-- العنوان الرئيسي -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <h2 class="fw-bold border-bottom pb-3">الكتب الفيزيائية</h2>
+       
+
+                <div class="d-flex gap-2">
+                    <!-- شريط البحث -->
+                    <form class="w-100" method="GET" action="">
+                        <div class="input-group">
+                            <input type="text" 
+                                   class="form-control" 
+                                   placeholder="ابحث عن كتاب..."
+                                   name="search"
+                                   value="<?= $_GET['search'] ?? '' ?>">
+                            <button class="btn btn-outline-primary" type="submit">
+                                <i class="bi bi-search"></i>
+                            </button>
+                        </div>
+                    </form>
+                    
+                    <!-- تصنيفات الكتب -->
+                    <div class="dropdown">
+                        <button class="btn btn-secondary dropdown-toggle" 
+                                type="button" 
+                                data-bs-toggle="dropdown"
+                                aria-expanded="false">
+                            التصنيفات
+                        </button>
+                        <ul class="dropdown-menu">
+                            <li><a class="dropdown-item" href="?category=all">الكل</a></li>
+                            <li><a class="dropdown-item" href="?category=novel">روايات</a></li>
+                            <li><a class="dropdown-item" href="?category=science">علمية</a></li>
+                            <li><a class="dropdown-item" href="?category=history">تاريخية</a></li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+        </div>
+        
+    <?php if($physical_books->num_rows > 0): ?>
+    <div class="row g-4">
+        <!-- إضافة صف واحد يحتوي جميع البطاقات -->
+        <?php while($book = $physical_books->fetch_assoc()): ?>
+        <!-- البطاقة -->
+        <div class="col-6 col-md-4 col-lg-2">
+            <!-- تعديل الأعمدة لعرض 6 بطاقات في الصف -->
+            <div class="card h-100 shadow-sm">
+                <img src="<?= BASE_URL ?>assets/images/books/<?= $book['cover_image'] ?>" class="card-img-top"
+                    alt="غلاف الكتاب" style="height: 200px; object-fit: cover;">
+                <div class="card-body d-flex flex-column">
+                    <h5 class="card-title fs-6"><?= htmlspecialchars($book['title']) ?></h5>
+                    <p class="card-text text-muted small">
+                        <?= htmlspecialchars($book['author']) ?><br>
+                        <?= $book['quantity'] ?>
+                    </p>
+                </div>
+                <?php if(isset($_SESSION['user_id'])): ?>
+                <form method="POST" action="process.php" style="display: inline;">
+                    <input type="hidden" name="csrf_token" value="<?= $_SESSION['csrf_token'] ?>">
+                    <button type="submit" name="borrow_book" class="btn btn-primary w-100 btn-sm"
+                        onclick="return confirm('هل تريد استعارة هذا الكتاب؟')">
+                        استعارة الكتاب
+                    </button>
+                    <input type="hidden" name="book_id" value="<?= $book['id'] ?>">
+                </form>
+                <form method="POST" action="process.php" style="display: inline;">
+                    <input type="hidden" name="csrf_token" value="<?= $_SESSION['csrf_token'] ?>">
+                    <button type="submit" name="borrow_book" class="btn btn-primary w-100 btn-sm"
+                        onclick="return confirm('هل تريد شراء هذا الكتاب؟')">
+                        شراء الكتاب
+                    </button>
+                    <input type="hidden" name="book_id" value="<?= $book['id'] ?>">
+                </form>
+                <?php else: ?>
+                <button class="btn btn-secondary" data-bs-toggle="modal" data-bs-target="#loginModal">
+                    سجل دخول للاستعارة
+                </button>
+                <?php endif; ?>
+            </div>
+
+        </div>
+        <?php endwhile; ?>
+    </div> <!-- إغلاق صف البطاقات هنا -->
+    <?php else: ?>
+    <div class="col-12">
+        <div class="alert alert-warning">لا توجد كتب فيزيائية متاحة حاليًا</div>
+    </div>
+    <?php endif; ?>
+</div>
+</div>
+
+<!-- قسم الكتب الفيزيائية -->
+<div class="container py-5">
+    <!-- العنوان الرئيسي -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <h2 class="fw-bold border-bottom pb-3">الكتب الإلكترونية</h2>
+        </div>
+    </div>
+    <?php if($e_books->num_rows > 0): ?>
+    <div class="row g-4">
+        <!-- إضافة صف واحد يحتوي جميع البطاقات -->
+        <?php while($book = $e_books->fetch_assoc()): ?>
+        <!-- البطاقة -->
+        <div class="col-6 col-md-4 col-lg-2">
+            <!-- تعديل الأعمدة لعرض 6 بطاقات في الصف -->
+            <div class="card h-100 shadow-sm">
+                <img src="<?= BASE_URL ?>assets/images/books/<?= $book['cover_image'] ?>" class="card-img-top"
+                    alt="غلاف الكتاب" style="height: 200px; object-fit: cover;">
+                <div class="card-body d-flex flex-column">
+                    <h5 class="card-title fs-6"><?= htmlspecialchars($book['title']) ?></h5>
+                    <p class="card-text text-muted small">
+                         <?= htmlspecialchars($book['author']) ?><br>
+                         <?= $book['price'] ?> ر.س
+                    </p>
+                </div>
+                <?php if(isset($_SESSION['user_id'])): ?>
+
+                <form method="POST" action="process.php" style="display: inline;">
+                    <input type="hidden" name="csrf_token" value="<?= $_SESSION['csrf_token'] ?>">
+                    <button type="submit" name="borrow_book" class="btn btn-primary w-100 btn-sm"
+                        onclick="return confirm('هل تريد استعارة هذا الكتاب؟')">
+                        استعارة الكتاب
+                    </button>
+                    <input type="hidden" name="book_id" value="<?= $book['id'] ?>">
+                </form>
+
+                
+                <form method="POST" action="process.php" style="display: inline;">
+                    <input type="hidden" name="csrf_token" value="<?= $_SESSION['csrf_token'] ?>">
+                    <button type="submit" name="borrow_book" class="btn btn-primary w-100 btn-sm"
+                        onclick="return confirm('هل تريد شراء هذا الكتاب؟')">
+                        شراء الكتاب
+                    </button>
+                    <input type="hidden" name="book_id" value="<?= $book['id'] ?>">
+                </form>
+                <?php else: ?>
+                    <button class="btn btn-secondary" data-bs-toggle="modal" data-bs-target="#loginModal">
+                    سجل دخول للشراء
+                </button>
+                <?php endif; ?>
+            </div>
+
+        </div>
+        <?php endwhile; ?>
+    <?php else: ?>
+    <div class="col-12">
+        <div class="alert alert-warning">لا توجد كتب إلكترونية متاحة حاليًا</div>
+    </div>
+    <?php endif; ?>
+</div>
+</div>
+
+
+<?php
+
+require __DIR__ . '/includes/footer.php';
+?>
+
+//////////////////////////////////////////
+
+<?php
+// ملف index.php
+session_start();
+require __DIR__ . '/includes/config.php';
+require __DIR__ . '/includes/header.php';
+
+// استعلامات الكتب
+$physical_books = $conn->query("SELECT * FROM books WHERE type = 'physical' AND quantity > 0");
+$e_books = $conn->query("SELECT * FROM books WHERE type = 'e-book'");
+$category_books = $conn->query("SELECT * FROM categories WHERE type = 'category_name'");?>
+<!-- قسم الكتب الفيزيائية -->
+<div class="container py-5">
+    <!-- العنوان الرئيسي -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <h2 class="fw-bold border-bottom pb-3">الكتب الفيزيائية</h2>
+       
+
+                <div class="d-flex gap-2">
+                    <!-- شريط البحث -->
+                    <form class="w-100" method="GET" action="">
+                        <div class="input-group">
+                            <input type="text" 
+                                   class="form-control" 
+                                   placeholder="ابحث عن كتاب..."
+                                   name="search"
+                                   value="<?= $_GET['search'] ?? '' ?>">
+                            <button class="btn btn-outline-primary" type="submit">
+                                <i class="bi bi-search"></i>
+                            </button>
+                        </div>
+                    </form>
+                    
+                    <!-- تصنيفات الكتب -->
+                    <div class="dropdown">
+                        <button class="btn btn-secondary dropdown-toggle" 
+                                type="button" 
+                                data-bs-toggle="dropdown"
+                                aria-expanded="false">
+                            التصنيفات
+                        </button>
+                        <ul class="dropdown-menu">
+                            <li><a class="dropdown-item" href="?category=all">الكل</a></li>
+                            <li><a class="dropdown-item" href="?category=novel">روايات</a></li>
+                            <li><a class="dropdown-item" href="?category=science">علمية</a></li>
+                            <li><a class="dropdown-item" href="?category=history">تاريخية</a></li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+        </div>
+        
+    <?php if($physical_books->num_rows > 0): ?>
+    <div class="row g-4">
+        <!-- إضافة صف واحد يحتوي جميع البطاقات -->
+        <?php while($book = $physical_books->fetch_assoc()): ?>
+        <!-- البطاقة -->
+        <div class="col-6 col-md-4 col-lg-2">
+            <!-- تعديل الأعمدة لعرض 6 بطاقات في الصف -->
+            <div class="card h-100 shadow-sm">
+                <img src="<?= BASE_URL ?>assets/images/books/<?= $book['cover_image'] ?>" class="card-img-top"
+                    alt="غلاف الكتاب" style="height: 200px; object-fit: cover;">
+                <div class="card-body d-flex flex-column">
+                    <h5 class="card-title fs-6"><?= htmlspecialchars($book['title']) ?></h5>
+                    <p class="card-text text-muted small">
+                        <?= htmlspecialchars($book['author']) ?><br>
+                        <?= $book['quantity'] ?>                      
+                        <?= $book['category_id'] ?>
+        
+                    </p>
+                </div>
+                <?php if(isset($_SESSION['user_id'])): ?>
+                <form method="POST" action="process.php" style="display: inline;">
+                    <input type="hidden" name="csrf_token" value="<?= $_SESSION['csrf_token'] ?>">
+                    <button type="submit" name="borrow_book" class="btn btn-primary w-100 btn-sm"
+                        onclick="return confirm('هل تريد استعارة هذا الكتاب؟')">
+                        استعارة الكتاب
+                    </button>
+                    <input type="hidden" name="book_id" value="<?= $book['id'] ?>">
+                </form>
+                <form method="POST" action="process.php" style="display: inline;">
+                    <input type="hidden" name="csrf_token" value="<?= $_SESSION['csrf_token'] ?>">
+                    <button type="submit" name="borrow_book" class="btn btn-primary w-100 btn-sm"
+                        onclick="return confirm('هل تريد شراء هذا الكتاب؟')">
+                        شراء الكتاب
+                    </button>
+                    <input type="hidden" name="book_id" value="<?= $book['id'] ?>">
+                </form>
+                <?php else: ?>
+                <button class="btn btn-secondary" data-bs-toggle="modal" data-bs-target="#loginModal">
+                    سجل دخول للاستعارة
+                </button>
+                <?php endif; ?>
+            </div>
+
+        </div>
+        <?php endwhile; ?>
+    </div> <!-- إغلاق صف البطاقات هنا -->
+    <?php else: ?>
+    <div class="col-12">
+        <div class="alert alert-warning">لا توجد كتب فيزيائية متاحة حاليًا</div>
+    </div>
+    <?php endif; ?>
+</div>
+</div>
+
+<!-- قسم الكتب الفيزيائية -->
+<div class="container py-5">
+    <!-- العنوان الرئيسي -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <h2 class="fw-bold border-bottom pb-3">الكتب الإلكترونية</h2>
+        </div>
+    </div>
+    <?php if($e_books->num_rows > 0): ?>
+    <div class="row g-4">
+        <!-- إضافة صف واحد يحتوي جميع البطاقات -->
+        <?php while($book = $e_books->fetch_assoc()): ?>
+        <!-- البطاقة -->
+        <div class="col-6 col-md-4 col-lg-2">
+            <!-- تعديل الأعمدة لعرض 6 بطاقات في الصف -->
+            <div class="card h-100 shadow-sm">
+                <img src="<?= BASE_URL ?>assets/images/books/<?= $book['cover_image'] ?>" class="card-img-top"
+                    alt="غلاف الكتاب" style="height: 200px; object-fit: cover;">
+                <div class="card-body d-flex flex-column">
+                    <h5 class="card-title fs-6"><?= htmlspecialchars($book['title']) ?></h5>
+                    <p class="card-text text-muted small">
+                         <?= htmlspecialchars($book['author']) ?><br>
+                         <?= $book['price'] ?> ر.س
+                    </p>
+                </div>
+                <?php if(isset($_SESSION['user_id'])): ?>
+
+                <form method="POST" action="process.php" style="display: inline;">
+                    <input type="hidden" name="csrf_token" value="<?= $_SESSION['csrf_token'] ?>">
+                    <button type="submit" name="borrow_book" class="btn btn-primary w-100 btn-sm"
+                        onclick="return confirm('هل تريد استعارة هذا الكتاب؟')">
+                        استعارة الكتاب
+                    </button>
+                    <input type="hidden" name="book_id" value="<?= $book['id'] ?>">
+                </form>
+
+                
+                <form method="POST" action="process.php" style="display: inline;">
+                    <input type="hidden" name="csrf_token" value="<?= $_SESSION['csrf_token'] ?>">
+                    <button type="submit" name="borrow_book" class="btn btn-primary w-100 btn-sm"
+                        onclick="return confirm('هل تريد شراء هذا الكتاب؟')">
+                        شراء الكتاب
+                    </button>
+                    <input type="hidden" name="book_id" value="<?= $book['id'] ?>">
+                </form>
+                <?php else: ?>
+                    <button class="btn btn-secondary" data-bs-toggle="modal" data-bs-target="#loginModal">
+                    سجل دخول للشراء
+                </button>
+                <?php endif; ?>
+            </div>
+
+        </div>
+        <?php endwhile; ?>
+    <?php else: ?>
+    <div class="col-12">
+        <div class="alert alert-warning">لا توجد كتب إلكترونية متاحة حاليًا</div>
+    </div>
+    <?php endif; ?>
+</div>
+</div>
+
+
+<?php
+
+require __DIR__ . '/includes/footer.php';
+?>
+
+/////////////////////////////////////////////////////
+
+</main>
+
+<!-- Footer -->
+<footer class="text-gold mt-auto py-4" style="background-color:rgb(72, 23, 29) !important;">
+    <div class="container">
+        <div class="row">
+            <div class="col-md-4">
+                <h5>عن المكتبة</h5>
+                <p>مكتبة رقمية تهدف إلى توفير الكتب العربية بجودة عالية مع خدمة الإعارة الإلكترونية.</p>
+            </div>
+            <style>
+            .navbar-brand img {
+                height: 60px;
+            }
+
+            /* التعديلات الجديدة */
+            .navbar {
+                background-color: rgb(72, 23, 29) !important;
+                /* اللون العنابي */
+                padding-top: 0.05rem;
+                padding-bottom: 0.05rem;
+                /* تقليل ارتفاع الهيدر */
+            }
+
+            .nav-link,
+            .navbar-brand,
+            .text-warning,
+            .navbar .text-white {
+                color: #D4AF37 !important;
+                /* اللون الذهبي */
+            }
+
+            .nav-link:hover {
+                color: #FFD700 !important;
+                /* ذهبي فاتح عند hover */
+            }
+            </style>
+
+            <div class="col-md-4">
+                <h5>روابط سريعة</h5>
+                <ul class="list-unstyled">
+                    <li><a href="about.php" class="text-white ">عن المشروع</a></li>
+                    <li><a href="contact.php" class="text-white ">اتصل بنا</a></li>
+                    <li><a href="terms.php" class="text-white ">الشروط والأحكام</a></li>
+                </ul>
+            </div>
+
+            <div class="col-md-4">
+                <h5>تابعنا</h5>
+                <div class="social-links">
+                    <a href="#" class="text-gold me-2"><i class="fab fa-twitter"></i></a>
+                    <div class="social-links">
+                        <a href="#" class="text-gold me-2"><i class="fab fa-twitter"></i></a>
+                        <a href="#" class="text-gold me-2"><i class="fab fa-facebook"></i></a>
+                        <a href="#" class="text-gold me-2"><i class="fab fa-instagram"></i></a>
+                    </div>
+                </div>
+            </div>
+
+            <div class="text-center mt-4 pt-3 border-top">
+                <p class="mb-0">&copy; 2025 المكتبة الذكية. جميع الحقوق محفوظة.</p>
+            </div>
+        </div>
+</footer>
+
+<!-- Scripts -->
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://kit.fontawesome.com/your-fontawesome-kit.js" crossorigin="anonymous"></script>
+<script src="https://kit.fontawesome.com/your-kit-code.js"></script>
+<script src="<?= BASE_URL ?>assets/js/script.js"></script>
+</body>
+
+</html>
+
+///////////////////////////////////////////////////////////
+
+<?php
+// بدء الجلسة مرة واحدة فقط
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
+?>
+
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>المكتبة الذكية</title>
+    <link rel="stylesheet" href="<?= BASE_URL ?>assets/bootstrap/css/bootstrap.css">
+    <link rel="stylesheet" href="<?= BASE_URL ?>assets/css/style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+
+    <style>
+    .navbar-brand img {
+        height: 60px;
+    }
+
+    /* التعديلات الجديدة */
+    .navbar {
+        background-color: rgb(72, 23, 29) !important;
+        /* اللون العنابي */
+        padding-top: 0.05rem;
+        padding-bottom: 0.05rem;
+        /* تقليل ارتفاع الهيدر */
+    }
+
+    .nav-link,
+    .navbar-brand,
+    .text-warning,
+    .navbar .text-white {
+        color: #D4AF37 !important;
+        /* اللون الذهبي */
+    }
+
+    .nav-link:hover {
+        color: #FFD700 !important;
+        /* ذهبي فاتح عند hover */
+    }
+    </style>
+</head>
+
+<body class="d-flex flex-column min-vh-100">
+
+<nav class="navbar navbar-expand-lg navbar-dark">
+        <div class="container">
+            <a class="navbar-brand" href="<?= BASE_URL ?>index.php">
+                <img src="<?= BASE_URL ?>assets/images/logo.png" alt="شعار المكتبة">
+            </a>
+
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#mainNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+
+            <div class="collapse navbar-collapse" id="mainNav">
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="<?= BASE_URL ?>index.php"> المكتبة </a>
+                    </li>
+                    
+                    <?php if(isset($_SESSION['user_id'])): ?>
+                        <li class="nav-item">
+                        <a class="nav-link" href="<?= BASE_URL ?>about.php"> المنتدى </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="<?= BASE_URL ?>about.php"> التعاملات </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link"
+                            href="<?= BASE_URL ?><?= ($_SESSION['user_type'] == 'admin') ? 'admin/dashboard.php' : 'user/dashboard.php' ?>">
+                            لوحة التحكم
+                        </a>
+                    </li>
+
+                    <li class="nav-item">
+                        <a class="nav-link " href="<?= BASE_URL ?>admin/manage_books.php">الإدارة</a>
+                    </li>
+
+                    <li class="nav-item">
+                        <a class="nav-link" href="<?= BASE_URL ?>logout.php">تسجيل الخروج</a>
+                    </li>
+                    <?php else: ?>
+                    <li class="nav-item">
+                        <a class="nav-link" href="<?= BASE_URL ?>login.php">تسجيل الدخول</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="<?= BASE_URL ?>register.php">تسجيل جديد</a>
+                    </li>
+                    <?php endif; ?>
+                </ul>
+
+                <?php if(isset($_SESSION['user_id'])): ?>
+                <div class="text-warning me-3">
+                    <span class="badge bg-light text-dark ms-2"> <?= htmlspecialchars($_SESSION['user_name']) ?></span>
+                    <span class="badge bg-light text-dark ms-2">
+                        <?= ($_SESSION['user_type'] == 'admin') ? 'مدير' : 'مستخدم' ?>
+                    </span>
+                </div>
+                <?php endif; ?>
+            </div>
+        </div>
+    </nav>
+
+    <!-- مودال تسجيل الدخول -->
+    <div class="modal fade" id="loginModal">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">تسجيل الدخول مطلوب</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <p>يجب تسجيل الدخول لإكمال هذه العملية</p>
+                    <a href="login.php" class="btn btn-primary">تسجيل الدخول</a>
+                    <a href="register.php" class="btn btn-secondary">إنشاء حساب</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <main class="flex-grow-1 container my-5">
+
+
+    //////////////////////////////////////////////////////////////////////////////////////
+
+    <?php
+session_start();
+require __DIR__ . '/includes/config.php';
+require __DIR__ . '/includes/header.php';
+
+// معالجة معاملات البحث والتصفية
+$search = $_GET['search'] ?? '';
+$category_filter = $_GET['category'] ?? 'all';
+
+// بناء الاستعلام الأساسي مع شروط التصفية
+$base_query = "
+    SELECT 
+        books.*, 
+        categories.category_name 
+    FROM books
+    INNER JOIN categories 
+        ON books.category_id = categories.category_id
+    WHERE 1=1
+    AND (books.type = 'physical' AND books.quantity > 0 OR books.type = 'e-book')
+";
+
+// إضافة شروط البحث
+$params = [];
+$types = '';
+
+if (!empty($search)) {
+    $base_query .= " AND (books.title LIKE ? OR books.author LIKE ?)";
+    $search_term = "%$search%";
+    $params[] = $search_term;
+    $params[] = $search_term;
+    $types .= 'ss';
+}
+
+// إضافة فلتر التصنيف
+if ($category_filter !== 'all') {
+    $base_query .= " AND categories.category_id = ?";
+    $params[] = $category_filter;
+    $types .= 'i';
+}
+
+// تقسيم الاستعلام حسب النوع
+$physical_query = $base_query . " AND books.type = 'physical'";
+$e_book_query = $base_query . " AND books.type = 'e-book'";
+
+// تنفيذ الاستعلامات
+$stmt_physical = $conn->prepare($physical_query);
+if ($types !== '') $stmt_physical->bind_param($types, ...$params);
+$stmt_physical->execute();
+$physical_books = $stmt_physical->get_result();
+
+$stmt_e = $conn->prepare($e_book_query);
+if ($types !== '') $stmt_e->bind_param($types, ...$params);
+$stmt_e->execute();
+$e_books = $stmt_e->get_result();
+?>
+
+<div class="row mb-5 bg-light p-3 rounded-3 shadow-sm">
+    <!-- شريط البحث والتصفية -->
+    <div class="row mb-5 bg-light p-3 rounded-3 shadow-sm">
+        <div class="col-12">
+            <form method="GET" class="row g-3 align-items-center">
+                <div class="col-md-8 mb-3">
+                    <input type="text" name="search" class="form-control" placeholder="ابحث عن كتاب، مؤلف، أو تصنيف..."
+                        value="<?= htmlspecialchars($search) ?>">
+                </div>
+
+                <div class="col-md-3 mb-3">
+                    <select name="category" class="form-select">
+                        <option value="all">جميع التصنيفات</option>
+                        <?php
+                        $categories = $conn->query("SELECT * FROM categories");
+                        while ($cat = $categories->fetch_assoc()):
+                        ?>
+                        <option value="<?= $cat['category_id'] ?>"
+                            <?= ($category_filter == $cat['category_id']) ? 'selected' : '' ?>>
+                            <?= htmlspecialchars($cat['category_name']) ?>
+                        </option>
+                        <?php endwhile; ?>
+                    </select>
+                </div>
+
+                <div class="col-md-1 mb-3">
+                    <button type="submit" class="btn btn-primary w-100">
+                        <i class="fas fa-filter"></i>
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    
+    <!-- قسم الكتب -->
+    <div class="row">
+        <!-- الكتب الفيزيائية -->
+        <?php if($physical_books->num_rows > 0): ?>
+        <div class="col-12 mb-5">
+            <h3 class="mb-4 text-primary"><i class="fas fa-book-open me-2"></i>الكتب الفيزيائية</h3>
+            <div class="row row-cols-2 row-cols-sm-3 row-cols-lg-6 g-1">
+                <?php while($book = $physical_books->fetch_assoc()): ?>
+                <div class="col">
+                    <div class="card h-100 shadow-sm border-0">
+                        <div class="card-image-container">
+                            <img src="<?= BASE_URL ?>assets/images/books/<?= $book['cover_image'] ?>"
+                                class="fixed-size-image" alt="<?= htmlspecialchars($book['title']) ?>">
+                        </div>
+                        <div class="card-body p-2 d-flex flex-column">
+                            <h6 class="card-title mb-1 text-truncate"><?= htmlspecialchars($book['title']) ?></h6>
+                            <p class="card-text small text-muted mb-2 text-truncate">
+                                <?= htmlspecialchars($book['author']) ?>
+                            </p>
+                            <div class="mt-auto">
+                                <div class="d-flex justify-content-between align-items-center small">
+                                    <span class="badge bg-primary text-truncate">
+                                        <?= htmlspecialchars($book['category_name']) ?>
+                                    </span>
+                                    <span class="text-success">
+                                        <?= $book['quantity'] ?> <i class="fas fa-box"></i>
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="card-footer bg-transparent p-2 border-top">
+                            <?php if(isset($_SESSION['user_id'])): ?>
+                            <form method="POST" action="process.php">
+                                <input type="hidden" name="book_id" value="<?= $book['id'] ?>">
+                                <button type="submit" name="borrow_book" class="btn btn-primary btn-sm w-100 py-1"
+                                    onclick="return confirm('هل تريد استعارة هذا الكتاب؟')">
+                                    <i class="fas fa-hand-holding me-1"></i>استعارة
+                                </button>
+                            </form>
+                            <?php else: ?>
+                            <button class="btn btn-outline-primary btn-sm w-100 py-1" data-bs-toggle="modal"
+                                data-bs-target="#loginModal">
+                                <i class="fas fa-sign-in-alt me-1"></i>تسجيل الدخول
+                            </button>
+                            <?php endif; ?>
+                        </div>
+                    </div>
+                </div>
+                <?php endwhile; ?>
+            </div>
+        </div>
+        <?php endif; ?>
+
+
+        <!-- الكتب الإلكترونية -->
+        <?php if($e_books->num_rows > 0): ?>
+        <div class="col-12">
+            <h3 class="mb-4 text-success"><i class="fas fa-laptop"></i> الكتب الإلكترونية</h3>
+            <div class="row row-cols-2 row-cols-md-3 row-cols-lg-6 g-4">
+                <?php while($book = $e_books->fetch_assoc()): ?>
+                <div class="col">
+                    <div class="card h-100 shadow">
+                        <img src="<?= BASE_URL ?>assets/images/books/<?= $book['cover_image'] ?>" class="card-img-top"
+                            style="height: 200px; object-fit: cover;" alt="<?= htmlspecialchars($book['title']) ?>">
+
+                        <div class="card-body">
+                            <h6 class="card-title text-truncate"><?= htmlspecialchars($book['title']) ?></h6>
+                            <p class="card-text small text-muted">
+                                <?= htmlspecialchars($book['author']) ?>
+                            </p>
+                            <div class="d-flex justify-content-between small">
+                                <span class="badge bg-primary">
+                                    <?= htmlspecialchars($book['category_name']) ?>
+                                </span>
+                                <span class="text-success">
+                                    <?= $book['price'] ?> <i class="fas fa-coins"></i>
+                                </span>
+                            </div>
+                        </div>
+
+                        <div class="card-footer bg-transparent">
+                            <?php if(isset($_SESSION['user_id'])): ?>
+                            <a href="<?= BASE_URL ?>process.php?buy=<?= $book['id'] ?>"
+                                class="btn btn-success btn-sm w-100"
+                                onclick="return confirm('هل تريد شراء هذا الكتاب؟')">
+                                <i class="fas fa-shopping-cart"></i> شراء
+                            </a>
+                            <?php else: ?>
+                            <button class="btn btn-outline-success btn-sm w-100" data-bs-toggle="modal"
+                                data-bs-target="#loginModal">
+                                <i class="fas fa-sign-in-alt"></i> تسجيل الدخول
+                            </button>
+                            <?php endif; ?>
+                        </div>
+                    </div>
+                </div>
+                <?php endwhile; ?>
+            </div>
+        </div>
+        <?php else: ?>
+        <div class="alert alert-warning">لا توجد كتب إلكترونية متاحة</div>
+        <?php endif; ?>
+    </div>
+</div>
+
+<?php require __DIR__ . '/includes/footer.php'; ?>
+
+-------------------------------------------------------------
+
+<?php
+// بدء الجلسة مرة واحدة فقط
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
+?>
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>المكتبة الذكية</title>
+    <!-- الخطوط العربية -->
+    <link href="<?= BASE_URL ?>assets/bootstrap/css/bootstrap.css" rel="stylesheet" >
+    <link href="<?= BASE_URL ?>assets/css/style.css" rel="stylesheet" >
+
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+
+    <style>
+    .navbar-brand img {
+        height: 60px;
+    }
+
+    /* التعديلات الجديدة */
+    .navbar {
+        background-color: rgb(72, 23, 29) !important;
+        /* اللون العنابي */
+        padding-top: 0.05rem;
+        padding-bottom: 0.05rem;
+        /* تقليل ارتفاع الهيدر */
+    }
+
+    .nav-link,
+    .navbar-brand,
+    .text-warning,
+    .navbar .text-white {
+        color: #D4AF37 !important;
+        /* اللون الذهبي */
+    }
+
+    .nav-link:hover {
+        color: #FFD700 !important;
+        /* ذهبي فاتح عند hover */
+    }
+    </style>
+</head>
+
+<body class="d-flex flex-column min-vh-100">
+
+    <nav class="navbar navbar-expand-lg navbar-dark">
+        <div class="container">
+            <a class="navbar-brand" href="<?= BASE_URL ?>index.php">
+                <img src="<?= BASE_URL ?>assets/images/logo.png" alt="شعار المكتبة">
+            </a>
+
+            <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent"
+                aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+
+            <div class="collapse navbar-collapse" id="navbarSupportedContent">
+                <ul class="navbar-nav ">
+                    <li class="nav-item">
+                        <a class="nav-link" href="<?= BASE_URL ?>index.php"> المكتبة </a>
+                    </li>
+
+                    <?php if(isset($_SESSION['user_id'])): ?>
+
+                    <li class="nav-item">
+                        <a class="nav-link" href="<?= BASE_URL ?>about.php"> المنتدى </a>
+                    </li>
+
+                    <li class="nav-item">
+                        <a class="nav-link" href="<?= BASE_URL ?>about.php"> التعاملات </a>
+                    </li>
+
+                    <li class="nav-item">
+                        <a class="nav-link"
+                            href="<?= BASE_URL ?><?= ($_SESSION['user_type'] == 'admin') ? 'admin/frame.php' : 'user/dashboard.php' ?>">
+                            لوحة التحكم
+                        </a>
+                    </li>
+
+                    </u>
+                    <ul class="navbar-nav">
+
+                        <li class="nav-item">
+                            <a class="nav-link" href="<?= BASE_URL ?>logout.php">تسجيل الخروج</a>
+                        </li>
+                        <?php else: ?>
+                        <li class="nav-item">
+                            <a class="nav-link" href="<?= BASE_URL ?>login.php">تسجيل الدخول</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="<?= BASE_URL ?>register.php">تسجيل جديد</a>
+                        </li>
+                        <?php endif; ?>
+                    </ul>
+
+                    <?php if(isset($_SESSION['user_id'])): ?>
+                    <div class="text-warning me-3">
+                        <span class="badge bg-light text-dark ms-2">
+                            <?= htmlspecialchars($_SESSION['user_name']) ?>
+                        </span>
+                        <span class="badge bg-light text-dark ms-2">
+                            <?= ($_SESSION['user_type'] == 'admin') ? 'مدير' : 'مستخدم' ?>
+                        </span>
+                    </div>
+                    <?php endif; ?>
+            </div>
+        </div>
+    </nav>
+
+    <!-- مودال تسجيل الدخول -->
+    <div class="modal fade" id="loginModal">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">تسجيل الدخول مطلوب</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <p>يجب تسجيل الدخول لإكمال هذه العملية</p>
+                    <a href="login.php" class="btn btn-primary">تسجيل الدخول</a>
+                    <a href="register.php" class="btn btn-secondary">إنشاء حساب</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <main class="flex-grow-1 container my-5">
+
+
+    ------------------------------------------------------------------------
+
+    <?php
+// ملف index.php
+session_start();
+require __DIR__ . '/includes/config.php';
+require __DIR__ . '/includes/header.php';
+// معالجة معاملات البحث والتصفية
+$search = $_GET['search'] ?? '';
+$category_filter = $_GET['category'] ?? 'all';
+// بناء الاستعلام الأساسي مع شروط التصفية
+$base_query = "
+    SELECT 
+        books.*, 
+        categories.category_name 
+    FROM books
+    INNER JOIN categories 
+        ON books.category_id = categories.category_id
+    WHERE 1=1
+    AND (books.type = 'physical' AND books.quantity > 0 OR books.type = 'e-book')
+";
+// إضافة شروط البحث
+$params = [];
+$types = '';
+if (!empty($search)) {
+    $base_query .= " AND (books.title LIKE ? OR books.author LIKE ?)";
+    $search_term = "%$search%";
+    $params[] = $search_term;
+    $params[] = $search_term;
+    $types .= 'ss';
+}
+// إضافة فلتر التصنيف
+if ($category_filter !== 'all') {
+    $base_query .= " AND categories.category_id = ?";
+    $params[] = $category_filter;
+    $types .= 'i';
+}
+// تقسيم الاستعلام حسب النوع
+$physical_query = $base_query . " AND books.type = 'physical'";
+$e_book_query = $base_query . " AND books.type = 'e-book'";
+
+// تنفيذ الاستعلامات
+$stmt_physical = $conn->prepare($physical_query);
+if ($types !== '') $stmt_physical->bind_param($types, ...$params);
+$stmt_physical->execute();
+$physical_books = $stmt_physical->get_result();
+
+$stmt_e = $conn->prepare($e_book_query);
+if ($types !== '') $stmt_e->bind_param($types, ...$params);
+$stmt_e->execute();
+$e_books = $stmt_e->get_result();
+?>
+<!-- قسم الكتب الفيزيائية -->
+<div class="container py-5">
+    <!-- العنوان الرئيسي -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <h2 class="fw-bold border-bottom pb-3">الكتب الفيزيائية</h2>
+            <div class="d-flex gap-2">
+                <!-- شريط البحث -->
+                <form class="w-100" method="GET" action="">
+                    <div class="input-group">
+                        <input type="text" name="search" class="form-control"
+                            placeholder="ابحث عن كتاب، مؤلف، أو تصنيف..." value="<?= htmlspecialchars($search) ?>">
+
+                    </div>
+
+
+                    <!-- تصنيفات الكتب -->
+                    <div class="col-md-3 mb-3">
+                        <select name="category" class="form-select">
+                            <option value="all">جميع التصنيفات</option>
+                            <?php
+                            $categories = $conn->query("SELECT * FROM categories");
+                            while ($cat = $categories->fetch_assoc()):
+                            ?>
+                            <option value="<?= $cat['category_id'] ?>"
+                                <?= ($category_filter == $cat['category_id']) ? 'selected' : '' ?>>
+                                <?= htmlspecialchars($cat['category_name']) ?>
+                            </option>
+                            <?php endwhile; ?>
+                        </select>
+                    </div>
+                    <div class="col-md-1 mb-3">
+                        <button type="submit" class="btn btn-primary w-100">
+                            <i class="fas fa-filter"></i>
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    <?php if($physical_books->num_rows > 0): ?>
+    <div class="row g-4">
+        <!-- إضافة صف واحد يحتوي جميع البطاقات -->
+        <?php while($book = $physical_books->fetch_assoc()): ?>
+        <!-- البطاقة -->
+        <div class="col-6 col-md-4 col-lg-2">
+            <!-- تعديل الأعمدة لعرض 6 بطاقات في الصف -->
+            <div class="card h-100 shadow-sm">
+                <img src="<?= BASE_URL ?>assets/images/books/<?= $book['cover_image'] ?>" class="card-img-top"
+                    alt="غلاف الكتاب" style="height: 200px; object-fit: cover;">
+                <div class="card-body d-flex flex-column">
+                    <h5 class="card-title fs-6"><?= htmlspecialchars($book['title']) ?></h5>
+                    <p class="card-text text-muted small">
+                        <?= htmlspecialchars($book['author']) ?><br>
+                        <?= $book['quantity'] ?><i class="fas fa-box"></i>
+                        <?= htmlspecialchars($book['category_name']) ?>
+
+                    </p>
+                </div>
+                <?php if(isset($_SESSION['user_id'])): ?>
+                <form method="POST" action="process.php" style="display: inline;">
+                    <input type="hidden" name="csrf_token" value="<?= $_SESSION['csrf_token'] ?>">
+                    <button type="submit" name="borrow_book" class="btn btn-primary w-100 btn-sm"
+                        onclick="return confirm('هل تريد استعارة هذا الكتاب؟')">
+                        استعارة الكتاب
+                    </button>
+                    <input type="hidden" name="book_id" value="<?= $book['id'] ?>">
+                </form>
+                <form method="POST" action="process.php" style="display: inline;">
+                    <input type="hidden" name="csrf_token" value="<?= $_SESSION['csrf_token'] ?>">
+                    <button type="submit" name="borrow_book" class="btn btn-primary w-100 btn-sm"
+                        onclick="return confirm('هل تريد شراء هذا الكتاب؟')">
+                        شراء الكتاب
+                    </button>
+                    <input type="hidden" name="book_id" value="<?= $book['id'] ?>">
+                </form>
+                <?php else: ?>
+                <button class="btn btn-secondary" data-bs-toggle="modal" data-bs-target="#loginModal">
+                    سجل دخول للاستعارة
+                </button>
+                <?php endif; ?>
+            </div>
+
+        </div>
+        <?php endwhile; ?>
+    </div> <!-- إغلاق صف البطاقات هنا -->
+    <?php else: ?>
+    <div class="col-12">
+        <div class="alert alert-warning">لا توجد كتب فيزيائية متاحة حاليًا</div>
+    </div>
+    <?php endif; ?>
+</div>
+
+
+<!-- قسم الكتب الفيزيائية -->
+<div class="container py-5">
+    <!-- العنوان الرئيسي -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <h2 class="fw-bold border-bottom pb-3">الكتب الإلكترونية</h2>
+        </div>
+    </div>
+    <?php if($e_books->num_rows > 0): ?>
+    <div class="row g-4">
+        <!-- إضافة صف واحد يحتوي جميع البطاقات -->
+        <?php while($book = $e_books->fetch_assoc()): ?>
+        <!-- البطاقة -->
+        <div class="col-6 col-md-4 col-lg-2">
+            <!-- تعديل الأعمدة لعرض 6 بطاقات في الصف -->
+            <div class="card h-100 shadow-sm">
+                <img src="<?= BASE_URL ?>assets/images/books/<?= $book['cover_image'] ?>" class="card-img-top"
+                    alt="غلاف الكتاب" style="height: 200px; object-fit: cover;">
+                <div class="card-body d-flex flex-column">
+                    <h5 class="card-title fs-6"><?= htmlspecialchars($book['title']) ?></h5>
+                    <p class="card-text text-muted small">
+                        <?= htmlspecialchars($book['author']) ?><br>
+                        <?= $book['price'] ?> ر.س
+                    </p>
+                </div>
+                <?php if(isset($_SESSION['user_id'])): ?>
+
+                <form method="POST" action="process.php" style="display: inline;">
+                    <input type="hidden" name="csrf_token" value="<?= $_SESSION['csrf_token'] ?>">
+                    <button type="submit" name="borrow_book" class="btn btn-primary w-100 btn-sm"
+                        onclick="return confirm('هل تريد استعارة هذا الكتاب؟')">
+                        استعارة الكتاب
+                    </button>
+                    <input type="hidden" name="book_id" value="<?= $book['id'] ?>">
+                </form>
+
+
+                <form method="POST" action="process.php" style="display: inline;">
+                    <input type="hidden" name="csrf_token" value="<?= $_SESSION['csrf_token'] ?>">
+                    <button type="submit" name="borrow_book" class="btn btn-primary w-100 btn-sm"
+                        onclick="return confirm('هل تريد شراء هذا الكتاب؟')">
+                        شراء الكتاب
+                    </button>
+                    <input type="hidden" name="book_id" value="<?= $book['id'] ?>">
+                </form>
+                <?php else: ?>
+                <button class="btn btn-secondary" data-bs-toggle="modal" data-bs-target="#loginModal">
+                    سجل دخول للشراء
+                </button>
+                <?php endif; ?>
+            </div>
+
+        </div>
+        <?php endwhile; ?>
+        <?php else: ?>
+        <div class="col-12">
+            <div class="alert alert-warning">لا توجد كتب إلكترونية متاحة حاليًا</div>
+        </div>
+        <?php endif; ?>
+    </div>
+</div>
+
+
+<?php
+
+require __DIR__ . '/includes/footer.php';
+?>
+//////////*****//*/*/*/*/*/-*/-*/-*/-*/-*/-*/-*/-*/-/-*/-/
+
+<?php
+// ملف index.php
+session_start();
+require __DIR__ . '/includes/config.php';
+require __DIR__ . '/includes/header2.php';
+// معالجة معاملات البحث والتصفية
+$search = $_GET['search'] ?? '';
+$category_filter = $_GET['category'] ?? 'all';
+// بناء الاستعلام الأساسي مع شروط التصفية
+$base_query = "
+    SELECT 
+        books.*, 
+        categories.category_name 
+    FROM books
+    INNER JOIN categories 
+        ON books.category_id = categories.category_id
+    WHERE 1=1
+    AND (books.type = 'physical' AND books.quantity > 0 OR books.type = 'e-book')
+";
+// إضافة شروط البحث
+$params = [];
+$types = '';
+if (!empty($search)) {
+    $base_query .= " AND (books.title LIKE ? OR books.author LIKE ?)";
+    $search_term = "%$search%";
+    $params[] = $search_term;
+    $params[] = $search_term;
+    $types .= 'ss';
+}
+// إضافة فلتر التصنيف
+if ($category_filter !== 'all') {
+    $base_query .= " AND categories.category_id = ?";
+    $params[] = $category_filter;
+    $types .= 'i';
+}
+// تقسيم الاستعلام حسب النوع
+$physical_query = $base_query . " AND books.type = 'physical'";
+$e_book_query = $base_query . " AND books.type = 'e-book'";
+
+// تنفيذ الاستعلامات
+$stmt_physical = $conn->prepare($physical_query);
+if ($types !== '') $stmt_physical->bind_param($types, ...$params);
+$stmt_physical->execute();
+$physical_books = $stmt_physical->get_result();
+
+$stmt_e = $conn->prepare($e_book_query);
+if ($types !== '') $stmt_e->bind_param($types, ...$params);
+$stmt_e->execute();
+$e_books = $stmt_e->get_result();
+
+// جلب الكتب المقترحة
+$recommended_books = [];
+if (isset($_SESSION['user_id'])) {
+    $query = "
+        SELECT b.* 
+        FROM books b
+        JOIN user_categories uc ON b.category_id = uc.category_id
+        WHERE uc.user_id = ?
+    ";
+    $stmt = $conn->prepare($query);
+    $stmt->bind_param("i", $_SESSION['user_id']);
+    $stmt->execute();
+    $recommended_books = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
+}
+
+// جلب جميع الكتب
+$all_books = $conn->query("SELECT * FROM books");
+?>
+
+<!-- عرض الكتب المقترحة -->
+<?php if (!empty($recommended_books)): ?>
+<div class="recommended-section" sytle="background:yellow;">
+    <h3>📚 كتب مخصصة لك</h3>
+    <div class="row">
+        <?php foreach ($recommended_books as $book): ?>
+        <div class="col-md-4">
+            <div class="book-card">
+                <img src="<?= htmlspecialchars($book['cover_image']) ?>" class="book-cover">
+                <h5><?= htmlspecialchars($book['title']) ?></h5>
+                <p><?= htmlspecialchars($book['author']) ?></p>
+            </div>
+        </div>
+        <?php endforeach; ?>
+    </div>
+</div>
+<?php endif; ?>
+
+<!-- عرض جميع الكتب -->
+<div class="all-books-section">
+    <h3>🏛 جميع الكتب المتاحة</h3>
+    <div class="row">
+        <?php while ($book = $all_books->fetch_assoc()): ?>
+        <div class="col-md-4">
+            <div class="book-card">
+                <img src="<?= htmlspecialchars($book['cover_image']) ?>" class="book-cover">
+                <h5><?= htmlspecialchars($book['title']) ?></h5>
+                <p><?= htmlspecialchars($book['author']) ?></p>
+            </div>
+        </div>
+        <?php endwhile; ?>
+    </div>
+</div>
+<?php require __DIR__ . '/includes/footer.php';?>
+
+/-*//-*//*/-/-*/*/*/-/*/-*/-*/-/-*/-*/-*/-*/-*/-/-*/*/-/-*/-*/
+
+<?php
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
+error_reporting(E_ALL);
+ini_set('display_errors', 1);
+// ملف admin/dashboard.php
+require __DIR__ . '/includes/config.php'; // 
+require __DIR__ . '/includes/functions.php'; // 
+require __DIR__ . '/includes/header.php'; // 
+// التحقق من وجود الجلسة و نوع المستخدم
+if (!isset($_SESSION['user_id']) ){
+    header("Location: " . BASE_URL . "login.php");
+    exit();
+}
+
+if ($_SESSION['user_type'] != 'user') {
+    header("Location: " . BASE_URL . "index.php");
+    exit();
+}
+
+// الحصول على تفاصيل الدفع
+$stmt = $conn->prepare("
+    SELECT p.*, br.book_id 
+    FROM payments p
+    JOIN borrow_requests br ON p.request_id = br.id
+    JOIN users u ON br.user_id = u.id
+    WHERE p.request_id = ? 
+    AND u.id = ?
+    AND p.status = 'pending'
+");
+$stmt->bind_param("ii", $_GET['request_id'], $_SESSION['user_id']);
+$stmt->execute();
+$payment = $stmt->get_result()->fetch_assoc();
+
+
+if ($stmt->affected_rows === 0) {
+    $_SESSION['error'] = "فشل في تحديث حالة الدفع";
+    header("Location: " . BASE_URL . "profile.php");
+    exit();
+}
+
+
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    // محاكاة الحصول على transaction_id من بوابة الدفع
+    $transaction_id = uniqid('TRX_'); // مثال: توليد معرف معاملة
+    
+    $stmt = $conn->prepare("
+        UPDATE payments 
+        SET 
+            status = 'completed', 
+            payment_date = NOW(),
+            transaction_id = ?
+        WHERE payment_id = ?
+    ");
+    $stmt->bind_param("si", $transaction_id, $payment['payment_id']);
+    $stmt->execute();
+
+    // تحديث حالة الطلب إلى approved
+    $stmt_borrow = $conn->prepare("
+        UPDATE borrow_requests 
+        SET status = 'approved' 
+        WHERE id = ?
+    ");
+    $stmt_borrow->bind_param("i", $payment['request_id']);
+    $stmt_borrow->execute();
+
+    // إنشاء إشعار جديد برابط الكتاب
+    $read_link = BASE_URL . "read_book.php?request_id=" . $payment['request_id'];
+    $expires = date('Y-m-d H:i:s', strtotime('+14 days'));
+
+    $stmt_notif = $conn->prepare("
+        INSERT INTO notifications (user_id, message, link, expires_at)
+        VALUES (?, ?, ?, ?)
+    ");
+    $message = "رابط قراءة الكتاب متاح حتى $expires";
+    $stmt_notif->bind_param("isss", $_SESSION['user_id'], $message, $read_link, $expires);
+    $stmt_notif->execute();
+
+    // تحديث حالة الإشعار إلى "مقروء"
+    $notification_link = BASE_URL . "payment.php?request_id=" . $payment['request_id'];
+    $stmt_update_notif = $conn->prepare("
+        UPDATE notifications 
+        SET is_read = 1 
+        WHERE link = ? 
+        AND user_id = ?
+    ");
+    $stmt_update_notif->bind_param("si", $notification_link, $_SESSION['user_id']);
+    $stmt_update_notif->execute();
+
+    $_SESSION['success'] = "تم الدفع بنجاح";
+    header("Location: " . $read_link);
+    exit();
+}
+?>
+
+<!-- واجهة الدفع البسيطة -->
+<div class="container">
+    <h2>دفع مبلغ <?= $payment['amount'] ?> ليرة سورية</h2>
+    <form method="POST">
+        <div class="mb-3">
+            <label class="form-label">رقم البطاقة</label>
+            <input type="text" class="form-control" required>
+        </div>
+        <button type="submit" class="btn btn-success">تأكيد الدفع</button>
+    </form>
+</div>
+
+//////////////////////////////////////////////////////
+<div class="container mt-4">
+    <?php if ($user['user_type'] === 'admin' && $notifications->num_rows > 0): ?>
+    <div class="mb-5">
+        <?php while($notif = $notifications->fetch_assoc()): ?>
+        <div class="alert alert-info alert-dismissible fade show">
+            <p><?= htmlspecialchars($notif['message']) ?></p>
+            <a href="<?= $notif['link'] ?>" class="btn btn-sm btn-primary">
+                إدارة الطلبات
+            </a>
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"
+                onclick="markAsRead(<?= $notif['notification_id'] ?>)"></button>
+        </div>
+        <?php endwhile; ?>
+    </div>
+    <?php endif; ?>
+
+</div>
+
+/////////////////////////////////////////////////////////////////////////////
+<?php
+session_start();
+require __DIR__ . '/includes/db_logger.php';
+require __DIR__ . '/includes/config.php';
+
+// توليد CSRF Token
+if (empty($_SESSION['csrf_token'])) {
+    $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
+}
+
+error_reporting(E_ALL);
+ini_set('display_errors', 1);
+ini_set('display_startup_errors', 1);
+
+// التحقق من صلاحيات الأدمن
+function isAdmin() {
+    return isset($_SESSION['user_type']) && $_SESSION['user_type'] === 'admin';
+}
+
+// ======== معالجة تسجيل المستخدم ========
+if (isset($_POST['register'])) {
+    try {
+        $name = htmlspecialchars($_POST['name']);
+        $email = filter_var($_POST['email'], FILTER_SANITIZE_EMAIL);
+        $password = password_hash($_POST['password'], PASSWORD_DEFAULT);
+
+        // التحقق من البريد الإلكتروني
+        $stmt = $conn->prepare("SELECT id FROM users WHERE email = ?");
+        $stmt->bind_param("s", $email);
+        $stmt->execute();
+        
+        if ($stmt->get_result()->num_rows > 0) {
+            $_SESSION['error'] = "البريد الإلكتروني مسجل مسبقًا!";
+            header("Location: register.php");
+            exit();
+        }
+
+        // إضافة مستخدم جديد
+        $stmt = $conn->prepare("INSERT INTO users (name, email, password, user_type) VALUES (?, ?, ?, 'user')");
+        $stmt->bind_param("sss", $name, $email, $password);
+        
+        if ($stmt->execute()) {
+            $_SESSION['success'] = "تم التسجيل بنجاح!";
+            header("Location: login.php");
+        } else {
+            throw new Exception("فشل في تنفيذ الاستعلام");
+        }
+        
+    } catch (Exception $e) {
+        error_log("Registration Error: " . $e->getMessage());
+        $_SESSION['error'] = "حدث خطأ أثناء التسجيل";
+        header("Location: register.php");
+    }
+    exit();
+}
+
+// ======== معالجة تسجيل الدخول ========
+if (isset($_POST['login'])) {
+    $name = $conn->real_escape_string($_POST['name']);
+    $password = $_POST['password'];
+    
+    try {
+        $stmt = $conn->prepare("SELECT * FROM users WHERE name = ?");
+        $stmt->bind_param("s", $name);
+        $stmt->execute();
+        $result = $stmt->get_result();
+        
+        if ($result->num_rows === 0) {
+            throw new Exception("المستخدم غير موجود");
+        }
+        
+        $user = $result->fetch_assoc();
+        if (!password_verify($password, $user['password'])) {
+            throw new Exception("كلمة المرور خاطئة");
+        }
+        
+        // تعيين بيانات الجلسة
+        $_SESSION['user_id'] = $user['id'];
+        $_SESSION['user_name'] = $user['name'];
+        $_SESSION['user_type'] = $user['user_type'];
+        
+        DatabaseLogger::log(
+            'login_success',
+            $user['name'],
+            'تم تسجيل الدخول بنجاح'
+        );
+        
+        header("Location: " . BASE_URL . ($user['user_type'] == 'admin' ? 'admin/dashboard.php' : 'user/dashboard.php'));
+        
+    } catch (Exception $e) {
+        DatabaseLogger::log(
+            'login_failed',
+            $name,
+            $e->getMessage()
+        );
+        $_SESSION['error'] = "بيانات الدخول غير صحيحة";
+        header("Location: login.php");
+    }
+    exit();
+}
+
+// ======== إضافة كتب (للمسؤولين فقط) ========
+if (isset($_POST['add_book']) && isAdmin()) {
+    try {
+        // التحقق من البيانات
+        $title = htmlspecialchars($_POST['title']);
+        $author = htmlspecialchars($_POST['author']);
+        $type = in_array($_POST['type'], ['physical', 'e-book']) ? $_POST['type'] : 'physical';
+        $quantity = (int)$_POST['quantity'];
+        $price = (float)$_POST['price'];
+        $category_id = (int)$_POST['category_id'];
+        $evaluation = (float)$_POST['evaluation'];
+        $description = htmlspecialchars($_POST['description']);
+
+        
+        // معالجة تحميل الصورة
+        if (!isset($_FILES['cover_image']['error']) || $_FILES['cover_image']['error'] !== UPLOAD_ERR_OK) {
+            throw new Exception('يجب اختيار صورة غلاف');
+        }
+        
+        $upload_dir = 'assets/images/books/';
+        $extension = pathinfo($_FILES['cover_image']['name'], PATHINFO_EXTENSION);
+        $new_filename = uniqid() . '_' . date('YmdHis') . '.' . $extension;
+        $target_path = $upload_dir . $new_filename;
+        
+        if (!is_dir($upload_dir)) mkdir($upload_dir, 0755, true);
+        if (!move_uploaded_file($_FILES['cover_image']['tmp_name'], $target_path)) {
+            throw new Exception('فشل في حفظ الصورة');
+        }
+
+        // ━━━━━━━━━━ معالجة تحميل الملف (file_path) ━━━━━━━━━━
+        if (!isset($_FILES['file_path']['error']) || $_FILES['file_path']['error'] !== UPLOAD_ERR_OK) {
+            throw new Exception('يجب رفع ملف الكتاب');
+        }
+        
+        $file_upload_dir = 'assets/files/'; // مجلد تخزين الملفات
+        $file_extension = pathinfo($_FILES['file_path']['name'], PATHINFO_EXTENSION);
+        $file_new_name = uniqid() . '_' . date('YmdHis') . '.' . $file_extension;
+        $file_target_path = $file_upload_dir . $file_new_name;
+        
+        if (!is_dir($file_upload_dir)) mkdir($file_upload_dir, 0755, true);
+        if (!move_uploaded_file($_FILES['file_path']['tmp_name'], $file_target_path)) {
+            throw new Exception('فشل في حفظ الملف');
+        }
+
+        
+        // إدخال البيانات
+        $stmt = $conn->prepare("
+            INSERT INTO books 
+            (title, author, type, quantity, price, cover_image, category_id,file_path, evaluation, description)   
+            VALUES (?, ?, ?, ?, ?, ?, ?,?,?,?)
+        ");
+        
+        if (!$stmt) {
+            throw new Exception("خطأ في إعداد الاستعلام: " . $conn->error);
+        }
+        
+        $stmt->bind_param("sssidsisss", $title, $author, $type, $quantity, $price, $new_filename, $category_id, $file_target_path, $evaluation, $description);
+        
+        if ($stmt->execute()) {
+            $_SESSION['success'] = "تمت إضافة الكتاب بنجاح!";
+        } else {
+            throw new Exception("فشل في إضافة الكتاب");
+        }
+        
+        header("Location: " . BASE_URL . "admin/dashboard.php");
+        
+    } catch (Exception $e) {
+        $_SESSION['error'] = $e->getMessage();
+        header("Location: " . BASE_URL . "admin/manage_books.php");
+    }
+    exit();
+}
+
+// ======== تحديث الكتب (للمسؤولين فقط) ========
+if (isset($_POST['update_book']) && isAdmin()) {
+    try {
+        $book_id = (int)$_POST['book_id'];
+        $title = htmlspecialchars($_POST['title']);
+        $author = htmlspecialchars($_POST['author']);
+        $type = $_POST['type'] === 'e-book' ? 'e-book' : 'physical';
+        $quantity = (int)$_POST['quantity'];
+        $price = (float)$_POST['price'];
+        $category_id = (int)$_POST['category_id'];
+        
+        $stmt = $conn->prepare("
+            UPDATE books SET 
+            title = ?, 
+            author = ?, 
+            type = ?, 
+            quantity = ?, 
+            price = ?, 
+            category_id = ? 
+            WHERE id = ?
+        ");
+        
+        $stmt->bind_param("sssidii", $title, $author, $type, $quantity, $price, $category_id, $book_id);
+        
+        if ($stmt->execute()) {
+            $_SESSION['success'] = "تم التحديث بنجاح!";
+        } else {
+            throw new Exception("فشل في التحديث");
+        }
+        
+        header("Location: " . BASE_URL . "admin/dashboard.php");
+        
+    } catch (Exception $e) {
+        $_SESSION['error'] = $e->getMessage();
+        header("Location: " . BASE_URL . "admin/manage_books.php");
+    }
+    exit();
+}
+
+// ======== معالجة طلب الاستعارة ========
+if (isset($_POST['borrow_book'])) {
+    try {
+        // التحقق من CSRF Token
+        if (!isset($_POST['csrf_token']) || $_POST['csrf_token'] !== $_SESSION['csrf_token']) {
+            throw new Exception('طلب غير مصرح به');
+        }
+        
+        if (!isset($_SESSION['user_id'])) {
+            throw new Exception('يجب تسجيل الدخول أولاً');
+        }
+        
+        $book_id = (int)$_POST['book_id'];
+        if ($book_id <= 0) {
+            throw new Exception('معرّف كتاب غير صالح');
+        }
+        
+        // بدء المعاملة
+        $conn->begin_transaction();
+        
+        // التحقق من التوفر
+        $stmt = $conn->prepare("SELECT quantity FROM books WHERE id = ? FOR UPDATE");
+        $stmt->bind_param("i", $book_id);
+        $stmt->execute();
+        $result = $stmt->get_result();
+        
+        if ($result->num_rows === 0) {
+            throw new Exception('الكتاب غير موجود');
+        }
+        
+        $book = $result->fetch_assoc();
+        if ($book['quantity'] < 1) {
+            throw new Exception('الكتاب غير متاح');
+        }
+        // التحقق من رصيد المستخدم
+        $stmt_wallet = $conn->prepare("SELECT balance FROM wallets WHERE user_id = ? FOR UPDATE");
+        $stmt_wallet->bind_param("i", $_SESSION['user_id']);
+        $stmt_wallet->execute();
+        $wallet = $stmt_wallet->get_result()->fetch_assoc();
+
+        if ($wallet['balance'] < 5000) {
+            $_SESSION['borrow_redirect'] = true; // علم لإعادة التوجيه بعد الإضافة
+            $_SESSION['error'] = 'الرصيد غير كافي. يرجى إضافة 25,000 ليرة أولاً';
+            header("Location: " . BASE_URL . "add_funds.php");
+            exit();
+        }
+        // بعد التحقق من الرصيد
+        if ($wallet['balance'] < 5000) {
+            $_SESSION['borrow_redirect'] = true; // علم لإعادة التوجيه بعد الشحن
+            $_SESSION['required_amount'] = 25000; // المبلغ المطلوب
+            header("Location: " . BASE_URL . "add_funds.php");
+            exit();
+        }
+                // إضافة طلب الاستعارة
+        $stmt = $conn->prepare("INSERT INTO borrow_requests (user_id, book_id, status) VALUES (?, ?, 'pending')");
+        $stmt->bind_param("ii", $_SESSION['user_id'], $book_id);
+        $stmt->execute();
+        
+        // تحديث الكمية
+        $stmt = $conn->prepare("UPDATE books SET quantity = quantity - 1 WHERE id = ?");
+        $stmt->bind_param("i", $book_id);
+        $stmt->execute();
+        
+        // إضافة إشعار للمديرين
+        $user_name = $_SESSION['user_name'];
+        $stmt_book = $conn->prepare("SELECT title FROM books WHERE id = ?");
+        $stmt_book->bind_param("i", $book_id);
+        $stmt_book->execute();
+        $book_title = $stmt_book->get_result()->fetch_assoc()['title'];
+        
+        $admin_query = $conn->query("SELECT id FROM users WHERE user_type = 'admin'");
+        while ($admin = $admin_query->fetch_assoc()) {
+            $message = "طلب استعارة: $user_name - كتاب: $book_title";
+            $link = BASE_URL . "admin/borrow_requests.php";
+            
+            $stmt_notif = $conn->prepare("
+                INSERT INTO notifications 
+                (user_id, message, link) 
+                VALUES (?, ?, ?)
+            ");
+            
+            if ($stmt_notif) {
+                $stmt_notif->bind_param("iss", $admin['id'], $message, $link);
+                $stmt_notif->execute();
+            }
+        }
+        
+        $conn->commit();
+        $_SESSION['success'] = "تم إرسال الطلب بنجاح!";
+        
+    } catch (Exception $e) {
+        $conn->rollback();
+        $_SESSION['error'] = "خطأ: " . $e->getMessage();
+        error_log("Borrow Error: " . $e->getMessage());
+    }
+    
+    header("Location: " . BASE_URL . "index.php");
+    exit();
+}
+
+// إذا لم يتم التعرف على أي عملية
+die("طلب غير معروف");
+
+/////////////////////////////////////////////////////////////////////////////////////
+
+<?php
+
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();}
+
+// إنشاء CSRF Token في بداية الجلسة
+if (empty($_SESSION['csrf_token'])) 
+{
+    $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
+}
+
+// تعريف الثوابت بشرط عدم وجودها مسبقًا
+if (!defined('BASE_PATH')) 
+{
+    define('BASE_PATH', '/var/www/html/autolibrary/');
+}
+if (!defined('BASE_URL')) 
+{
+    define('BASE_URL', 'http://localhost/autolibrary/');
+    
+}
+
+$host = "localhost";
+$user = "rabi";
+$password = "Asd@123@123";
+$dbname = "library_db";
+
+$conn = new mysqli($host, $user, $password, $dbname);
+
+if ($conn->connect_error) {
+    die("Connection failed: " . $conn->connect_error);
+}
+?>
+-**-***-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
+
+<?php
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
+error_reporting(E_ALL);
+ini_set('display_errors', 1);
+ini_set('display_startup_errors', 1);
+require __DIR__ . '/../includes/config.php';
+ // ملف إدارة CSRF
+
+// ------ التحقق من تسجيل الدخول ------
+if (!isset($_SESSION['user_id'])) {
+    header('Location: ' . BASE_URL . 'login.php');
+    exit();
+}
+
+// توليد توكن CSRF
+
+// ------ معالجة طلبات AJAX ------
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['ajax_action'])) {
+    header('Content-Type: application/json');
+    
+    // التحقق من CSRF
+    if (!verifyCSRFToken($_POST['csrf_token'])) {
+        echo json_encode(['error' => 'رمز الحماية غير صالح']);
+        exit();
+    }
+
+    $response = [];
+    $userId = $_SESSION['user_id'];
+    
+    // معالجة طلب الانضمام
+    if ($_POST['ajax_action'] === 'join_group') {
+        $groupId = (int)$_POST['group_id'];
+        
+        $stmt = $conn->prepare("INSERT INTO join_requests (group_id, user_id) VALUES (?, ?)");
+        $stmt->bind_param("ii", $groupId, $userId);
+        if ($stmt->execute()) {
+            $response['success'] = 'تم إرسال طلب الانضمام!';
+        } else {
+            $response['error'] = 'فشل إرسال الطلب!';
+        }
+    }
+    
+    // معالجة طلب المغادرة
+    if ($_POST['ajax_action'] === 'leave_group') {
+        $groupId = (int)$_POST['group_id'];
+        
+        // التحقق من أن المستخدم ليس المالك
+        $stmt = $conn->prepare("SELECT owner_id FROM users_groups WHERE group_id = ?");
+        $stmt->bind_param("i", $groupId);
+        $stmt->execute();
+        $ownerId = $stmt->get_result()->fetch_assoc()['owner_id'];
+        
+        if ($ownerId != $userId) {
+            $stmt = $conn->prepare("DELETE FROM group_members WHERE group_id = ? AND user_id = ?");
+            $stmt->bind_param("ii", $groupId, $userId);
+            if ($stmt->execute()) {
+                $response['success'] = 'تم مغادرة المجموعة!';
+            }
+        } else {
+            $response['error'] = 'لا يمكنك مغادرة مجموعتك!';
+        }
+    }
+    
+    echo json_encode($response);
+    exit();
+}
+
+// ------ جلب البيانات مع JOINs لتحسين الأداء ------
+$query = "
+    SELECT 
+        g.group_id,
+        g.group_name,
+        g.unique_code,
+        g.owner_id,
+        COUNT(DISTINCT gm.user_id) AS member_count,
+        COUNT(DISTINCT gb.book_link) AS book_count,
+        MAX(gb.added_at) AS last_activity
+    FROM users_groups g
+    LEFT JOIN group_members gm ON g.group_id = gm.group_id
+    LEFT JOIN group_books gb ON g.group_id = gb.group_id
+    GROUP BY g.group_id
+";
+
+$groups = $conn->query($query)->fetch_all(MYSQLI_ASSOC);
+
+// ------ جلب مجموعات المستخدم وطلباته ------
+$userGroups = $conn->query("
+    SELECT group_id FROM group_members 
+    WHERE user_id = {$_SESSION['user_id']}
+")->fetch_all(MYSQLI_ASSOC);
+
+$userGroupIds = array_column($userGroups, 'group_id');
+
+$pendingRequests = $conn->query("
+    SELECT group_id FROM join_requests 
+    WHERE user_id = {$_SESSION['user_id']} AND status = 'pending'
+")->fetch_all(MYSQLI_ASSOC);
+$pendingGroupIds = array_column($pendingRequests, 'group_id');
+
+require __DIR__ . '/../includes/header.php';
+?>
+
+<div class="container py-4">
+    <!-- شريط البحث وإنشاء المجموعة -->
+    <div class="row mb-4 g-3">
+        <div class="col-md-6">
+            <div class="input-group shadow-sm">
+                <span class="input-group-text bg-dark text-white">
+                    <i class="fas fa-search"></i>
+                </span>
+                <input type="text" id="groupSearch" class="form-control" placeholder="ابحث عن مجموعة...">
+            </div>
+        </div>
+        <div class="col-md-6">
+            <button class="btn w-100 shadow-sm" data-bs-toggle="modal" data-bs-target="#createGroupModal" id="bttn">
+                <i class="fas fa-plus-circle me-2"></i> مجموعة جديدة
+            </button>
+        </div>
+    </div>
+
+    <!-- بطاقات المجموعات -->
+    <div class="row row-cols-1 row-cols-sm-2 row-cols-md-3 row-cols-lg-4 g-4" id="groupsContainer">
+        <?php foreach ($groups as $group): 
+        $isMember = in_array($group['group_id'], $userGroupIds);
+        $isOwner = ($group['owner_id'] == $_SESSION['user_id']);
+    ?>
+        <div class="col">
+            <div class="card h-100 border-0 shadow-sm hover-effect">
+
+                <div class="card-header bg-gradient-primary text-warning py-3">
+                    <h5 class="card-title mb-0 fw-bold">
+                        <i class="fas fa-users me-2"></i>
+                        <?= htmlspecialchars($group['group_name']) ?>
+                    </h5>
+                </div>
+
+                <div class="card-body">
+                    <div class="d-flex justify-content-between mb-3">
+                        <div class="text-start">
+                            <small class="text-muted">
+                                <i class="fas fa-users me-1"></i>
+                                <?= $group['member_count'] ?> أعضاء
+                            </small>
+                        </div>
+                        <div class="text-end">
+                            <small class="text-muted">
+                                <i class="fas fa-book me-1"></i>
+                                <?= $group['book_count'] ?> كتب
+                            </small>
+                        </div>
+                    </div>
+
+                    <div class="progress mb-3" style="height: 8px;">
+                        <div class="progress-bar bg-info"
+                            style="width: <?= min(100, ($group['book_count'] / 50) * 100) ?>%">
+                        </div>
+                    </div>
+
+                    <?php if ($isOwner): ?>
+                    <div class="alert alert-warning py-2 mb-3 small">
+                        <i class="fas fa-crown me-2"></i>
+                        أنت مالك هذه المجموعة
+                    </div>
+                    <?php endif; ?>
+                </div>
+
+                <div class="card-footer bg-light">
+                    <div class="d-grid gap-2">
+                        <?php if ($isMember): ?>
+                        <a href="group_books.php?code=<?= $group['unique_code'] ?>"
+                            class="btn btn-outline-primary btn-sm rounded-pill">
+                            <i class="fas fa-book-open me-1"></i> عرض الكتب
+                        </a>
+                        <?php else: ?>
+                        <button class="btn btn-success btn-sm rounded-pill join-group-btn"
+                            data-group-id="<?= $group['group_id'] ?>">
+                            <i class="fas fa-sign-in-alt me-1"></i> انضم الآن
+                        </button>
+                        <?php endif; ?>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <?php endforeach; ?>
+    </div>
+</div>
+
+<!-- مودال إنشاء المجموعة -->
+<div class="modal fade" id="createGroupModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow">
+            <div class="modal-header bg-dark text-white">
+                <h5 class="modal-title">
+                    <i class="fas fa-plus-circle me-2"></i> إنشاء مجموعة
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <form method="POST">
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label text-dark">اسم المجموعة</label>
+                        <input type="text" name="group_name" class="form-control rounded-pill" required>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary rounded-pill" data-bs-dismiss="modal">إلغاء</button>
+                    <button type="submit" class="btn btn-primary rounded-pill">
+                        <i class="fas fa-check me-1"></i> تأكيد
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- الأنماط المخصصة -->
+<style>
+.hover-effect {
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    border-radius: 15px;
+    overflow: hidden;
+}
+
+.hover-effect:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.15);
+}
+
+.bg-gradient-primary {
+    background: linear-gradient(135deg,rgb(36, 36, 44) 0%,rgb(0, 0, 0) 100%);
+    
+}
+
+.card-header {
+    border-bottom: none;
+}
+
+.rounded-pill {
+    border-radius: 50px !important;
+}
+
+.progress {
+    border-radius: 10px;
+    background-color:rgb(255, 255, 255);
+}
+
+.progress-bar {
+    border-radius: 10px;
+}
+.hover-effect {
+    transition: transform 0.3s ease;
+}
+
+.hover-effect:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 20px rgba(0,0,0,0.12);
+}
+.card{
+    background: linear-gradient(to right, #f8f9fa,rgb(208, 212, 216));
+    font-family: 'Cairo', sans-serif;
+}
+#bttn{
+    background: linear-gradient(to right, #f8f9fa,rgb(208, 212, 216));
+}
+</style>
+
+<script>
+// كود JavaScript السابق مع تحسينات
+$(document).ready(function() {
+    // البحث الفوري
+    $('#groupSearch').on('input', function() {
+        const searchTerm = $(this).val().toLowerCase();
+        $('.group-card').each(function() {
+            const groupName = $(this).find('.card-title').text().toLowerCase();
+            $(this).toggle(groupName.includes(searchTerm));
+        });
+    });
+
+    // تأثيرات التحويم
+    $('.card').hover(
+        function() {
+            $(this).addClass('hover-active');
+        },
+        function() {<div class="card border-0 shadow-lg" style="
+    background: linear-gradient(135deg, #4a5568 0%, #2d3748 100%);
+    border-radius: 15px;
+    max-width: 500px;
+    margin: 2rem auto;
+">
+    <div class="card-body py-4 px-5">
+        <div class="d-flex align-items-center justify-content-between">
+            <!-- مجموعة معلومات المستخدم -->
+            <div class="d-flex align-items-center gap-3">
+                <!-- الأيقونة والتفاصيل -->
+                <div class="d-flex align-items-center gap-3">
+                    <i class="fas fa-user-shield text-white fs-2"></i>
+                    <div class="user-details">
+                        <h4 class="text-white mb-0 fw-semibold"><?= htmlspecialchars($_SESSION['user_name']) ?></h4>
+                        <span class="badge bg-light text-dark mt-1" style="font-size: 0.75rem;">
+                            <?= ($_SESSION['user_type'] == 'admin') ? 'مدير النظام' : 'مستخدم' ?>
+                        </span>
+                    </div>
+                </div>
+                
+                <!-- الخط الفاصل -->
+                <div class="vertical-divider" style="
+                    border-right: 2px solid rgba(255,255,255,0.3);
+                    height: 40px;
+                    margin: 0 1rem;
+                "></div>
+            </div>
+
+            <!-- زر الخروج -->
+            <a href="<?= BASE_URL ?>logout.php" class="text-decoration-none hover-effect">
+                <i class="fas fa-sign-out-alt text-white fs-5"></i>
+            </a>
+        </div>
+    </div>
+</div>
+
+<style>
+.hover-effect {
+    transition: all 0.3s ease;
+    padding: 10px;
+    display: flex;
+    align-items: center;
+}
+
+.hover-effect:hover {
+    background: rgba(255,255,255,0.1);
+    border-radius: 8px;
+}
+
+.hover-effect:hover i {
+    transform: translateX(3px);
+    color: #e2e8f0 !important;
+}
+
+.user-details {
+    position: relative;
+    padding-left: 1rem;
+}
+
+.card {
+    transition: transform 0.3s ease;
+}
+
+.card:hover {
+    transform: translateY(-5px);
+}
+</style>
+    );
+});
+</script>
+
+<?php require __DIR__ . '/../includes/footer.php'; ?>
+
+-*--*-*-*/-*/*-/*-/-/-*/*-/-*/-*/-*/-/-*/-*/*/-*/-*/
+
+
+
+
+<div class="card border-0 shadow-lg" style="
+    background: linear-gradient(135deg, #4a5568 0%, #2d3748 100%);
+    border-radius: 15px;
+    max-width: 500px;
+    margin: 2rem auto;
+">
+    <div class="card-body py-4 px-5">
+        <div class="d-flex align-items-center justify-content-between">
+            <!-- مجموعة معلومات المستخدم -->
+            <div class="d-flex align-items-center gap-3">
+                <!-- الأيقونة والتفاصيل -->
+                <div class="d-flex align-items-center gap-3">
+                    <i class="fas fa-user-shield text-white fs-2"></i>
+                    <div class="user-details">
+                        <h4 class="text-white mb-0 fw-semibold"><?= htmlspecialchars($_SESSION['user_name']) ?></h4>
+                        <span class="badge bg-light text-dark mt-1" style="font-size: 0.75rem;">
+                            <?= ($_SESSION['user_type'] == 'admin') ? 'مدير النظام' : 'مستخدم' ?>
+                        </span>
+                    </div>
+                </div>
+                
+                <!-- الخط الفاصل -->
+                <div class="vertical-divider" style="
+                    border-right: 2px solid rgba(255,255,255,0.3);
+                    height: 40px;
+                    margin: 0 1rem;
+                "></div>
+            </div>
+
+            <!-- زر الخروج -->
+            <a href="<?= BASE_URL ?>logout.php" class="text-decoration-none hover-effect">
+                <i class="fas fa-sign-out-alt text-white fs-5"></i>
+            </a>
+        </div>
+    </div>
+</div>
+
+<style>
+.hover-effect {
+    transition: all 0.3s ease;
+    padding: 10px;
+    display: flex;
+    align-items: center;
+}
+
+.hover-effect:hover {
+    background: rgba(255,255,255,0.1);
+    border-radius: 8px;
+}
+
+.hover-effect:hover i {
+    transform: translateX(3px);
+    color: #e2e8f0 !important;
+}
+
+.user-details {
+    position: relative;
+    padding-left: 1rem;
+}
+
+.card {
+    transition: transform 0.3s ease;
+}
+
+.card:hover {
+    transform: translateY(-5px);
+}
+</style>
+
+
+/--/-/-/-/--/-/-/-/---------------------------/////////////////////////
+
+
+let slideIndex = 0;
+const slides = document.getElementsByClassName("mySlides");
+
+function showSlides() {
+    // إخفاء جميع الشرائح
+    Array.from(slides).forEach(slide => {
+        slide.classList.remove('active');
+    });
+
+    slideIndex++;
+
+    if (slideIndex > slides.length) {
+        slideIndex = 1;
+    }
+
+    // إظهار الشريحة الحالية
+    slides[slideIndex - 1].classList.add('active');
+
+    setTimeout(showSlides, 5000);
+}
+
+// بدء التشغيل التلقائي
+showSlides();
+
+
+
+
+
+
+
+
+
+# ملف .gitignore لمشروع مكتبة PHP
+
+### البيئات والتهيئة ###
+.env                # ملفات البيئة (تحتوي على بيانات حساسة)
+config.local.php    # ملفات التهيئة المحلية
+/includes/config.php
+### تبعيات PHP ###
+/vendor/            # مجلد تبعيات Composer
+
+### IDE ###
+.idea/              # إعدادات PHPStorm
+.vscode/            # إعدادات VS Code
+*.swp               # ملفات Vim التemporارية
+
+### ملفات التشغيل ###
+/storage/logs/*.log # ملفات السجلات
+/sessions/*         # ملفات الجلسات
+
+### الكاش والملفات المولدة ###
+/cache/*            # مجلد الكاش
+/tmp/*              # ملفات مؤقتة
+
+### الملفات المرفوعة من المستخدمين ###
+/public/uploads/*   # الملفات المرفوعة
+
+### تبعيات Frontend ###
+/node_modules/       # تبعيات npm
+/assets/dist/       # ملفات CSS/JS المبنية
+
+### قواعد البيانات المحلية ###
+*.sqlite            # قواعد بيانات SQLite
+*.db                # قواعد بيانات عامة
+
+### ملفات النظام ###
+.DS_Store           # ملفات نظام macOS
+Thumbs.db           # ملفات نظام Windows
+
+### ملفات البناء ###
+*.min.css           # ملفات CSS مدمجة
+*.min.js            # ملفات JS مدمجة
+composer.lock       # (اختياري: احذف هذا السطر إذا كنت تريد تتبع الإصدارات)
+
+### ملفات النسخ الاحتياطي ###
+*.bak               # نسخ احتياطية
+*.backup            # نسخ احتياطية
+
+### ملفات الأمان ###
+*.pem               # شهادات SSL
+*.key               # مفاتيح تشفير
+
+
+
+
+
+
+https://drive.google.com/drive/u/0/folders/19wt9UkxfKZ_IvgwbSbRwnAGeZY86GhbD
+
+https://drive.google.com/drive/folders/19wt9UkxfKZ_IvgwbSbRwnAGeZY86GhbD?usp=sharing

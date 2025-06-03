@@ -1,0 +1,4 @@
+# منع الوصول المباشر إلى الملفات في مجلد "uploads"
+#<FilesMatch "\.(pdf|epub|txt)$">
+  #  Deny from all
+#</FilesMatch>
