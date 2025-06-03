@@ -40,7 +40,7 @@ Swal.fire({
 <?php unset($_SESSION['error']); ?>
 <?php endif; ?>
 
-<div class="container mt-5">
+<div class="container mt-51">
     <div class="row justify-content-center">
         <div class="col-md-8">
             <div class="card border-0 shadow-sm" style="border-radius: 15px;">
