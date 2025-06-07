@@ -13,7 +13,6 @@ require __DIR__ . '/includes/header.php';
 // جلب التصنيفات
 $stmt = $conn->prepare("SELECT category_id, category_name FROM categories");
 $stmt->execute();
-
 $categories = $stmt->get_result();
 
 // جلب تصنيفات المستخدم المختارة (إذا كان مسجلاً)
@@ -32,9 +31,9 @@ if (isset($_SESSION['user_id'])) {
 <?php if (isset($_SESSION['error'])): ?>
 <script>
 Swal.fire({
-    icon: 'error',
-    title: 'خطأ!',
-    text: '<?= addslashes($_SESSION['error']) ?>'
+    icon: 'warning',
+    title: 'انتبه.. !',
+    text: '<?= $_SESSION['error'] ?>'
 });
 </script>
 <?php unset($_SESSION['error']); ?>
@@ -89,9 +88,12 @@ Swal.fire({
                                         <input type="checkbox" 
                                             name="categories[]" 
                                             value="<?= $cat['category_id'] ?>" 
+
                                             id="cat-<?= $cat['category_id'] ?>" 
-                                            class="form-check-input visually-hidden"
-                                            <?= in_array($cat['category_id'], $user_categories) ? 'checked' : '' ?>>
+
+                                            class="form-check-input visually-hidden">
+
+                                          
                                         <label for="cat-<?= $cat['category_id'] ?>" 
                                             class="d-block p-3 rounded-3 border bg-light">
                                             <h6 class="mb-0 fw-bold text-dark"><?= htmlspecialchars($cat['category_name']) ?></h6>
@@ -109,9 +111,7 @@ Swal.fire({
                                     <i class="fas fa-check-circle me-2"></i> تسجيل
                                 </button>
                             </div>
-                        </div>
-
-                        
+                        </div>       
                     </form>
                 </div>
             </div>

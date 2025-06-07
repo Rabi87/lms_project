@@ -10,6 +10,10 @@ if (!isset($_SESSION['user_id'])) {
     header('Location: ' . BASE_URL . 'index.php');
     exit();
 }
+
+// Fixed admin user ID
+define('ADMIN_USER_ID', 5);
+
 // دالة لجلب عدد أعضاء المجموعة
 function get_member_count($group_id) {
     global $conn;
@@ -19,6 +23,7 @@ function get_member_count($group_id) {
     $result = $stmt->get_result()->fetch_assoc();
     return $result['count'] ?? 0;
 }
+
 // دالة لجلب عدد كتب المجموعة
 function get_book_count($group_id) {
     global $conn;
@@ -28,6 +33,7 @@ function get_book_count($group_id) {
     $result = $stmt->get_result()->fetch_assoc();
     return $result['count'] ?? 0;
 }
+
 // ------ معالجة طلبات POST ------
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     // إنشاء مجموعة جديدة
@@ -41,9 +47,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $stmt->execute();
 
         $group_id = $stmt->insert_id;
+        
+        // إضافة المالك إلى المجموعة
         $stmt = $conn->prepare("INSERT INTO group_members (group_id, user_id) VALUES (?, ?)");
         $stmt->bind_param("ii", $group_id, $ownerId);
         $stmt->execute();
+        
+        // إضافة الإداري الثابت (ADMIN_USER_ID) إلى المجموعة
+        if ($ownerId != ADMIN_USER_ID) {
+            $stmt = $conn->prepare("INSERT INTO group_members (group_id, user_id) VALUES (?, ?)");
+            $stmt->bind_param("ii", $group_id, ADMIN_USER_ID);
+            $stmt->execute();
+        }
 
         $_SESSION['message'] = "تم إنشاء المجموعة! الرابط: " . BASE_URL . "Forum/join_group.php?code=" . $uniqueCode;
         header("Location: manage_groups.php");
@@ -86,6 +101,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         exit();
     }
 }
+
 // ------ جلب البيانات ------
 // جميع المجموعات
 $stmt = $conn->prepare("SELECT group_id, group_name, owner_id, unique_code FROM users_groups");

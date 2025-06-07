@@ -24,10 +24,7 @@ function isAdmin() {
 
 // ======== معالجة تسجيل المستخدم ========
 if (isset($_POST['register'])) {
-    // إعادة تعيين متغيرات الجلسة للتأكد من نظافتها
-    unset($_SESSION['error']);
-    unset($_SESSION['success']);
-
+  
     try {
         // التحقق من البيانات الأساسية
         $name = $_POST['name'];
@@ -60,11 +57,7 @@ if (isset($_POST['register'])) {
         if (!$insert_stmt->execute()) {
             throw new Exception("فشل في تسجيل المستخدم");
         }
-        
         $user_id = $insert_stmt->insert_id;
-
-
-        
         $insert_stmt->close();
 
         // ----------- إضافة التصنيفات المفضلة -----------
@@ -86,10 +79,8 @@ if (isset($_POST['register'])) {
         header("Location: login.php");
         exit();
     } catch (Exception $e) {
-        // إغلاق أي statements مفتوحة في حالة الخطأ
-        if (isset($check_stmt)) $check_stmt->close();
-        if (isset($insert_stmt)) $insert_stmt->close();
-        if (isset($category_stmt)) $category_stmt->close();
+     
+        
         
         $_SESSION['error'] = $e->getMessage();
         header("Location: register.php");
@@ -143,6 +134,8 @@ if (isset($_POST['action']) && $_POST['action'] === 'toggle_favorite') {
 // ======== معالجة تسجيل الدخول ========
 if (isset($_POST['login'])) {
 
+    
+
     $name = $_POST['name'];
     $password = $_POST['password'];
     
@@ -153,18 +146,18 @@ if (isset($_POST['login'])) {
         $result = $stmt->get_result();
         
         if ($result->num_rows === 0) {
-            $_SESSION['erroruser'] = "اسم المستخدم غير موجود";
+            
             throw new Exception("المستخدم غير موجود");
         }
                 
         $user = $result->fetch_assoc();
         if ($user['status'] === 0) {
-            $_SESSION['error'] = "الحساب غير مفعل, يرجى رفع شكوى و إعادة المحاولة بعد 24 ساعة ";
+           
             throw new Exception("المستخدم غير مفعل");
         }
         
         if (!password_verify($password, $user['password'])) {
-            $_SESSION['errorpass'] = "كلمة المرور خاطئة";
+            
             throw new Exception("كلمة المرور خاطئة");
         }
         
@@ -172,6 +165,8 @@ if (isset($_POST['login'])) {
         $_SESSION['user_id'] = $user['id'];
         $_SESSION['user_name'] = $user['name'];
         $_SESSION['user_type'] = $user['user_type'];
+        $_SESSION['user_email'] = $user['email'];
+
 
        // ━━━━━━━━━━ تفعيل تذكرني ━━━━━━━━━━
         if (isset($_POST['remember_me'])) {
@@ -211,7 +206,7 @@ if (isset($_POST['login'])) {
             $name,
             $e->getMessage()
         );
-        
+        $_SESSION['error'] =  $e->getMessage();
         
         header("Location:" . BASE_URL . "login.php");
         exit();
@@ -894,7 +889,9 @@ if (isset($_POST['delete_request']) && isset($_SESSION['user_id'])) {
 // ======== معالجة إرسال الشكوى ========
 if (isset($_POST['submit_complaint'])) {
     $email = filter_var($_POST['email'], FILTER_SANITIZE_EMAIL);
-    $complaint = htmlspecialchars($_POST['complaint']);
+    $complaint_type = $_POST['complaint_type'];
+    $problem_type = $_POST['problem_type'] ?? null;
+    $complaint_details = htmlspecialchars($_POST['complaint_details']);
 
     try {
         // التحقق من صحة البريد الإلكتروني
@@ -902,18 +899,44 @@ if (isset($_POST['submit_complaint'])) {
             throw new Exception("البريد الإلكتروني غير صالح");
         }
 
-        // إدخال الشكوى في قاعدة البيانات
-        $stmt = $conn->prepare("INSERT INTO complaints (email, complaint) VALUES (?, ?)");
-        $stmt->bind_param("ss", $email, $complaint);
+        // جمع البيانات الإضافية
+        $additional_data = [];
+        $excluded_fields = ['email', 'complaint_type', 'problem_type', 'complaint_details', 'submit_complaint'];
         
-        if ($stmt->execute()) {
-            $_SESSION['success'] = "تم إرسال الشكوى بنجاح!";
-        } else {
-            throw new Exception("فشل في إرسال الشكوى");
+        foreach ($_POST as $key => $value) {
+            if (!in_array($key, $excluded_fields)) {
+                $additional_data[$key] = is_array($value) ? $value : htmlspecialchars($value);
+            }
         }
 
-        header("Location: index.php");
-        exit();
+        // تحويل البيانات الإضافية إلى JSON
+        $additional_json = json_encode($additional_data, JSON_UNESCAPED_UNICODE);
+
+        // إدخال البيانات في قاعدة البيانات
+        $sql = "INSERT INTO complaints 
+                (email, complaint_type, problem_type, complaint, additional_data, created_at, status)
+                VALUES (?, ?, ?, ?, ?, NOW(), 'pending')";
+        
+        $stmt = $conn->prepare($sql);
+        if (!$stmt) {
+            throw new Exception("فشل في إعداد الاستعلام: " . $conn->error);
+        }
+        
+        $stmt->bind_param("sssss", 
+            $email,
+            $complaint_type,
+            $problem_type,
+            $complaint_details,
+            $additional_json
+        );
+        
+        if($stmt->execute()) {
+            $_SESSION['success'] = 'تم تقديم الشكوى بنجاح';
+            header("Location: index.php");
+            exit();
+        } else {
+            throw new Exception("فشل في إرسال الشكوى: " . $stmt->error);
+        }
 
     } catch (Exception $e) {
         $_SESSION['error'] = $e->getMessage();
@@ -921,12 +944,75 @@ if (isset($_POST['submit_complaint'])) {
         exit();
     }
 }
+
 // ======== معالجة تمييز الشكوى كمحلولة ========
 if (isset($_GET['resolve_complaint']) && isAdmin()) {
     $complaint_id = (int)$_GET['resolve_complaint'];
     $conn->query("UPDATE complaints SET status = 'resolved' WHERE id = $complaint_id");
-    header("Location:" . BASE_URL . "admin/dashboard.php");
+    header("Location:" . BASE_URL . "admin/dashboard.php?section=complaints");
     exit();
+}
+
+// ======== معالجة حذف الشكوى ========
+if (isset($_GET['delete_complaint']) && isAdmin()) {
+    $complaint_id = (int)$_GET['delete_complaint'];
+    $conn->query("DELETE FROM complaints WHERE id = $complaint_id");
+    $_SESSION['success'] = "تم حذف الشكوى بنجاح";
+    header("Location:" . BASE_URL . "admin/dashboard.php?section=complaints");
+    exit();
+}
+
+// معالجة اضافة عضو من قبل المدير
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    // ... التحقق من CSRF Token ...
+    
+    // إضافة مستخدم جديد
+    if (isset($_POST['add_user'])) {
+        $name = $conn->real_escape_string($_POST['name']);
+        $email = $conn->real_escape_string($_POST['email']);
+        $password = password_hash($_POST['password'], PASSWORD_DEFAULT);
+        
+        // التحقق من عدم وجود البريد مسبقاً
+        $check_email = $conn->prepare("SELECT id FROM users WHERE email = ?");
+        $check_email->bind_param("s", $email);
+        $check_email->execute();
+        
+        if ($check_email->get_result()->num_rows > 0) {
+            $_SESSION['error'] = "البريد الإلكتروني مسجل مسبقاً";
+        } else {
+            // إضافة المستخدم
+            $stmt = $conn->prepare("INSERT INTO users (name, email, password, user_type, status) 
+                                    VALUES (?, ?, ?, 'user', 1)");
+            $stmt->bind_param("sss", $name, $email, $password);
+            
+            if ($stmt->execute()) {
+                // إرسال البريد الإلكتروني
+                $to = $email;
+                $subject = "حسابك في نظام إدارة المكتبة";
+                $message = "مرحباً $name،\n\n";
+                $message .= "تم إنشاء حساب لك في نظام إدارة المكتبة.\n";
+                $message .= "بريدك الإلكتروني: $email\n";
+                $message .= "كلمة المرور: " . $_POST['password'] . "\n\n";
+                $message .= "يمكنك تسجيل الدخول من خلال الرابط: " . BASE_URL . "login.php";
+                
+                $headers = "From: noreply@" . $_SERVER['HTTP_HOST'] . "\r\n";
+                $headers .= "Content-Type: text/plain; charset=UTF-8\r\n";
+                
+                if (mail($to, $subject, $message, $headers)) {
+                    $_SESSION['success'] = "تم إضافة العضو وإرسال بياناته إلى بريده الإلكتروني";
+                } else {
+                    $_SESSION['warning'] = "تم إضافة العضو ولكن فشل إرسال البريد الإلكتروني";
+                }
+            } else {
+                $_SESSION['error'] = "خطأ في إضافة العضو: " . $conn->error;
+            }
+        }
+        
+        header("Location: dashboard.php?section=users");
+        exit();
+    }
+    
+    // ... باقي الإجراءات ...
 }
 // إذا لم يتم التعرف على أي عملية
 die("طلب غير معروف");

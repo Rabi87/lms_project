@@ -16,17 +16,50 @@ Swal.fire({
 
 <div class="container mt-5">
     <div class="row justify-content-center">
-        <div class="col-md-6">
+        <div class="col-md-8">
             <div class="card">
                 <div class="card-header">تقديم شكوى</div>
                 <div class="card-body">
-                    <form action="<?= BASE_URL ?>process.php" method="POST">
+                    <form action="<?= BASE_URL ?>process.php" method="POST" id="complaintForm">
+                        
                         <div class="mb-3">
-                            <input type="email" class="form-control" name="email" placeholder="البريد الإلكتروني" required>
+                            <?php if (isset($_SESSION['user_email'])): ?>
+                                <input type="email" class="form-control" name="email" 
+                                       value="<?= htmlspecialchars($_SESSION['user_email']) ?>" 
+                                       readonly>
+                            <?php else: ?>
+                                <input type="email" class="form-control" name="email" 
+                                       placeholder="البريد الإلكتروني" required>
+                            <?php endif; ?>
+                            
                         </div>
+                        
+                        <!-- حقل نوع الشكوى -->
                         <div class="mb-3">
-                            <textarea class="form-control" name="complaint" rows="5" placeholder="نص الشكوى" required></textarea>
+                            <label class="form-label">نوع الشكوى</label>
+                            <select class="form-select" id="complaintType" name="complaint_type" onchange="showAdditionalFields()" required>
+                                <option value="">-- اختر نوع الشكوى --</option>
+                                <option value="account">مشكلة في الحساب</option>
+                                <option value="payment">مشكلة في عملية الدفع</option>
+                                <option value="book">كتاب غير متوفر</option>
+                                <option value="borrow">مشكلة في الاستعارة</option>
+                                <option value="quality">جودة كتاب غير مقبولة</option>
+                                <option value="delivery">تأخر في التوصيل</option>
+                                <option value="other">شكوى أخرى</option>
+                            </select>
                         </div>
+                        
+                        <!-- حقول إضافية حسب نوع الشكوى -->
+                        <div id="additionalFields"></div>
+                        <input type="hidden" name="problem_type" id="problemType" value="">
+                        
+                        <!-- حقل نص الشكوى -->
+                        <div class="mb-3">
+                            <label class="form-label">تفاصيل الشكوى</label>
+                            <textarea class="form-control" name="complaint_details" rows="5" 
+                                      placeholder="وصف المشكلة بالتفصيل" required></textarea>
+                        </div>
+                        
                         <button type="submit" name="submit_complaint" class="btn btn-primary">إرسال</button>
                     </form>
                 </div>
@@ -34,5 +67,230 @@ Swal.fire({
         </div>
     </div>
 </div>
+
+<script>
+    const problemTypeFields = {
+    account: 'account_issue_type',
+    quality: 'quality_issue_type'
+};
+function showAdditionalFields() {
+    const type = document.getElementById('complaintType').value;
+    const container = document.getElementById('additionalFields');
+    
+    if (type && complaintFields[type]) {
+        container.innerHTML = complaintFields[type];
+    } else {
+        container.innerHTML = '';
+    }
+    
+    // إعادة تعيين حقل المشكلة الفرعية
+    document.getElementById('problemType').value = '';
+}
+
+// دالة جديدة لتحديث حقل المشكلة الفرعية
+function updateProblemType() {
+    const complaintType = document.getElementById('complaintType').value;
+    const problemTypeField = problemTypeFields[complaintType];
+    const problemTypeValue = problemTypeField 
+        ? document.querySelector(`[name="${problemTypeField}"]`)?.value 
+        : '';
+    
+    document.getElementById('problemType').value = problemTypeValue || '';
+}
+
+// تحديث الحقول عند تغيير أي مدخل
+document.addEventListener('change', function(e) {
+    if (e.target.name === 'complaint_type' || 
+        e.target.name === 'account_issue_type' || 
+        e.target.name === 'quality_issue_type') {
+        updateProblemType();
+    }
+});
+// حقول إضافية لكل نوع شكوى
+const complaintFields = {
+    account: `
+        <div class="mb-3" name="account_issue_type">
+            <label class="form-label">نوع المشكلة</label>
+            <select class="form-select" name="account_issue_type" id="accountIssueType" onchange="toggleLastLoginField()" required>
+                <option value="">-- اختر --</option>
+                <option value="creation">مشكلة تسجيل الحساب</option>
+                <option value="login">مشكلة تسجيل الدخول</option>
+                <option value="activation">تفعيل الحساب</option>
+                <option value="update">تحديث المعلومات</option>
+                <option value="password">استعادة كلمة المرور</option>
+            </select>
+        </div>
+        <div class="mb-3" id="lastLoginField">
+            <label class="form-label">تاريخ آخر وصول ناجح</label>
+            <input type="date" class="form-control" name="last_success_login">
+        </div>
+    `,
+    
+    payment: `
+        <div class="mb-3">
+            <label class="form-label">رقم العملية</label>
+            <input type="text" class="form-control" name="transaction_id" required>
+        </div>
+        <div class="row">
+            <div class="col-md-6 mb-3">
+                <label class="form-label">طريقة الدفع</label>
+                <select class="form-select" name="payment_method" required>
+                    <option value="">-- اختر --</option>
+                    <option value="credit_card">بطاقة ائتمانية</option>
+                    <option value="mada">مدى</option>
+                    <option value="apple_pay">Apple Pay</option>
+                    <option value="paypal">PayPal</option>
+                </select>
+            </div>
+            <div class="col-md-6 mb-3">
+                <label class="form-label">المبلغ (ريال)</label>
+                <input type="number" class="form-control" name="amount" step="0.01" required>
+            </div>
+        </div>
+    `,
+    
+    book: `
+        <div class="mb-3">
+            <label class="form-label">اسم الكتاب</label>
+            <input type="text" class="form-control" name="book_title" required>
+        </div>
+        <div class="mb-3">
+            <label class="form-label">المؤلف</label>
+            <input type="text" class="form-control" name="book_author">
+        </div>
+        <div class="mb-3">
+            <label class="form-label">رقم ISBN</label>
+            <input type="text" class="form-control" name="isbn">
+        </div>
+    `,
+    
+    borrow: `
+        <div class="mb-3">
+            <label class="form-label">اسم الكتاب المستعار</label>
+            <input type="text" class="form-control" name="borrowed_book" required>
+        </div>
+        <div class="row">
+            <div class="col-md-6 mb-3">
+                <label class="form-label">تاريخ الاستعارة</label>
+                <input type="date" class="form-control" name="borrow_date" required>
+            </div>
+            <div class="col-md-6 mb-3">
+                <label class="form-label">تاريخ الاستحقاق</label>
+                <input type="date" class="form-control" name="due_date" required>
+            </div>
+        </div>
+    `,
+    
+    quality: `
+        <div class="mb-3">
+            <label class="form-label">اسم الكتاب</label>
+            <input type="text" class="form-control" name="quality_book_title" required>
+        </div>
+        <div class="mb-3">
+            <label class="form-label">نوع المشكلة</label>
+            <select class="form-select" name="quality_issue_type" required>
+                <option value="">-- اختر --</option>
+                <option value="printing">جودة طباعة</option>
+                <option value="missing">صفحات ناقصة</option>
+                <option value="damaged">كتاب تالف</option>
+                <option value="content">محتوى غير مكتمل</option>
+                <option value="format">تنسيق غير صحيح</option>
+            </select>
+        </div>
+        <div class="mb-3">
+            <label class="form-label">رقم الإصدار</label>
+            <input type="text" class="form-control" name="edition">
+        </div>
+    `,
+    
+    delivery: `
+        <div class="mb-3">
+            <label class="form-label">رقم الطلب</label>
+            <input type="text" class="form-control" name="order_id" required>
+        </div>
+        <div class="row">
+            <div class="col-md-6 mb-3">
+                <label class="form-label">تاريخ الطلب</label>
+                <input type="date" class="form-control" name="order_date" required>
+            </div>
+            <div class="col-md-6 mb-3">
+                <label class="form-label">تاريخ التوصيل المتوقع</label>
+                <input type="date" class="form-control" name="expected_delivery" required>
+            </div>
+        </div>
+        <div class="mb-3">
+            <label class="form-label">عنوان التوصيل</label>
+            <textarea class="form-control" name="delivery_address" rows="2"></textarea>
+        </div>
+    `,
+    
+    other: ''
+};
+// إظهار/إخفاء حقل آخر وصول ناجح بناءً على نوع المشكلة
+function toggleLastLoginField() {
+    const issueType = document.getElementById('accountIssueType')?.value;
+    const lastLoginField = document.getElementById('lastLoginField');
+    
+    if (lastLoginField) {
+        if (issueType === 'creation') {
+            lastLoginField.style.display = 'none';
+        } else {
+            lastLoginField.style.display = 'block';
+        }
+    }
+}
+// تحديث دالة updateProblemType
+function updateProblemType() {
+    const complaintType = document.getElementById('complaintType').value;
+    let problemTypeValue = '';
+    
+    if (complaintType === 'account') {
+        const accountIssue = document.querySelector('[name="account_issue_type"]');
+        problemTypeValue = accountIssue ? accountIssue.value : '';
+    } 
+    else if (complaintType === 'quality') {
+        const qualityIssue = document.querySelector('[name="quality_issue_type"]');
+        problemTypeValue = qualityIssue ? qualityIssue.value : '';
+    }
+    
+    document.getElementById('problemType').value = problemTypeValue;
+}
+
+// إضافة هذا الحدث لضمان تحديث الحقل المخفي
+document.addEventListener('DOMContentLoaded', function() {
+    showAdditionalFields();
+    
+    document.body.addEventListener('change', function(e) {
+        if (e.target.name === 'account_issue_type' || 
+            e.target.name === 'quality_issue_type') {
+            updateProblemType();
+        }
+    });
+});
+
+function showAdditionalFields() {
+    const type = document.getElementById('complaintType').value;
+    const container = document.getElementById('additionalFields');
+    
+    if (type && complaintFields[type]) {
+        container.innerHTML = complaintFields[type];
+    } else {
+        container.innerHTML = '';
+    }
+    
+    // تحديث حقل المشكلة الفرعية فوراً
+    updateProblemType();
+}
+
+
+// تحديث الحقل المخفي عند تغيير أي إدخال
+document.addEventListener('change', function(e) {
+    if (e.target.name === 'complaint_type' || 
+        e.target.name === 'account_issue_type' || 
+        e.target.name === 'quality_issue_type') {
+        updateProblemType();
+    }
+});
+</script>
 
 <?php require __DIR__ . '/includes/footer.php'; ?>

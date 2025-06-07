@@ -2,55 +2,34 @@
 if (session_status() === PHP_SESSION_NONE) {
     session_start();}
 
+
 require __DIR__ . '/includes/config.php'; 
 require __DIR__ . '/includes/header.php'; 
 
 
 ?>
-<!-- نجاح عملية التسجيل-->
 <?php if (isset($_SESSION['success'])): ?>
-<script>
-Swal.fire({
-    icon: 'success',
-    title: 'مبروك.. !',
-    text: '<?= $_SESSION['success'] ?>'
-});
-</script>
-<?php unset($_SESSION['success']); ?>
+    <script>
+        Swal.fire({
+            icon: 'success',
+            title: 'مبروك.. !',
+            text: '<?= $_SESSION['success'] ?>'
+        });
+    </script>
+    <?php unset($_SESSION['success']); ?>
 <?php endif; ?>
 <!-- فشل عملية التسجيل-->
 <?php if (isset($_SESSION['error'])): ?>
-<script>
-Swal.fire({
-    icon: 'warning',
-    title: 'انتبه.. !',
-    text: '<?= $_SESSION['error'] ?>'
-});
-</script>
-<?php unset($_SESSION['error']); ?>
+    <script>
+        Swal.fire({
+            icon: 'warning',
+            title: 'انتبه.. !',
+            text: '<?= $_SESSION['error'] ?>'
+        });
+    </script>
+    <?php unset($_SESSION['error']); ?>
 <?php endif; ?>
 
-<?php if (isset($_SESSION['erroruser'])): ?>
-<script>
-Swal.fire({
-    icon: 'warning',
-    title: 'انتبه.. !',
-    text: '<?= $_SESSION['erroruser'] ?>'
-});
-</script>
-<?php unset($_SESSION['erroruser']); ?>
-<?php endif; ?>
-
-<?php if (isset($_SESSION['errorpass'])): ?>
-<script>
-Swal.fire({
-    icon: 'warning',
-    title: 'انتبه.. !',
-    text: '<?= $_SESSION['errorpass'] ?>'
-});
-</script>
-<?php unset($_SESSION['errorpass']); ?>
-<?php endif; ?>
 
 <div class="container mt-5">
     <div class="row justify-content-center">

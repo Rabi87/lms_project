@@ -1,5 +1,5 @@
 <?php
-ob_start(); // بدء تخزين المخرجات
+
 if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
@@ -12,7 +12,7 @@ if (isset($_SESSION['user_id'])) {
     $stmt->execute();
     $stmt->close();
 }
-ob_end_clean(); // مسح المخرجات المخزنة قبل إرسال الـ headers
+
 ?>
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
@@ -188,30 +188,27 @@ ob_end_clean(); // مسح المخرجات المخزنة قبل إرسال ال
                         <li class="nav-item"> <a class="nav-link" href="<?= BASE_URL ?>book_of_the_month.php">كتاب الشهر</a> </li>
                         <?php if (isset($_SESSION['user_id'])): ?>
                         <li class="nav-item">
-    <a class="nav-link" href="recommended_books.php">
-        <i class="fas fa-star me-1"></i> كتب موصى بها
-    </a>
-</li>
+                            <a class="nav-link" href="<?= BASE_URL ?>recommended_books.php">
+                                </i>تفضيلاتك                            </a>
+                        </li>
                         <li class="nav-item"> <a class="nav-link"
                                 href="<?= BASE_URL ?>Forum/manage_groups.php">المنتدى</a></li>
                         <li class="nav-item"> <a class="nav-link"
                                 href="<?= BASE_URL . ($_SESSION['user_type'] == 'admin' ? 'admin/dashboard.php' : 'user/dashboard.php') ?>">
                                 لوحة التحكم
                             </a>
-                        </li>
-                        <li class="nav-item"> <a class="nav-link" href="<?= BASE_URL ?>complaint.php">تواصل معنا</a>
-                        </li>
+                        
                         <?php endif; ?>
                         </li>
                     </ul>
                 
-                <div class="lang-switcher" style="position: absolute; top: 10px; right: 10px;">
+                <!--<div class="lang-switcher" style="position: absolute; top: 10px; right: 10px;">
                     <?php if($current_lang == 'ar'): ?>
                         <a href="?lang=en" class="btn btn-sm btn-light">English</a>
                     <?php else: ?>
                         <a href="?lang=ar" class="btn btn-sm btn-light">العربية</a>
                     <?php endif; ?>
-                </div>
+                </div> -->
                 </div>
             </nav>
         </div>
@@ -229,6 +226,28 @@ ob_end_clean(); // مسح المخرجات المخزنة قبل إرسال ال
             document.getElementById('logoutDropdown').style.display = 'none';
         }
     }
+    </script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            <?php if (isset($_SESSION['error'])): ?>
+                Swal.fire({
+                    icon: 'error',
+                    title: 'خطأ',
+                    text: '<?= $_SESSION['error'] ?>'
+                });
+                <?php unset($_SESSION['error']); ?>
+            <?php endif; ?>
+
+            <?php if (isset($_SESSION['success'])) : ?>
+                Swal.fire({
+                    icon: 'success',
+                    title: 'نجاح',
+                    text: '<?= $_SESSION['success'] ?>'
+                });
+                <?php unset($_SESSION['success']); ?>
+            <?php endif; ?>
+        });
     </script>
 
     <main class="flex-grow-1 container my-2">

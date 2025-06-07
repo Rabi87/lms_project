@@ -1,7 +1,7 @@
 <?php
-session_start();
-require __DIR__ . '/includes/config.php';
-require __DIR__ . '/includes/header.php';
+
+require __DIR__ . '/../includes/config.php';
+
 
 // التحقق من تسجيل الدخول
 if (!isset($_SESSION['user_id'])) {
@@ -131,4 +131,3 @@ Swal.fire({
     <?php endif; ?>
 </div>
 
-<?php require __DIR__ . '/includes/footer.php'; ?>

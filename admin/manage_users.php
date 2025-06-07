@@ -153,6 +153,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     <span class="input-group-text bg-transparent border-0"><i class="fas fa-search"></i></span>
                 </div>
                 <div>
+                    <a href="add_user.php" class="btn btn-info btn-sm rounded-pill me-2">
+        <i class="fas fa-user-plus me-1"></i> عضو جديد
+    </a>
                     <!-- زر تصدير التقرير -->
                     <button class="btn btn-success btn-sm rounded-pill me-2 dropdown-toggle" type="button"
                         data-bs-toggle="dropdown">
@@ -290,8 +293,61 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             <?php endif; ?>
         </div>
     </div>
+    <!-- نموذج إضافة مستخدم جديد -->
+<div class="modal fade" id="addUserModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header bg-info text-white">
+                <h5 class="modal-title"><i class="fas fa-user-plus me-2"></i>إضافة عضو جديد</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form method="post" action="manage_users.php">
+                <div class="modal-body">
+                    <input type="hidden" name="csrf_token" value="<?= $_SESSION['csrf_token'] ?>">
+                    
+                    <div class="mb-3">
+                        <label for="name" class="form-label">الاسم الكامل</label>
+                        <input type="text" class="form-control" id="name" name="name" required>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="email" class="form-label">البريد الإلكتروني</label>
+                        <input type="email" class="form-control" id="email" name="email" required>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="password" class="form-label">كلمة المرور</label>
+                        <div class="input-group">
+                            <input type="text" class="form-control" id="password" name="password" required>
+                            <button type="button" class="btn btn-outline-secondary" id="generatePassword">
+                                توليد
+                            </button>
+                        </div>
+                        <small class="form-text text-muted">سيتم إرسال كلمة المرور إلى البريد الإلكتروني للمستخدم</small>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">إلغاء</button>
+                    <button type="submit" name="add_user" class="btn btn-primary">حفظ وإرسال</button>
+                </div>
+            </form>
+        </div>
+    </div>
 </div>
 
+
+</div>
+<script>
+// توليد كلمة مرور عشوائية
+document.getElementById('generatePassword').addEventListener('click', function() {
+    const charset = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%^&*()_+";
+    let password = "";
+    for (let i = 0; i < 10; i++) {
+        password += charset.charAt(Math.floor(Math.random() * charset.length));
+    }
+    document.getElementById('password').value = password;
+});
+</script>
 <!-- JavaScript for Confirmation -->
 <script>
 function confirmDelete(hasRequests) {

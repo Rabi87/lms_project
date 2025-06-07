@@ -1,5 +1,7 @@
 <?php
-session_start();
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
 require __DIR__ . '/includes/config.php';
 require __DIR__ . '/includes/header.php';
 
@@ -9,31 +11,29 @@ if (isset($_GET['remove'])) {
     if (isset($_SESSION['cart'][$book_id])) {
         unset($_SESSION['cart'][$book_id]);
     }
-    header("Location: cart.php");
-    exit;
 }
 ?>
 
 <?php if (isset($_SESSION['error'])): ?>
-<script>
-Swal.fire({
-    icon: 'warning',
-    title: 'انتبه.. !',
-    text: '<?= $_SESSION['error'] ?>'
-});
-</script>
-<?php unset($_SESSION['error']); ?>
+    <script>
+        Swal.fire({
+            icon: 'warning',
+            title: 'انتبه.. !',
+            text: '<?= $_SESSION['error'] ?>'
+        });
+    </script>
+    <?php unset($_SESSION['error']); ?>
 <?php endif; ?>
 
 <?php if (isset($_SESSION['success'])): ?>
-<script>
-Swal.fire({
-    icon: 'success',
-    title: 'شكرا لك.. !',
-    text: '<?= $_SESSION['success'] ?>'
-});
-</script>
-<?php unset($_SESSION['success']); ?>
+    <script>
+        Swal.fire({
+            icon: 'success',
+            title: 'شكرا لك.. !',
+            text: '<?= $_SESSION['success'] ?>'
+        });
+    </script>
+    <?php unset($_SESSION['success']); ?>
 <?php endif; ?>
 
 
@@ -47,16 +47,14 @@ Swal.fire({
                     <div class="card mb-3">
                         <div class="row g-0">
                             <div class="col-md-4">
-                                <img src="<?= BASE_URL . $item['cover_image'] ?>" 
-                                     class="img-fluid rounded-start" 
-                                     alt="غلاف الكتاب">
+                                <img src="<?= BASE_URL . $item['cover_image'] ?>" class="img-fluid rounded-start"
+                                    alt="غلاف الكتاب">
                             </div>
                             <div class="col-md-8">
                                 <div class="card-body">
                                     <h5 class="card-title"><?= $item['title'] ?></h5>
                                     <p class="card-text">السعر: <?= number_format($item['price']) ?> ل.س</p>
-                                    <a href="cart.php?remove=<?= $book_id ?>" 
-                                       class="btn btn-danger btn-sm">
+                                    <a href="cart.php?remove=<?= $book_id ?>" class="btn btn-danger btn-sm">
                                         <i class="fas fa-trash"></i> إزالة
                                     </a>
                                 </div>

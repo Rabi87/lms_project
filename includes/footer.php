@@ -56,9 +56,9 @@
                         <ul class="list-unstyled">
                             
                             <ul class="list-unstyled text-secondary">
-                                <li><a href="#" class="text-decoration-none text-secondary text-white-50">الرئيسية</a></li>
-                                <li><a href="#" class="text-decoration-none text-secondary text-white-50">شكاوي</a></li>
-                                <li><a href="#" class="text-decoration-none text-secondary text-white-50">تواصل معنا</a></li>
+                                <li><a href="<?= BASE_URL ?>index.php" class="text-decoration-none text-secondary text-white-50">الرئيسية</a></li>
+                            
+                                <li><a href="<?= BASE_URL ?>complaint.php" class="text-decoration-none text-secondary text-white-50">تواصل معنا</a></li>
                             </ul>
                         </ul>
                     </div>
