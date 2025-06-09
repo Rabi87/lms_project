@@ -11,6 +11,16 @@ error_reporting(E_ALL);
 ini_set('display_errors', 1);
 ini_set('display_startup_errors', 1);
 
+// استعلام الصور المنزلقة (Slider)
+$slider_query = "SELECT * FROM slider_images WHERE is_active = 1 ORDER BY created_at DESC";
+$slider_result = $conn->query($slider_query);
+$slides = [];
+if ($slider_result && $slider_result->num_rows > 0) {
+    while ($row = $slider_result->fetch_assoc()) {
+        $slides[] = $row;
+    }
+}
+
 $favorites = [];
 if (isset($_SESSION['user_id'])) {
     $user_id = $_SESSION['user_id'];
@@ -21,8 +31,7 @@ if (isset($_SESSION['user_id'])) {
     }
 }
 
-$slider_query = "SELECT * FROM slider_images WHERE is_active = 1 ORDER BY created_at DESC";
-$slider_result = $conn->query($slider_query);
+
 // استعلام الكتب المخفضة
 $discounted_books_query = "
     SELECT *,
@@ -146,107 +155,241 @@ if (!$books_result) {
 .text-decoration-line-through {
     text-decoration: line-through;
 }
-
-.lastest {
- margin:5px;
- padding:5px;   
-
-background: linear-gradient(135deg, #4a5568 0%, #2d3748 100%);
-color:white;
+.divider {
+  position: relative;
+  margin: 30px 0;
+  text-align: center;
 }
 
- 
+.divider::before {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: 0;
+  width: 100%;
+  height: 2px;
+  background-color: #303a4b; /* لون الخط */
+  transform: translateY(-50%);
+  z-index: 1;
+}
 
+.divider-text {
+  position: relative;
+  display: inline-block;
+  padding: 10px 20px;
+ background-color:#E7EDF0;
+  color: #303a4b;
+  font-size: 25px;
+  z-index: 2;
+ border: 1px solid #303a4b;
+  border-radius: 5px;
+}
+
+ .test{
+     text-align: center;
+  margin-bottom: 20px;
+  font-size: 24px;
+  color:#0d6efd;
+  font-weight: bold;
+  display: inline-block;
+  padding: 10px 20px;
+  
+  border: 1px solid #0d6efd;
+  border-radius: 5px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
 .slider-wrapper {
     display: flex;
     align-items: center;
-    gap: 30px;
+    gap: 20px;
     position: relative;
+    margin-bottom: 30px;
 }
 
 .static-card {
-    flex: 0 0 250px;
+    flex: 0 0 200px;
     height: 350px;
-    background: #f5f5f5;
+    background:rgb(255, 255, 255);
     border-radius: 15px;
     padding: 20px;
     box-shadow: 0 5px 15px rgba(0,0,0,0.1);
     display: flex;
+    flex-direction: column;
     align-items: center;
     justify-content: center;
-    font-size: 24px;
-    color: #333;
+    font-size: 1.2rem;
+    color: #000;
+    text-align: center;
+}
+
+.cat-wrapper {
+    display: flex;0d6efd
+    align-items: center;
+    gap: 20px;
+    position: relative;
+    margin-bottom: 30px;
+    
+}
+
+.cat-card {
+    flex: 0 0 420px;
+    height: 100px;
+    background:rgb(255, 255, 255);
+    border-radius: 15px;
+    padding: 20px;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.2rem;
+    color: #000;
+    text-align: center;
+    transition: transform 0.3s;
+    
+}
+.cat-card:hover{
+    transform: translateY(-10px);
+    background:#303a4b;
+    color: #fff;
 }
 
 .slider-container {
     flex: 1;
     overflow: hidden;
-}
-
-.slider {
-    display: flex;
-    transition: transform 0.5s ease-in-out;
-    gap: 20px;
-}
-
-.slide {
-    
-    height: 400px;
-    background: #fff;
+    position: relative;
     border-radius: 15px;
     box-shadow: 0 5px 15px rgba(0,0,0,0.1);
-    padding: 30px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 24px;
-    color: white;
-}
-
-.controls {
-    margin-top: 20px;
-    text-align: center;
-}
-
-button {
-    padding: 10px 20px;
-    margin: 0 10px;
-    border: none;
-    background: #007bff;
-    color: white;
-    border-radius: 5px;
-    cursor: pointer;
-}
-
-/* ألوان عشوائية للشرائح */
-
-
-/* في قسم الـ style الموجود في home2.php */
-.slider-container {
-    width: 100%;
-    overflow: hidden;
+    height: 400px; /* تحديد ارتفاع ثابت */
 }
 
 .slider {
     display: flex;
     transition: transform 0.5s ease-in-out;
-    width: 100%; /* إضافة */
+    width: 100%;
+    height: 100%; /* استخدام الارتفاع الكامل */
 }
 
 .slide {
-    min-width: 100%; /* عرض كامل للحاوية */
-    height: 500px; /* يمكن تعديل الارتفاع حسب الحاجة */
-    flex-shrink: 0; /* منع التقلص */
+    min-width: 100%;
+    flex-shrink: 0;
     position: relative;
+    height: 100%; /* استخدام الارتفاع الكامل */
 }
 
 .slide img {
     width: 100%;
     height: 100%;
-    object-fit: cover; /* لتغطية المساحة دون تشويه */
+    object-fit: cover;
     border-radius: 15px;
 }
 
+.slider-controls {
+    position: absolute;
+    top: 50%;
+    width: 100%;
+    display: flex;
+    justify-content: space-between;
+    transform: translateY(-50%);
+    padding: 0 20px;
+    z-index: 10;
+}
+
+.slider-controls button {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.7) !important;
+    border: none;
+    color: #333;
+    font-size: 1.2rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.3s;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+}
+
+.slider-controls button:hover {
+    background: rgba(0, 0, 0, 0.7) !important;
+    color: white;
+    transform: scale(1.1);
+}
+
+.slider-indicators {
+    position: absolute;
+    bottom: 20px;
+    left: 0;
+    right: 0;
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+    z-index: 10;
+}
+
+.slider-indicators span {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.5);
+    cursor: pointer;
+    transition: all 0.3s;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.3);
+}
+
+.slider-indicators span.active {
+    background: rgba(255, 255, 255, 1);
+    transform: scale(1.2);
+}
+
+.slide-caption {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background: rgba(0, 0, 0, 0.6);
+    color: white;
+    padding: 15px 20px;
+    border-bottom-left-radius: 15px;
+    border-bottom-right-radius: 15px;
+    z-index: 5;
+}
+
+.slide-caption h3 {
+    margin-bottom: 5px;
+    font-size: 1.2rem;
+}
+
+@media (max-width: 992px) {
+    .slider-wrapper {
+        flex-direction: column;
+    }
+    
+    .static-card {
+        width: 100%;
+        height: auto;
+        margin-bottom: 20px;
+        flex: none;
+    }
+    
+    .slider-container {
+        height: 350px;
+    }
+}
+
+@media (max-width: 576px) {
+    .slider-container {
+        height: 250px;
+    }
+    
+    .slider-controls button {
+        width: 30px;
+        height: 30px;
+        font-size: 1rem;
+    }
+}
+  
 
 </style>
 
@@ -269,40 +412,65 @@ Swal.fire({
     title: 'شكرا لك.. !',
     text: '<?= $_SESSION['success'] ?>'
 });
+
 </script>
 <?php unset($_SESSION['success']); ?>
 <?php endif; ?>
+
 <div class="slider-wrapper">
     <div class="static-card">
-        إعلان أو محتوى ثابت
+        <i class="fas fa-tag fa-3x mb-3 text-primary"></i>
+        <h5>عروض خاصة</h5>
+        <p class="mt-2">خصومات تصل إلى 50% على مجموعة مختارة من الكتب</p>
     </div>
 
     <div class="slider-container">
-        <div class="slider">
-            <?php if ($slider_result->num_rows > 0): 
-                while($slide = $slider_result->fetch_assoc()): ?>
-                <div class="slide">
-                    <img src="<?= BASE_URL . $slide['image_path'] ?>" 
-                         alt="شريحة" 
-                         style="width:100%; height:100%; object-fit:cover; border-radius:15px;">
-                </div>
-                <?php endwhile; 
-            else: ?>
-                <div class="slide">لا توجد شرائح متاحة</div>
-            <?php endif; ?>
+        <div class="slider" id="main-slider">
+            <?php foreach ($slides as $index => $slide): ?>
+            <div class="slide">
+                <img src="<?= BASE_URL . $slide['image_path'] ?>" alt="صورة <?= $index + 1 ?>">
+            </div>
+            <?php endforeach; ?>
         </div>
+        
+        <div class="slider-controls">
+            <button id="prev-slide"><i class="fas fa-chevron-right"></i></button>
+            <button id="next-slide"><i class="fas fa-chevron-left"></i></button>
+        </div>
+        
+        <?php if (count($slides) > 0): ?>
+        <div class="slider-indicators" id="slider-indicators">
+            <?php for ($i = 0; $i < count($slides); $i++): ?>
+            <span <?= $i === 0 ? 'class="active"' : '' ?> data-index="<?= $i ?>"></span>
+            <?php endfor; ?>
+        </div>
+        <?php endif; ?>
     </div>
 
+
+    <div class="dot-container">
+        <?php for ($i = 0; $i < count($slides); $i++): ?>
+            <span class="dot" onclick="currentSlide(<?php echo $i + 1; ?>)"></span>
+        <?php endfor; ?>
+    </div>
+
+    
     <div class="static-card">
-        إعلان أو محتوى ثابت
+        <i class="fas fa-star fa-3x mb-3 text-warning"></i>
+        <a href="category_books.php" class="static-card-link" style="text-decoration: none; color: inherit;">
+        <h5>التصنيفات العامة</h5>
+        <p class="mt-2">اكتشف الكتب حسب التصنيفات المعتمدة في المنصة</p>
+        </a>
     </div>
-</div>
 
+</div>
 
 <!-- أحدث الكتب المضافة -->
 <div class="container my-5">
+    <div class="divider">
     <?php if ($new_books_result->num_rows > 0): ?>
-    <h2 class="lastest text-center mb-4"><?= __('latest_additions') ?> <i class="fas fa-star text-warning"></i></h2>
+    <span class="divider-text"><?= __('latest_additions') ?></span>
+    </div>
     <div class="owl-carousel owl-theme">
         <?php while($book = $new_books_result->fetch_assoc()): 
             $is_discounted = ($book['has_discount'] == 1);
@@ -404,10 +572,32 @@ Swal.fire({
     <?php endif; ?>
 </div>
 
+    <!--  التصنيفات -->
+<div class="cat-wrapper">
+    <div class="cat-card">
+        <a href="all_books.php?type=&search=&category=2&author=&rating=0" class="static-card-link" style="text-decoration: none; color: inherit;">
+        <h1>العلمية</h1>
+        </a>
+    </div>
+     <div class="cat-card">
+        <a href="all_books.php?type=&search=&category=3&author=&rating=0" class="static-card-link" style="text-decoration: none; color: inherit;">
+        <h1>تاريخية</h1>
+        </a>
+    </div>
+     <div class="cat-card">
+       <a href="all_books.php?type=&search=&category=1&author=&rating=0" class="static-card-link" style="text-decoration: none; color: inherit;">
+        <h1>أدبية</h1>
+        </a>
+    </div>
+  
+</div>
+
 <!-- الكتب المخفضة -->
 <div class="container my-5">
+    <div class="divider">
     <?php if ($discounted_books_result->num_rows > 0): ?>
-    <h2 class="lastest text-center mb-4"><?= __('discounts') ?></h2>
+    <span class="divider-text"><?= __('discounts')?></span>
+    </div>
     <div class="owl-carousel owl-theme">
         <?php while($book = $discounted_books_result->fetch_assoc()): ?>
         <div class="item">
@@ -493,11 +683,33 @@ Swal.fire({
     <?php endif; ?>
 </div>
 
+      <!--  التصنيفات -->
+<div class="cat-wrapper">
+    <div class="cat-card">
+        <a href="category_books.php" class="static-card-link" style="text-decoration: none; color: inherit;">
+        <h1>أطفال</h1>
+        </a>
+    </div>
+     <div class="cat-card">
+        <a href="category_books.php" class="static-card-link" style="text-decoration: none; color: inherit;">
+        <h1>برمجة</h1>
+        </a>
+    </div>
+     <div class="cat-card">
+       <a href="category_books.php" class="static-card-link" style="text-decoration: none; color: inherit;">
+        <h1>ذكاء</h1>
+        </a>
+    </div>
+  
+</div>
 
+ 
 <!-- قسم الكتب الأكثر مبيعًا -->
 <div class="container my-5">
+    <div class="divider">
     <?php if ($bestsellers_result->num_rows > 0): ?>
-    <h2 class="lastest text-center mb-4"><?= __('bestsellers') ?></h2>
+    <span class="divider-text"><?=  __('bestsellers') ?></span>
+    </div>
     <div class="owl-carousel owl-theme bestsellers-carousel">
         <?php while($book = $bestsellers_result->fetch_assoc()): 
             $is_discounted = ($book['has_discount'] == 1);
@@ -594,10 +806,34 @@ Swal.fire({
     <?php endif; ?>
 </div>
 
+      <!--  التصنيفات -->
+<div class="cat-wrapper">
+    <div class="cat-card">
+        <a href="category_books.php" class="static-card-link" style="text-decoration: none; color: inherit;">
+        <h1>سياسة</h1>
+        </a>
+    </div>
+     <div class="cat-card">
+        <a href="category_books.php" class="static-card-link" style="text-decoration: none; color: inherit;">
+        <h1>أقتصاد</h1>
+        </a>
+    </div>
+     <div class="cat-card">
+       <a href="category_books.php" class="static-card-link" style="text-decoration: none; color: inherit;">
+        <h1>فنون</h1>
+        </a>
+    </div>
+  
+</div>
+
+ 
 <!-- قسم كل محتويات المكتبة -->
 <div class="container my-5">
+     <div class="divider">
     <?php if ($books_result->num_rows > 0): ?>
-    <h2 class="lastest text-center mb-4"><?= __('library') ?></h2>
+    <span class="divider-text"><?=  __('library')  ?></span>
+    </div>
+  
     <div class="owl-carousel owl-theme">
         <?php while($book = $books_result->fetch_assoc()): 
             $is_discounted = ($book['has_discount'] == 1);
@@ -790,9 +1026,98 @@ $(document).on('click', '.toggle-favorite', function() {
         }
     });
 });
+$(document).ready(function() {
+    // سكريبت السلايدر الجديد
+    const slider = $('#main-slider');
+    const slides = slider.find('.slide');
+    const slideCount = slides.length;
+    
+    if (slideCount > 0) {
+        const indicators = $('#slider-indicators span');
+        let currentIndex = 0;
+        let autoSlideInterval;
 
+        // تحديد عرض الحاوية
+        const container = $('.slider-container');
+        const containerWidth = container.width();
+        
+        // تعيين عرض كل شريحة وعرض السلايدر الكلي
+        slides.css('width', containerWidth + 'px');
+        slider.css('width', (slideCount * containerWidth) + 'px');
+        
+        // تحديث العرض عند تغيير حجم النافذة
+        $(window).resize(function() {
+            const newContainerWidth = container.width();
+            slides.css('width', newContainerWidth + 'px');
+            slider.css('width', (slideCount * newContainerWidth) + 'px');
+            goToSlide(currentIndex);
+        });
 
-</script>
+        function goToSlide(index) {
+            if (index < 0) {
+                index = slideCount - 1;
+            } else if (index >= slideCount) {
+                index = 0;
+            }
+            
+            const slideWidth = slides.eq(0).width();
+            slider.css('transform', 'translateX(-' + (index * slideWidth) + 'px)');
+            
+            if (indicators.length > 0) {
+                indicators.removeClass('active');
+                indicators.eq(index).addClass('active');
+            }
+            currentIndex = index;
+        }
+
+        function nextSlide() {
+            goToSlide(currentIndex + 1);
+        }
+
+        function prevSlide() {
+            goToSlide(currentIndex - 1);
+        }
+
+        function startAutoSlide() {
+            if (slideCount > 1) {
+                autoSlideInterval = setInterval(nextSlide, 5000);
+            }
+        }
+
+        function stopAutoSlide() {
+            clearInterval(autoSlideInterval);
+        }
+
+        // أحداث الأزرار
+        $('#next-slide').click(function() {
+            stopAutoSlide();
+            nextSlide();
+            startAutoSlide();
+        });
+
+        $('#prev-slide').click(function() {
+            stopAutoSlide();
+            prevSlide();
+            startAutoSlide();
+        });
+
+        // أحداث المؤشرات
+        if (indicators.length > 0) {
+            indicators.click(function() {
+                stopAutoSlide();
+                goToSlide(parseInt($(this).data('index')));
+                startAutoSlide();
+            });
+        }
+
+        // بدء التمرير التلقائي
+        startAutoSlide();
+        
+        // إيقاف التمرير التلقائي عند تحويم الماوس
+        container.hover(stopAutoSlide, startAutoSlide);
+    }
+});
+    </script>
 
 <?php
 

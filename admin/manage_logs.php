@@ -13,7 +13,7 @@ if (!isset($_SESSION['user_type']) || $_SESSION['user_type'] !== 'admin') {
 }
 
 // ─── إعداد الترقيم ─────────────────────────────────────────────────
-$records_per_page = 10; // عدد السجلات لكل صفحة
+$records_per_page = 50; // عدد السجلات لكل صفحة
 $current_page = isset($_GET['page']) ? (int)$_GET['page'] : 1;
 $current_page = max(1, $current_page);
 $offset = ($current_page - 1) * $records_per_page;

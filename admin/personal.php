@@ -1,5 +1,5 @@
 <?php
-ob_start();
+
 if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
@@ -77,7 +77,7 @@ $new_users_result = $conn->query($new_users_sql);
 if ($new_users_result) {
     $stats['new_users_today'] = $new_users_result->fetch_assoc()['new_users_today'];
 }
-ob_end_flush();
+
 ?>
 <div class="container mt-4">
     <!-- بطاقات الإحصائيات المحسنة -->
@@ -154,7 +154,7 @@ ob_end_flush();
         </div>
     </div>
 
-    <!-- قسم الإشعارات المحدث -->
+        <!-- قسم الإشعارات المحدث -->
     <div class="card border-0 shadow-sm mb-4">
         <div class="card-header bg-dark text-white py-3">
             <h5 class="mb-0 fw-bold">
@@ -173,7 +173,7 @@ ob_end_flush();
             <?php else: ?>
             <div class="list-group list-group-flush">
                 <?php foreach ($notifications as $notif): ?>
-                <div class="list-group-item list-group-item-action">
+                <div class="list-group-item list-group-item-action" data-notif="<?= $notif['notification_id'] ?>">
                     <div class="d-flex justify-content-between align-items-start">
                         <div class="me-3">
                             <i class="fas fa-bell text-warning me-2"></i>
@@ -185,7 +185,7 @@ ob_end_flush();
                     <div class="mt-2 text-end">
                         <a href="<?= $notif['link'] ?>" 
                             class="btn btn-sm btn-outline-primary"
-                            onclick="markAsRead(<?= $notif['notification_id'] ?>, event)">
+                            onclick="markAsRead(<?= $notif['notification_id'] ?>, '<?= $notif['link'] ?>', event)">
                             <i class="fas fa-external-link-alt me-1"></i> عرض التفاصيل
                         </a>
                     </div>
@@ -196,7 +196,8 @@ ob_end_flush();
             <?php endif; ?>
         </div>
     </div>
-</div>
+
+ </div>
 
 <!-- الأنماط الإضافية -->
 <style>
@@ -236,29 +237,36 @@ ob_end_flush();
 </style>
 
 <script>
-function markAsRead(notifId, event) {
+async function markAsRead(notifId, link, event) {
     event.preventDefault();
-    console.log('Notification ID:', notifId); // <-- طباعة ID
-    console.log('Request URL:', '/mark_read.php?id=' + notifId); // <-- طباعة المسار
-
-    fetch('/autolibrary/mark_read.php?id=' + notifId)
-        .then(response => {
-            if (!response.ok) {
-                throw new Error('فشل الاتصال بالخادم');
+    
+    try {
+        // إرسال طلب AJAX لتحديث حالة الإشعار
+        const response = await fetch('mark_read.php?id=' + notifId);
+        const data = await response.json();
+        
+        if (data.success) {
+            // إخفاء الإشعار بعد تحديث حالته
+            const notificationElement = document.querySelector(`[data-notif="${notifId}"]`);
+            if (notificationElement) {
+                notificationElement.style.opacity = '0.5';
+                notificationElement.style.textDecoration = 'line-through';
+                
+                // الانتقال إلى الصفحة بعد تأخير بسيط
+                setTimeout(() => {
+                    window.location.href = link;
+                }, 300);
+            } else {
+                window.location.href = link;
             }
-            console.log('Response Status:', response.status); // <-- طباعة حالة الاستجابة
-            return response.json();
-        })
-        .then(data => {
-            console.log('Response Data:', data); // <-- طباعة البيانات
-            if (data.success) {
-                const notificationElement = document.querySelector(`[data-notif="${notifId}"]`);
-                if (notificationElement) notificationElement.remove();
-            }else {
-                console.error('Error:', data.error);
-            }
-        })
-        .catch(error => console.error('Error:', error));
-       
+        } else {
+            console.error('Error:', data.error);
+            // الانتقال إلى الصفحة حتى لو فشل التحديث
+            window.location.href = link;
+        }
+    } catch (error) {
+        console.error('Error:', error);
+        window.location.href = link;
+    }
 }
 </script>

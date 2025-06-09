@@ -52,104 +52,102 @@ try {
 ?>
 
 
-<div class="container-fluid py-4">
-    <div class="card border-0 shadow-lg mb-4">
-        <div class="card-header bg-gradient-primary text-white py-3">
-            <div class="d-flex justify-content-between align-items-center">
-                <h5 class="mb-0 fw-bold">
-                    <i class="fas fa-coins me-2"></i> إدارة عمليات الدفع
-                </h5>
+<div class="card border-0 shadow-sm mb-4">
+    <div class="card-header bg-gradient-primary text-white py-3">
+        <div class="d-flex justify-content-between align-items-center">
+            <h5 class="mb-0 fw-bold">
+                <i class="fas fa-coins me-2"></i> إدارة عمليات الدفع
+            </h5>
+        </div>
+    </div>
+
+    <div class="card-body p-0">
+        <?php include __DIR__ . '/../includes/alerts.php'; ?>
+
+        <?php if (empty($payments)): ?>
+            <div class="alert alert-info m-3">لا توجد عمليات دفع لعرضها</div>
+        <?php else: ?>
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead class="sticky-top bg-light">
+                        <tr>
+                            <th>العملية</th>
+                            <th>المستخدم</th>
+                            <th>الطلب</th>
+                            <th> المبلغ(ل.س)</th>
+                            <th>التاريخ</th>
+                            <th>النوع</th>
+                            <th>الحالة</th>
+                            <th>المعاملة</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <?php foreach ($payments as $payment): ?>
+                        <tr>
+                            <td><?= htmlspecialchars($payment['payment_id']) ?></td>
+                            <td><?= htmlspecialchars($payment['user_name']) ?></td>
+                            <td><?= htmlspecialchars($payment['request_id']) ?></td>
+                            <td><?= number_format($payment['amount'], 2) ?></td>
+                            <td>
+                                <?= $payment['payment_date'] 
+                                    ? date('Y/m/d H:i', strtotime($payment['payment_date']))
+                                    : '--' ?>
+                            </td>
+                            <td>
+                                <span class="badge bg-<?= getpTypeColor($payment['payment_type']) ?>">
+                                    <?= getpTypeText($payment['payment_type']) ?>
+                                </span>
+                            </td>
+                            <td>
+                                <?php
+                                $status = $payment['payment_status'];
+                                $badgeClass = [
+                                    'pending' => 'warning',
+                                    'completed' => 'success',
+                                    'failed' => 'danger'
+                                ][$status];
+                                ?>
+                                <span class="badge bg-<?= $badgeClass ?>">
+                                    <?= $status ?>
+                                </span>
+                            </td>
+                            <td><?= $payment['transaction_id'] ?? '--' ?></td>
+                        </tr>
+                        <?php endforeach; ?>
+                    </tbody>
+                </table>
             </div>
-        </div>
 
-        <div class="card-body p-0">
-            <?php include __DIR__ . '/../includes/alerts.php'; ?>
+            <!-- الترقيم -->
+            <?php if ($total_pages > 1): ?>
+            <div class="card-footer bg-light">
+                <nav aria-label="Page navigation">
+                    <ul class="pagination justify-content-center mb-0">
+                        <?php if ($current_page > 1): ?>
+                        <li class="page-item">
+                            <a class="page-link" href="?page=<?= $current_page - 1 ?>&section=sales">
+                                &laquo;
+                            </a>
+                        </li>
+                        <?php endif; ?>
 
-            <?php if (empty($payments)): ?>
-                <div class="alert alert-info m-3">لا توجد عمليات دفع لعرضها</div>
-            <?php else: ?>
-                <div class="table-responsive">
-                    <table class="table table-hover align-middle mb-0">
-                        <thead class="sticky-top bg-light">
-                            <tr>
-                                <th>رقم العملية</th>
-                                <th>المستخدم</th>
-                                <th>رقم الطلب</th>
-                                <th> المبلغ(ل.س)</th>
-                                <th>التاريخ</th>
-                                <th>النوع</th>
-                                <th>الحالة</th>
-                                <th>رقم المعاملة</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <?php foreach ($payments as $payment): ?>
-                            <tr>
-                                <td><?= htmlspecialchars($payment['payment_id']) ?></td>
-                                <td><?= htmlspecialchars($payment['user_name']) ?></td>
-                                <td><?= htmlspecialchars($payment['request_id']) ?></td>
-                                <td><?= number_format($payment['amount'], 2) ?></td>
-                                <td>
-                                    <?= $payment['payment_date'] 
-                                        ? date('Y/m/d H:i', strtotime($payment['payment_date']))
-                                        : '--' ?>
-                                </td>
-                                <td>
-                                    <span class="badge bg-<?= getpTypeColor($payment['payment_type']) ?>">
-                                        <?= getpTypeText($payment['payment_type']) ?>
-                                    </span>
-                                </td>
-                                <td>
-                                    <?php
-                                    $status = $payment['payment_status'];
-                                    $badgeClass = [
-                                        'pending' => 'warning',
-                                        'completed' => 'success',
-                                        'failed' => 'danger'
-                                    ][$status];
-                                    ?>
-                                    <span class="badge bg-<?= $badgeClass ?>">
-                                        <?= $status ?>
-                                    </span>
-                                </td>
-                                <td><?= $payment['transaction_id'] ?? '--' ?></td>
-                            </tr>
-                            <?php endforeach; ?>
-                        </tbody>
-                    </table>
-                </div>
+                        <?php for ($i = 1; $i <= $total_pages; $i++): ?>
+                        <li class="page-item <?= ($i == $current_page) ? 'active' : '' ?>">
+                            <a class="page-link" href="?page=<?= $i ?>&section=sales"><?= $i ?></a>
+                        </li>
+                        <?php endfor; ?>
 
-                <!-- الترقيم -->
-                <?php if ($total_pages > 1): ?>
-                <div class="card-footer bg-light">
-                    <nav aria-label="Page navigation">
-                        <ul class="pagination justify-content-center mb-0">
-                            <?php if ($current_page > 1): ?>
-                            <li class="page-item">
-                                <a class="page-link" href="?page=<?= $current_page - 1 ?>&section=sales">
-                                    &laquo;
-                                </a>
-                            </li>
-                            <?php endif; ?>
-
-                            <?php for ($i = 1; $i <= $total_pages; $i++): ?>
-                            <li class="page-item <?= ($i == $current_page) ? 'active' : '' ?>">
-                                <a class="page-link" href="?page=<?= $i ?>&section=sales"><?= $i ?></a>
-                            </li>
-                            <?php endfor; ?>
-
-                            <?php if ($current_page < $total_pages): ?>
-                            <li class="page-item">
-                                <a class="page-link" href="?page=<?= $current_page + 1 ?>&section=sales">
-                                    &raquo;
-                                </a>
-                            </li>
-                            <?php endif; ?>
-                        </ul>
-                    </nav>
-                </div>
-                <?php endif; ?>
+                        <?php if ($current_page < $total_pages): ?>
+                        <li class="page-item">
+                            <a class="page-link" href="?page=<?= $current_page + 1 ?>&section=sales">
+                                &raquo;
+                            </a>
+                        </li>
+                        <?php endif; ?>
+                    </ul>
+                </nav>
+            </div>
             <?php endif; ?>
-        </div>
+        <?php endif; ?>
     </div>
 </div>

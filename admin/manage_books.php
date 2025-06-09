@@ -36,15 +36,19 @@ if (isset($_GET['delete'])) {
         
         if ($stmt->execute()) {
             $_SESSION['success'] = "تم حذف الكتاب بنجاح";
+           echo '<script>window.location.href = "dashboard.php?section=books";</script>';
+           exit();
         } else {
             throw new Exception("فشل في الحذف: " . $conn->error);
         }
         
-    } catch (Exception $e) {
+    } 
+    catch (Exception $e) {
         $_SESSION['error'] = $e->getMessage();
+        echo '<script>window.location.href = "dashboard.php?section=books";</script>';
+        exit();
     }
-    header("Location: dashboard.php?section=books");
-    exit();
+   
 }
 
 // جلب بيانات الكتب
@@ -233,60 +237,20 @@ Swal.fire({
         </div>
     </div>
 </div>
-<div class="container-fluid py-4">
-    <div class="card border-0 shadow-sm mb-4">
+
+<div class="card border-0 shadow-sm row mb-4">
+   
         <div class="card-header bg-gradient-primary text-white py-3">
             <div class="d-flex justify-content-between align-items-center">
                 <h5 class="mb-0 fw-bold">
                     <i class="fas fa-book me-2"></i> إدارة الكتب
                 </h5>
-                <div>
-                    <!-- زر التحكم بالأعمدة -->
-                    <button class="btn btn-light btn-sm rounded-pill me-2" type="button" data-bs-toggle="dropdown">
-                        <i class="fas fa-columns me-1"></i> تخصيص الأعمدة
-                    </button>
-                    <ul class="dropdown-menu dropdown-menu-end" id="columnToggleMenu" dir="rtl">
-                        <li>
-                            <h6 class="dropdown-header">اختر الأعمدة:</h6>
-                        </li>
-                        <li><a class="dropdown-item" href="#" data-column="0"><input type="checkbox" checked>
-                                العنوان</a></li>
-                        <li><a class="dropdown-item" href="#" data-column="1"><input type="checkbox" checked> المؤلف</a>
-                        </li>
-                        <li><a class="dropdown-item" href="#" data-column="2"><input type="checkbox" checked> النوع</a>
-                        </li>
-                        <li><a class="dropdown-item" href="#" data-column="3"><input type="checkbox" checked> الكمية</a>
-                        </li>
-                        <li><a class="dropdown-item" href="#" data-column="4"><input type="checkbox" checked>(ل.س)
-                                السعر</a>
-                        </li>
-                        <li><a class="dropdown-item" href="#" data-column="5"><input type="checkbox" checked>الصفحات</a>
-                        </li>
-                        <li><a class="dropdown-item" href="#" data-column="6"><input type="checkbox" checked> تاريخ
-                                النشر</a></li>
-                        <li><a class="dropdown-item" href="#" data-column="7"><input type="checkbox" checked> ISBN</a>
-                        </li>
-                    </ul>
-
-                    <!-- زر تصدير التقرير -->
-                    <button class="btn btn-success btn-sm rounded-pill me-2 dropdown-toggle" type="button"
-                        data-bs-toggle="dropdown">
-                        <i class="fas fa-file-export me-1"></i> تصدير
-                    </button>
-                    <ul class="dropdown-menu dropdown-menu-end" id="reportform" dir="rtl">
-                        <li><a class="dropdown-item" href="javascript:void(0)" onclick="exportbReport('pdf')"><i
-                                    class="fas fa-file-pdf me-2"></i>PDF</a></li>
-                        <li><a class="dropdown-item" href="javascript:void(0)" onclick="exportbReport('csv')"><i
-                                    class="fas fa-file-csv me-2"></i>CSV</a></li>
-                    </ul>
-                    <!-- زر إضافة كتاب -->
-                    <button class="btn btn-light btn-sm rounded-pill">
-                        <a href="add_book.php" class="btn btn-light btn-sm rounded-pill">
-                            <i class="fas fa-plus me-1"></i> إضافة كتاب
-                        </a>
-                    </button>
-
-
+                <div class="d-flex">
+            
+                    <!-- زر إضافة كتاب -->               
+                    <a href="add_book.php" class="btn btn-light btn-sm rounded-pill">
+                        <i class="fas fa-plus me-1"></i> إضافة كتاب
+                    </a>
                 </div>
             </div>
         </div>
@@ -316,9 +280,9 @@ Swal.fire({
                             <th class="column-3">الكمية</th>
                             <th class="column-4">السعر(ل.س)</th>
                             <th class="column-5">الصفحات</th>
-                            <th class="column-6">تاريخ النشر</th>
+                            <th class="column-6"> النشر</th>
                             <th class="column-7">ISBN</th>
-                            <th class="column-8">كتاب الشهر</th>
+                            <th class="column-8">الشهري</th>
                             <th class="text-end column-8">الإجراءات</th>
                         </tr>
                     </thead>
@@ -404,338 +368,17 @@ Swal.fire({
             <?php endif; ?>
         </div>
     </div>
-</div>
-
-<!-- نافذة إضافة كتاب -->
-<div class="modal fade" id="addBookModal" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog modal-lg">
-        <div class="modal-content border-0 shadow">
-            <div class="modal-header bg-gradient-info text-white">
-                <h5 class="modal-title fw-bold">
-                    <i class="fas fa-plus-circle me-2"></i> إضافة كتاب جديد
-                </h5>
-                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"
-                    aria-label="Close"></button>
-            </div>
-
-            <form action="<?= BASE_URL ?>process.php" method="POST" enctype="multipart/form-data">
-                <div class="modal-body">
-                    <div class="row g-3">
-                        <div class="col-md-6">
-                            <label class="form-label">عنوان الكتاب <span class="text-danger">*</span></label>
-                            <input type="text" name="title" class="form-control" required>
-                        </div>
-
-                        <div class="col-md-6">
-                            <label class="form-label">المؤلف <span class="text-danger">*</span></label>
-                            <input type="text" name="author" class="form-control" required>
-                        </div>
-
-                        <div class="mb-3">
-                            <label>هل يوجد خصم؟</label>
-                            <input type="checkbox" name="has_discount" <?= $book['has_discount'] ? 'checked' : '' ?>>
-                        </div>
-
-                        <div class="mb-3">
-                            <label>نسبة الخصم (%)</label>
-                            <input type="number" name="discount_percentage"
-                                value="<?= $book['discount_percentage'] ?? 0 ?>" min="0" max="100">
-                        </div>
-                        <div class="col-md-4">
-                            <label class="form-label">نوع المادة <span class="text-danger">*</span></label>
-                            <select name="material_type" class="form-select" required>
-                                <option value="كتاب">كتاب</option>
-                                <option value="مجلة">مجلة</option>
-                                <option value="جريدة">جريدة</option>
-                            </select>
-                        </div>
-
-                        <div class="col-md-4">
-                            <label class="form-label">عدد الصفحات</label>
-                            <input type="number" name="page_count" class="form-control">
-                        </div>
-
-                        <div class="col-md-4">
-                            <label class="form-label">تاريخ النشر</label>
-                            <input type="date" name="publication_date" class="form-control">
-                        </div>
-
-
-                        <div class="col-md-4">
-                            <label class="form-label">رقم ISBN</label>
-                            <input type="text" name="isbn" class="form-control" maxlength="13">
-                        </div>
-
-                        <div class="col-md-4">
-                            <label class="form-label">التصنيف <span class="text-danger">*</span></label>
-                            <select name="category_id" class="form-select" required>
-                                <option value="">اختر التصنيف</option>
-                                <?php while ($cat = $categories->fetch_assoc()): ?>
-                                <option value="<?= $cat['category_id'] ?>">
-                                    <?= htmlspecialchars($cat['category_name']) ?>
-                                </option>
-                                <?php endwhile; ?>
-                            </select>
-                        </div>
-
-                        <div class="col-md-4">
-                            <label class="form-label">الكمية <span class="text-danger">*</span></label>
-                            <input type="number" name="quantity" class="form-control" required>
-                        </div>
-
-                        <div class="col-md-4">
-                            <label class="form-label">السعر (ل.س) <span class="text-danger">*</span></label>
-                            <input type="number" step="0.01" name="price" class="form-control" required>
-                        </div>
-
-                        <div class="col-md-4">
-
-                            <input type="file" name="cover_image" class="form-control" required>
-                        </div>
 
 
 
-                        <div class="col-md-4">
-                            <label class="form-label">ملف الكتاب (للكتب الإلكترونية)</label>
-                            <input type="file" name="file_path" class="form-control">
-                        </div>
-
-                        <div class="col-12">
-                            <label class="form-label">الوصف <span class="text-danger">*</span></label>
-                            <textarea name="description" class="form-control" rows="3" required></textarea>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-outline-secondary rounded-pill" data-bs-dismiss="modal">
-                        <i class="fas fa-times me-1"></i> إلغاء
-                    </button>
-                    <button type="submit" name="add_book" class="btn btn-primary rounded-pill px-4">
-                        <i class="fas fa-save me-2"></i> حفظ الكتاب
-                    </button>
-                </div>
-            </form>
-        </div>
-    </div>
-</div>
-
-<!-- نافذة تعديل كتاب -->
-<div class="modal fade" id="editBookModal" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog modal-lg">
-        <div class="modal-content border-0 shadow">
-            <div class="modal-header bg-gradient-info text-white">
-                <h5 class="modal-title fw-bold">
-                    <i class="fas fa-edit me-2"></i> تعديل الكتاب
-                </h5>
-                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"
-                    aria-label="Close"></button>
-            </div>
-
-            <form action="<?= BASE_URL ?>process.php" method="POST" enctype="multipart/form-data">
-                <input type="hidden" name="book_id" id="editBookId">
-                <div class="modal-body">
-                    <div class="row g-3">
-                        <!-- العنوان والمؤلف -->
-                        <div class="col-md-6">
-                            <label class="form-label">عنوان الكتاب <span class="text-danger">*</span></label>
-                            <input type="text" name="title" id="editTitle" class="form-control" required>
-                        </div>
-                        <div class="col-md-6">
-                            <label class="form-label">المؤلف <span class="text-danger">*</span></label>
-                            <input type="text" name="author" id="editAuthor" class="form-control" required>
-                        </div>
-
-                        <!-- نوع الكتاب ونوع المادة -->
-                        <div class="col-md-4">
-                            <label class="form-label">نوع الكتاب <span class="text-danger">*</span></label>
-                            <select name="type" id="editType" class="form-select" required>
-                                <option value="physical">كتاب فيزيائي</option>
-                                <option value="e-book">كتاب إلكتروني</option>
-                            </select>
-                        </div>
-                        <div class="col-md-4">
-                            <label class="form-label">نوع المادة <span class="text-danger">*</span></label>
-                            <select name="material_type" id="editMaterialType" class="form-select" required>
-                                <option value="كتاب">كتاب</option>
-                                <option value="مجلة">مجلة</option>
-                                <option value="جريدة">جريدة</option>
-                            </select>
-                        </div>
-
-                        <!-- عدد الصفحات وتاريخ النشر -->
-                        <div class="col-md-4">
-                            <label class="form-label">عدد الصفحات</label>
-                            <input type="number" name="page_count" id="editPageCount" class="form-control">
-                        </div>
-                        <div class="col-md-4">
-                            <label class="form-label">تاريخ النشر</label>
-                            <input type="date" name="publication_date" id="editPublicationDate" class="form-control">
-                        </div>
-
-                        <!-- ISBN والتصنيف -->
-                        <div class="col-md-4">
-                            <label class="form-label">رقم ISBN</label>
-                            <input type="text" name="isbn" id="editIsbn" class="form-control" maxlength="13">
-                        </div>
-                        <div class="col-md-4">
-                            <label class="form-label">التصنيف <span class="text-danger">*</span></label>
-                            <select name="category_id" id="editCategory" class="form-select" required>
-                                <option value="">اختر التصنيف</option>
-                                <?php 
-                                $categories = $conn->query("SELECT * FROM categories");
-                                while ($cat = $categories->fetch_assoc()): 
-                                ?>
-                                <option value="<?= $cat['category_id'] ?>">
-                                    <?= htmlspecialchars($cat['category_name']) ?></option>
-                                <?php endwhile; ?>
-                            </select>
-                        </div>
-
-                        <!-- الكمية والسعر -->
-                        <div class="col-md-4">
-                            <label class="form-label">الكمية <span class="text-danger">*</span></label>
-                            <input type="number" name="quantity" id="editQuantity" class="form-control" required>
-                        </div>
-                        <div class="col-md-4">
-                            <label class="form-label">السعر (ل.س) <span class="text-danger">*</span></label>
-                            <input type="number" step="0.01" name="price" id="editPrice" class="form-control" required>
-                        </div>
-
-                        <!-- الصورة والملف -->
-                        <div class="col-md-4">
-                            <label class="form-label">صورة الغلاف</label>
-                            <input type="file" name="cover_image" class="form-control" accept="image/*">
-                            <small class="text-muted">اختياري - اتركه فارغًا للحفاظ على الصورة الحالية</small>
-                        </div>
-                        <div class="col-md-4">
-                            <label class="form-label">ملف الكتاب</label>
-                            <input type="file" name="file_path" class="form-control">
-                            <small class="text-muted">اختياري - اتركه فارغًا للحفاظ على الملف الحالي</small>
-                        </div>
-
-                        <!-- الوصف والتقييم -->
-                        <div class="col-12">
-                            <label class="form-label">الوصف <span class="text-danger">*</span></label>
-                            <textarea name="description" id="editDescription" class="form-control" rows="3"
-                                required></textarea>
-                        </div>
-                        <div class="col-md-4">
-                            <label class="form-label">التقييم</label>
-                            <input type="number" name="evaluation" id="editEvaluation" class="form-control" min="1"
-                                max="5" required>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-outline-secondary rounded-pill" data-bs-dismiss="modal">
-                        <i class="fas fa-times me-1"></i> إلغاء
-                    </button>
-                    <button type="submit" name="update_book" class="btn btn-primary rounded-pill px-4">
-                        <i class="fas fa-save me-2"></i> حفظ التعديلات
-                    </button>
-                </div>
-            </form>
-        </div>
-    </div>
-</div>
 <script>
-// عند فتح نافذة التعديل
-document.getElementById('editBookModal').addEventListener('show.bs.modal', function(event) {
-    const button = event.relatedTarget; // الزر الذي تم النقر عليه
-    const row = button.closest('tr'); // الصف الذي يحتوي على بيانات الكتاب
-    const cells = row.querySelectorAll('td');
-
-    // ملء البيانات في النموذج
-    document.getElementById('editBookId').value = button.getAttribute('data-id');
-    document.getElementById('editTitle').value = cells[0].innerText;
-    document.getElementById('editAuthor').value = cells[1].innerText;
-    document.getElementById('editType').value = (cells[5].innerText.trim() === 'فيزيائي') ? 'physical' :
-        'e-book';
-    document.getElementById('editMaterialType').value = cells[4].innerText.trim();
-    document.getElementById('editPageCount').value = parseInt(cells[6].innerText) || '';
-    document.getElementById('editPublicationDate').value = cells[7].innerText;
-    document.getElementById('editIsbn').value = cells[8].innerText;
-    document.getElementById('editQuantity').value = parseInt(cells[3].innerText);
-    document.getElementById('editPrice').value = parseFloat(cells[4].innerText.replace(' ل.س', ''));
-    document.getElementById('editDescription').value = '<?= $book['description'] ?? '' ?>';
-    document.getElementById('editEvaluation').value = parseFloat('<?= $book['evaluation'] ?? 3 ?>');
-
-    // تحديد التصنيف المناسب
-    const categoryName = '<?= $book['category_name'] ?? '' ?>';
-    const categorySelect = document.getElementById('editCategory');
-    Array.from(categorySelect.options).forEach(option => {
-        if (option.text === categoryName) option.selected = true;
-    });
-});
-</script>
-<script>
-// استعادة التفضيلات من localStorage
-const savedColumns = JSON.parse(localStorage.getItem('visibleColumns')) || [];
-if (savedColumns.length > 0) {
-    savedColumns.forEach(col => {
-        document.querySelectorAll(`.column-${col}`).forEach(el => {
-            el.style.display = ''; // إظهار العمود
-        });
-    });
-}
-
-// إدارة القائمة المنسدلة
-document.querySelectorAll('#columnToggleMenu .dropdown-item').forEach(item => {
-    const columnIndex = item.getAttribute('data-column');
-    const checkbox = item.querySelector('input[type="checkbox"]');
-
-    // تحديث حالة الصندوق بناءً على التخزين
-    checkbox.checked = savedColumns.includes(columnIndex) || savedColumns.length === 0;
-
-    // إضافة حدث التغيير
-    checkbox.addEventListener('change', function() {
-        const isVisible = this.checked;
-
-        // إخفاء/إظيار كل العناصر ذات الفئة column-X
-        document.querySelectorAll(`.column-${columnIndex}`).forEach(el => {
-            el.style.display = isVisible ? '' : 'none';
-        });
-
-        // تحديث localStorage
-        const visibleColumns = Array.from(document.querySelectorAll(
-                '#columnToggleMenu input[type="checkbox"]:checked'))
-            .map(cb => cb.parentElement.parentElement.getAttribute('data-column'));
-        localStorage.setItem('visibleColumns', JSON.stringify(visibleColumns));
-    });
-});
-
-// إعادة تحميل الصفحة بعد الإضافة بنجاح
-<?php if (isset($_SESSION['book_added'])): ?>
-document.addEventListener('DOMContentLoaded', function() {
-    const modal = bootstrap.Modal.getInstance(document.getElementById('addBookModal'));
-    if (modal) modal.hide();
-    <?php unset($_SESSION['book_added']); ?>
-});
-<?php endif; ?>
-
+    
 // تأكيد الحذف
 function confirmDelete(e) {
     if (!confirm('هل أنت متأكد من حذف هذا الكتاب؟')) {
         e.preventDefault();
     }
 }
-</script>
-<script>
-function exportbReport(format) {
-    // إنشاء رابط مع معلمة التصدير
-    const url = `manage_books.php?export=${format}`;
-
-    // إنشاء عنصر <a> خفي لتنزيل الملف
-    const link = document.createElement('a');
-    link.href = url;
-    link.download = `books_report.${format}`;
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-}
-
 // تحديث حالة كتاب الشهر عبر AJAX
 document.querySelectorAll('.book-of-month-toggle').forEach(toggle => {
     toggle.addEventListener('change', function() {
@@ -761,4 +404,6 @@ document.querySelectorAll('.book-of-month-toggle').forEach(toggle => {
         });
     });
 });
+
+
 </script>

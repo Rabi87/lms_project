@@ -145,11 +145,7 @@ Swal.fire({
                     <i class="fas fa-images"></i> إدارة السلايدر
                 </button>
 
-                <button onclick="showSection('news_ticker')"
-                    class="btn text-start bg-dark text-white d-flex align-items-center gap-3 py-3 hover-effect  <?= ($active_section == 'news_ticker') ? 'active' : '' ?>"
-                    style="background: linear-gradient(135deg, #4a5568 0%, #2d3748 100%);border-radius: 15px;">
-                    <i class="fas fa-newspaper"></i> الشريط الأخباري
-                </button>
+               
 
                 <button onclick="showSection('categories')"
                     class="btn text-start bg-dark text-white d-flex align-items-center gap-3 py-3 hover-effect  <?= ($active_section == 'categories') ? 'active' : '' ?>"
@@ -225,48 +221,37 @@ Swal.fire({
 
             <!-- قسم إدارة المستخدمين -->
             <div id="users" class="content-section <?= ($active_section == 'users') ? 'active' : '' ?>">
-                <div class="card">
-                    <div class="card-body">
-                        <?php require __DIR__ . '/manage_users.php'; ?>
-                    </div>
-                </div>
+                 <?php require __DIR__ . '/manage_users.php'; ?>
             </div>
 
             <!-- قسم النسخ الاحتياطي -->
             <div id="bk" class="content-section <?= ($active_section == 'bk') ? 'active' : '' ?>">
-                <div class="card">
-                    <div class="card-body">
+              
                         <?php require __DIR__ . '/backup_restore.php'; ?>
-                    </div>
-                </div>
+                
             </div>
 
             <!-- قسم سجلات النشاطات -->
             <div id="logs" class="content-section <?= ($active_section == 'logs') ? 'active' : '' ?>">
-                <div class="card">
-                    <div class="card-body">
+              
                         <?php require __DIR__ . '/manage_logs.php'; ?>
-                    </div>
-                </div>
+               
             </div>
 
             <!-- قسم سجلات الدفع -->
             <div id="payment" class="content-section <?= ($active_section == 'payment') ? 'active' : '' ?>">
-                <div class="card">
-                    <div class="card-body">
+               
                         <?php require __DIR__ . '/payment_logs.php'; ?>
-                    </div>
-                </div>
+                
             </div>
 
             <!-- قسم إدارة الشكاوى -->
             <div id="complaints" class="content-section <?= ($active_section == 'complaints') ? 'active' : '' ?>">
-                <div class="card">
-                    <div class="card-body">
+              
                         <?php require __DIR__ . '/manage_complaints.php'; ?>
-                    </div>
-                </div>
+              
             </div>
+            
 
             <!--قسم السلايدر -->
             <div id="slider" class="content-section <?= ($active_section == 'slider') ? 'active' : '' ?>">
@@ -402,53 +387,53 @@ Swal.fire({
             </div>
 
             <!-- قسم التقارير -->
-            <!-- في قسم التقارير -->
-<div id="reports" class="content-section <?= ($active_section == 'reports') ? 'active' : '' ?>">
-    <div class="card">
-        <div class="card-body">
-            <!-- نموذج التقارير -->
-            <form method="post" action="manage_reports.php">
-                <div class="mb-3">
-                    <label for="report_type" class="form-label">اختر نوع التقرير:</label>
-                    <select class="form-select" id="report_type" name="report_type">
-                        <?php
-                        $reportTypes = [
-                            'users' => 'تقارير المستخدمين',
-                            'books' => 'تقارير الكتب',
-                            'borrow_requests' => 'تقارير طلبات الإعارة',
-                            'payments' => 'تقارير المدفوعات',
-                            'notifications' => 'تقارير الإشعارات'
-                        ];
-                        foreach ($reportTypes as $key => $value) {
-                            $selected = ($_POST['report_type'] ?? 'users') == $key ? 'selected' : '';
-                            echo "<option value='$key' $selected>$value</option>";
-                        }
-                        ?>
-                    </select>
-                </div>
-                <div class="mb-3">
-                    <label for="start_date" class="form-label">تاريخ البداية:</label>
-                    <input type="date" class="form-control" id="start_date" name="start_date" 
-                        value="<?= $_POST['start_date'] ?? date('Y-m-d', strtotime('-1 month')) ?>">
-                </div>
-                <div class="mb-3">
-                    <label for="end_date" class="form-label">تاريخ النهاية:</label>
-                    <input type="date" class="form-control" id="end_date" name="end_date" 
-                        value="<?= $_POST['end_date'] ?? date('Y-m-d') ?>">
-                </div>
-                <button type="submit" class="btn btn-primary">عرض التقرير</button>
-            </form>
+           
+            <div id="reports" class="content-section <?= ($active_section == 'reports') ? 'active' : '' ?>">
+               
+                    <div class="card-body">
+                        <!-- نموذج التقارير -->
+                        <form method="post" action="manage_reports.php">
+                            <div class="mb-3">
+                                <label for="report_type" class="form-label">اختر نوع التقرير:</label>
+                                <select class="form-select" id="report_type" name="report_type">
+                                    <?php
+                                    $reportTypes = [
+                                        'users' => 'تقارير المستخدمين',
+                                        'books' => 'تقارير الكتب',
+                                        'borrow_requests' => 'تقارير طلبات الإعارة',
+                                        'payments' => 'تقارير المدفوعات',
+                                        'notifications' => 'تقارير الإشعارات'
+                                    ];
+                                    foreach ($reportTypes as $key => $value) {
+                                        $selected = ($_POST['report_type'] ?? 'users') == $key ? 'selected' : '';
+                                        echo "<option value='$key' $selected>$value</option>";
+                                    }
+                                    ?>
+                                </select>
+                            </div>
+                            <div class="mb-3">
+                                <label for="start_date" class="form-label">تاريخ البداية:</label>
+                                <input type="date" class="form-control" id="start_date" name="start_date" 
+                                    value="<?= $_POST['start_date'] ?? date('Y-m-d', strtotime('-1 month')) ?>">
+                            </div>
+                            <div class="mb-3">
+                                <label for="end_date" class="form-label">تاريخ النهاية:</label>
+                                <input type="date" class="form-control" id="end_date" name="end_date" 
+                                    value="<?= $_POST['end_date'] ?? date('Y-m-d') ?>">
+                            </div>
+                            <button type="submit" class="btn btn-primary">عرض التقرير</button>
+                        </form>
 
-            <!-- عرض النتائج من الجلسة -->
-            <?php if (isset($_SESSION['report_results'])): ?>
-                <div class="mt-4">
-                    <?= $_SESSION['report_results'] ?>
-                </div>
-                <?php unset($_SESSION['report_results']); ?>
-            <?php endif; ?>
-        </div>
-    </div>
-</div>
+                        <!-- عرض النتائج من الجلسة -->
+                        <?php if (isset($_SESSION['report_results'])): ?>
+                            <div class="mt-4">
+                                <?= $_SESSION['report_results'] ?>
+                            </div>
+                            <?php unset($_SESSION['report_results']); ?>
+                        <?php endif; ?>
+                    </div>
+                
+            </div>
 
 
         </div>

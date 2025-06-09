@@ -362,7 +362,6 @@ if (isset($_POST['add_book']) && isAdmin()) {
         if (!move_uploaded_file($_FILES['file_path']['tmp_name'], $file_target_path)) {
             throw new Exception('فشل في حفظ الملف');
         }
-
         
         // إدخال البيانات
                 $stmt = $conn->prepare("
@@ -376,38 +375,37 @@ if (isset($_POST['add_book']) && isAdmin()) {
         }
         
         $stmt->bind_param(
-    "sssisssissssdii", // 15 حرفًا (أنواع البيانات)
-    $title, 
-    $author, 
-    $material_type,
-    $page_count,
-    $publication_date,
-    $isbn,
-    $quantity,
-    $price,
-    $target_path,
-    $category_id,
-    $file_target_path,
-    $evaluation,
-    $description, // يجب أن تكون قبل الحقلين الرقميين
-    $has_discount,
-    $discount_percentage
-);
+            "sssisssissssdii", // 15 حرفًا (أنواع البيانات)
+            $title, 
+            $author, 
+            $material_type,
+            $page_count,
+            $publication_date,
+            $isbn,
+            $quantity,
+            $price,
+            $target_path,
+            $category_id,
+            $file_target_path,
+            $evaluation,
+            $description, // يجب أن تكون قبل الحقلين الرقميين
+            $has_discount,
+            $discount_percentage
+        );
         if ($stmt->execute()) {
             $_SESSION['success'] = "تمت إضافة الكتاب بنجاح!";
+            header("Location: " . BASE_URL . "admin/dashboard.php?section=books");
         } else {
             
             throw new Exception("فشل في إضافة الكتاب: " . $stmt->error); 
-        }
-        
-        header("Location: " . BASE_URL . "admin/dashboard.php");
-        
+        }    
     } catch (Exception $e) {
         $_SESSION['error'] = $e->getMessage();
         
         header("Location:" .BASE_URL."admin/dashboard.php?section=books");
+         exit();
     }
-    exit();
+   
 }
 
 // ======== معالجة تحديث الكتب (مع دعم الملفات) ========

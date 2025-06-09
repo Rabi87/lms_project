@@ -108,7 +108,7 @@ require __DIR__ . '/../includes/functions.php';
 <!-- بطاقات الإحصائيات -->
 <div class="row mb-4">
     <!-- طلبات الشراء -->
-    <div class="col-md-3">
+    <div class="col-md-6">
         <div class="card border-0 shadow-sm h-100">
             <div class="card-header bg-gradient-success text-white py-3">
                 <h5 class="card-title mb-0 fw-bold">
@@ -125,7 +125,7 @@ require __DIR__ . '/../includes/functions.php';
     </div>
 
     <!-- طلبات الاستعارة -->
-    <div class="col-md-3">
+    <div class="col-md-6">
         <div class="card border-0 shadow-sm h-100">
             <div class="card-header bg-gradient-primary text-white py-3">
                 <h5 class="card-title mb-0 fw-bold">
@@ -143,7 +143,7 @@ require __DIR__ . '/../includes/functions.php';
 </div>
 
 
-<div class="container-fluid py-4">
+
     <div class="card border-0 shadow-sm mb-4">
         <div class="card-header bg-gradient-primary text-white py-3">
             <div class="d-flex justify-content-between align-items-center">
@@ -242,7 +242,7 @@ require __DIR__ . '/../includes/functions.php';
             <?php endif; ?>
         </div>
     </div>
-</div>
+
 
 <script>
 // تأكيد الإجراءات الهامة (مثال: الحذف)

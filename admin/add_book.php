@@ -75,12 +75,12 @@ $categories = $conn->query("SELECT * FROM categories");
 
             <div class="col-md-4">
                 <label class="form-label">تاريخ النشر</label>
-                <input type="date" name="publication_date" class="form-control">
+                <input type="date" name="publication_date" class="form-control" required>
             </div>
 
             <div class="col-md-4">
                 <label class="form-label">الرقم الدولي (ISBN)</label>
-                <input type="text" name="isbn" class="form-control">
+                <input type="text" name="isbn" class="form-control" required>
             </div>
 
             <div class="col-md-4">
@@ -106,7 +106,7 @@ $categories = $conn->query("SELECT * FROM categories");
 
             <div class="col-md-4">
                 <label class="form-label">ملف الكتاب (PDF)</label>
-                <input type="file" name="file_path" class="form-control" accept=".pdf">
+                <input type="file" name="file_path" class="form-control" accept=".pdf" required>
             </div>
 
             <!-- الوصف -->
@@ -117,10 +117,11 @@ $categories = $conn->query("SELECT * FROM categories");
 
             <!-- الأزرار -->
             <div class="col-12 text-end">
-                <button type="submit" name="add_book" class="btn btn-primary px-5">
-                    <i class="fas fa-save me-2"></i>حفظ الكتاب
+                <button type="submit" name="add_book" class="btn btn-primary px-3">
+                  حفظ الكتاب
                 </button>
-                <a href="manage_books.php" class="btn btn-outline-secondary px-5">إلغاء</a>
+               
+                <a href="dashboard.php?section=books" class="btn btn-primary px-3">إلغاء</a>
             </div>
         </div>
     </form>

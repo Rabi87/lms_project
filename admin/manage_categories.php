@@ -1,28 +1,23 @@
 <?php
-
-ob_start(); // تخزين الإخراج في المخزن المؤقت
-// بدء الجلسة إذا لم تكن قد بدأت بالفعل
 if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
 error_reporting(E_ALL);
 ini_set('display_errors', 1);
-
-// تضمين ملف التكوين الأساسي
+ini_set('display_startup_errors', 1);
 require __DIR__ . '/../includes/config.php';
-
 // التحقق من صلاحية المستخدم
 if (!isset($_SESSION['user_type']) || $_SESSION['user_type'] !== 'admin') {
     die("الوصول مرفوض!");
 }
 
 // ------- معالجة الإضافة -------
-if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['add_category'])) {
+if (isset($_POST['add_category'])) {
     $category_name = $conn->real_escape_string(trim($_POST['category_name']));
     
     if (empty($category_name)) {
         $_SESSION['error'] = "يجب إدخال اسم التصنيف";
-        header("Location: " . BASE_URL . "admin/dashboard.php?section=categories");
+        header("Location: .");
         exit();
     }
 
@@ -34,7 +29,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['add_category'])) {
         $_SESSION['error'] = "فشل في الإضافة: " . $conn->error;
     }
     
-    header("Location: " . BASE_URL . "admin/dashboard.php?section=categories");
+    
+    echo '<script>window.location.href = "dashboard.php?section=categories";</script>';
     exit();
 }
 
@@ -45,7 +41,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update_category'])) {
     
     if (empty($category_name)) {
         $_SESSION['error'] = "يجب إدخال اسم التصنيف";
-        header("Location: " . BASE_URL . "admin/dashboard.php?section=categories");
+        header("Location:admin/dashboard.php?section=categories");
         exit();
     }
 
@@ -58,7 +54,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update_category'])) {
         $_SESSION['error'] = "فشل في التحديث: " . $conn->error;
     }
     
-    header("Location: " . BASE_URL . "admin/dashboard.php?section=categories");
+      echo '<script>window.location.href = "dashboard.php?section=categories";</script>';
     exit();
 }
 
@@ -74,7 +70,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['delete_category'])) {
         $_SESSION['error'] = "فشل في الحذف: " . $conn->error;
     }
     
-    header("Location: " . BASE_URL . "admin/dashboard.php?section=categories");
+      echo '<script>window.location.href = "dashboard.php?section=categories";</script>';
     exit();
 }
 

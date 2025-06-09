@@ -15,6 +15,7 @@ $type = isset($_GET['type']) ? htmlspecialchars($_GET['type']) : '';
 $filterCategory = isset($_GET['category']) ? intval($_GET['category']) : 0;
 $filterAuthor = isset($_GET['author']) ? htmlspecialchars($_GET['author']) : '';
 $filterRating = isset($_GET['rating']) ? intval($_GET['rating']) : 0;
+$searchTerm = isset($_GET['search']) ? htmlspecialchars($_GET['search']) : '';
 
 // بناء الاستعلام الأساسي
 $baseQuery = "SELECT *, 
@@ -67,6 +68,22 @@ if ($filterRating > 0) {
     $conditions[] = " evaluation >= ? ";
     $params[] = $filterRating;
     $types .= 'i';
+}
+
+// إضافة شرط البحث الجديد
+if (!empty($searchTerm)) {
+    $conditions[] = "(
+        title LIKE ? OR 
+        author LIKE ? OR 
+        isbn LIKE ? OR 
+        category_id IN (SELECT category_id FROM categories WHERE category_name LIKE ?)
+    )";
+     $params[] = '%' . $searchTerm . '%';
+    $params[] = '%' . $searchTerm . '%';
+    $params[] = '%' . $searchTerm . '%';
+    $params[] = '%' . $searchTerm . '%';
+    
+    $types .= 'ssss';
 }
 
 // دمج الشروط مع الاستعلام الأساسي
@@ -157,12 +174,26 @@ $result = $stmt->get_result();
     <div class="filter-section">
         <div class="filter-header d-flex justify-content-between align-items-center">
             <h4>تصفية النتائج</h4>
-            <a href="?type=<?= $type ?>" class="btn btn-sm reset-btn">إعادة تعيين</a>
+            <a href="?type=<?= $type ?>" class="btn btn-sm reset-btn color-white">إعادة تعيين</a>
         </div>
 
         <form method="get" class="row">
             <!-- إخفاء نوع القائمة -->
             <input type="hidden" name="type" value="<?= $type ?>">
+
+             <!-- شريط البحث الجديد -->
+        <div class="col-12 mb-4">
+            <div class="input-group shadow-sm rounded-pill">
+                <input type="text" name="search" class="form-control border-0 py-3" 
+                       placeholder="ابحث عن كتاب، مؤلف، ISBN أو تصنيف..."
+                       value="<?= $searchTerm ?>"
+                       style="border-top-left-radius: 50px; border-bottom-left-radius: 50px;">
+                <button class="btn btn-primary border-0 px-4" type="submit"
+                        style="border-top-right-radius: 50px; border-bottom-right-radius: 50px;">
+                    <i class="fas fa-search me-2"></i> بحث
+                </button>
+            </div>
+        </div>
 
             <!-- فلتر التصنيفات -->
             <div class="col-md-4 filter-group">

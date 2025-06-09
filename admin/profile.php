@@ -111,29 +111,26 @@ $user = $result->fetch_assoc();
                 </div>
                 
                 <div class="mb-4">
-                    <label class="form-label text-muted mb-2">كلمة المرور الجديدة</label>
-                    <div class="input-group">
-                        <span class="input-group-text bg-light">
-                            <i class="fas fa-lock text-primary"></i>
-                        </span>
-                        <input 
-                            type="password" 
-                            name="password" 
-                            id="password" 
-                            class="form-control border-start-0 ps-3"
-                            placeholder="اتركه فارغاً إذا لم ترغب في التغيير"
-                            autocomplete="new-password"
-                        >
-                        <button 
-                            type="button" 
-                            class="btn btn-outline-secondary" 
-                            onclick="togglePasswordVisibility()"
-                        >
-                            <i class="fas fa-eye" id="eyeIcon"></i>
-                        </button>
-                    </div>
-                    <small class="text-muted">يجب أن تحتوي على 8 أحرف على الأقل</small>
-                </div>
+    <label class="form-label text-muted mb-2">كلمة المرور الجديدة</label>
+    <div class="input-group">
+        <span class="input-group-text bg-light">
+            <i class="fas fa-lock text-primary"></i>
+        </span>
+        <input 
+            type="password" 
+            name="password" 
+            id="password" 
+            class="form-control"
+            placeholder="اتركه فارغاً إذا لم ترغب في التغيير"
+            autocomplete="new-password"
+        >
+        <button type="button" class="btn btn-link text-muted" 
+                                onclick="togglePasswordVisibility()">
+                                <i class="fas fa-eye"></i>
+                            </button>
+    </div>
+    <small class="text-muted">يجب أن تحتوي على 8 أحرف على الأقل</small>
+</div>
                 
                 <div class="d-grid gap-2 mt-4">
                     <button 
@@ -149,44 +146,7 @@ $user = $result->fetch_assoc();
     </div>
 </div>
 
-<!-- الأنماط الإضافية -->
-<style>
-.card {
-    border-radius: 12px;
-    overflow: hidden;
-}
 
-.bg-gradient-primary {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-}
-
-.input-group-text {
-    border-right: none;
-}
-
-.form-control {
-    border-left: none;
-    padding-left: 0;
-}
-
-.form-control:focus {
-    box-shadow: none;
-    border-color: #ced4da;
-}
-
-.btn-outline-secondary {
-    border-color: #ced4da;
-}
-
-.btn-outline-secondary:hover {
-    background-color: #f8f9fa;
-}
-
-.alert {
-    border-radius: 8px;
-    border: none;
-}
-</style>
 
 <script>
 function togglePasswordVisibility() {

@@ -2995,3 +2995,81 @@ composer.lock       # (اختياري: احذف هذا السطر إذا كنت 
 https://drive.google.com/drive/u/0/folders/19wt9UkxfKZ_IvgwbSbRwnAGeZY86GhbD
 
 https://drive.google.com/drive/folders/19wt9UkxfKZ_IvgwbSbRwnAGeZY86GhbD?usp=sharing
+
+*-*--*-*-*-*-*-*-*--*-*-*-*-*-*-*-*-*-*-*--*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-**-*-
+<div class="card border-0 shadow-sm mb-4">
+    <div class="card-header bg-dark text-white py-3">
+        <h5 class="mb-0 fw-bold">
+            <i class="fas fa-bell me-2"></i> الإشعارات الحديثة
+        </h5>
+    </div>
+    <div class="card-body p-0">
+        <?php if (empty($notifications)): ?>
+        <div class="alert alert-info m-4 d-flex align-items-center">
+            <i class="fas fa-info-circle me-3 fa-2x"></i>
+            <div>
+                <h5 class="alert-heading mb-1">لا توجد إشعارات جديدة</h5>
+                <p class="mb-0">سيظهر هنا أي إشعارات جديدة تتلقاها</p>
+            </div>
+        </div>
+        <?php else: ?>
+        <div class="list-group list-group-flush">
+            <?php foreach ($notifications as $notif): ?>
+            <div class="list-group-item list-group-item-action" data-notif="<?= $notif['notification_id'] ?>">
+                <div class="d-flex justify-content-between align-items-start">
+                    <div class="me-3">
+                        <i class="fas fa-bell text-warning me-2"></i>
+                        <span><?= htmlspecialchars($notif['message']) ?></span>
+                    </div>
+                    <small class="text-muted"><?= date('H:i', strtotime($notif['created_at'])) ?></small>
+                </div>
+                <?php if ($notif['link']): ?>
+                <div class="mt-2 text-end">
+                    <a href="<?= $notif['link'] ?>" 
+                        class="btn btn-sm btn-outline-primary"
+                        onclick="markAsRead(<?= $notif['notification_id'] ?>, '<?= $notif['link'] ?>', event)">
+                        <i class="fas fa-external-link-alt me-1"></i> عرض التفاصيل
+                    </a>
+                </div>
+                <?php endif; ?>
+            </div>
+            <?php endforeach; ?>
+        </div>
+        <?php endif; ?>
+    </div>
+</div>
+
+<script>
+async function markAsRead(notifId, link, event) {
+    event.preventDefault();
+    
+    try {
+        // إرسال طلب AJAX لتحديث حالة الإشعار
+        const response = await fetch('mark_read.php?id=' + notifId);
+        const data = await response.json();
+        
+        if (data.success) {
+            // إخفاء الإشعار بعد تحديث حالته
+            const notificationElement = document.querySelector(`[data-notif="${notifId}"]`);
+            if (notificationElement) {
+                notificationElement.style.opacity = '0.5';
+                notificationElement.style.textDecoration = 'line-through';
+                
+                // الانتقال إلى الصفحة بعد تأخير بسيط
+                setTimeout(() => {
+                    window.location.href = link;
+                }, 300);
+            } else {
+                window.location.href = link;
+            }
+        } else {
+            console.error('Error:', data.error);
+            // الانتقال إلى الصفحة حتى لو فشل التحديث
+            window.location.href = link;
+        }
+    } catch (error) {
+        console.error('Error:', error);
+        window.location.href = link;
+    }
+}
+</script>
