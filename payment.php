@@ -2,9 +2,7 @@
 if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
-error_reporting(E_ALL);
-ini_set('display_errors', 1);
-ini_set('display_startup_errors', 1);
+
 
 require __DIR__ . '/includes/config.php';
 require __DIR__ . '/includes/functions.php';
@@ -32,7 +30,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $required_fields = ['card_number', 'expiry', 'cvv'];
         foreach ($required_fields as $field) {
             if (empty($_POST[$field])) {
-                throw new Exception("يرجى تعبئة ..... جميع الحقول");
+                throw new Exception("يجب أن تكون البطاقة صالحة لمدة 30 يوم من تاريخ الطلب على أقل تقدير");
             }
         }
 
@@ -109,28 +107,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
 
     } catch (Exception $e) {
-        set_error($e->getMessage());
+        set_info($e->getMessage());
         redirect(BASE_URL . 'payment.php');
     }
 }else{
     
-    $amount = isset($_SESSION['funds']) ? (float)$_SESSION['funds'] : 500004;  
+    $amount = isset($_SESSION['funds']) ? (float)$_SESSION['funds'] : 50000;  
 }
 
 // ━━━━━━━━━━ عرض واجهة الدفع ━━━━━━━━━━
 require __DIR__ . '/includes/header.php';
 ?>
 
-<?php if (isset($_SESSION['error'])): ?>
-<script>
-Swal.fire({
-    icon: 'warning',
-    title: 'انتبه.. !',
-    text: '<?= $_SESSION['error'] ?>'
-});
-</script>
-<?php unset($_SESSION['error']); ?>
-<?php endif; ?>
 
 <style>
 .payment-card {

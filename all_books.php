@@ -157,18 +157,43 @@ $result = $stmt->get_result();
 
     .reset-btn {
         background-color: #6c757d;
+        color:white;
     }
 
     .reset-btn:hover {
         background-color: #5c636a;
+        color:white;
     }
+    /* تنسيقات الكتب المخفضة */
+.discount-ribbon {
+    position: absolute;
+    top: 10px;
+    left: -15px;
+    background:rgb(173, 4, 4);
+    color:rgb(240, 255, 31);
+;
+    padding: 10px 40px;
+    font-size: 0.9rem;
+    z-index: 2;
+    box-shadow: 2px 2px 5px rgba(1, 1, 1, 0.8);
+    clip-path: polygon(0 0, 100% 0, 90% 50%, 100% 100%, 0 100%, 10% 50%);
+    /*clip-path: polygon(20% 0, 50% 0, 0 63%, 0 33%);*/
+
+
+
+
+}
+
+.text-decoration-line-through {
+    text-decoration: line-through;
+}
 </style>
 
 <div class="container my-5">
     <div class="d-flex align-items-center gap-2 mb-4">
         <a href="index.php" class="btn btn-secondary btn-sm">العودة</a>
     </div>
-    <h1 class="text-center mb-3"><?= $title ?></h1>
+   
 
     <!-- قسم الفلترة -->
     <div class="filter-section">
@@ -187,9 +212,9 @@ $result = $stmt->get_result();
                 <input type="text" name="search" class="form-control border-0 py-3" 
                        placeholder="ابحث عن كتاب، مؤلف، ISBN أو تصنيف..."
                        value="<?= $searchTerm ?>"
-                       style="border-top-left-radius: 50px; border-bottom-left-radius: 50px;">
+                       style="border-top-right-radius: 50px; border-bottom-right-radius: 50px;">
                 <button class="btn btn-primary border-0 px-4" type="submit"
-                        style="border-top-right-radius: 50px; border-bottom-right-radius: 50px;">
+                        style="border-top-left-radius: 50px; border-bottom-left-radius: 50px;">
                     <i class="fas fa-search me-2"></i> بحث
                 </button>
             </div>

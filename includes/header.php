@@ -79,7 +79,12 @@ if (isset($_SESSION['user_id'])) {
     height: 3rem;
 }
 </style>
-
+<?php
+// عند بداية الجلسة
+if (isset($_COOKIE['cart'])) {
+    $_SESSION['cart'] = json_decode($_COOKIE['cart'], true);
+}
+?>
 <body class="d-flex flex-column min-vh-100">
     <header>
         <div class="container">
@@ -92,8 +97,8 @@ if (isset($_SESSION['user_id'])) {
                             style="background: linear-gradient(135deg, #4a5568 0%, #2d3748 100%);border-radius: 15px;">
                             <div class="card-body d-flex align-items-center justify-content-center py-3 px-4">
                                 <a href="<?= BASE_URL ?>index.php">
-                                    <img src="<?= BASE_URL ?>assets/images/logo3.png" class="img-fluid"
-                                        style="height: 60px; filter: brightness(0) invert(1);" alt="شعار المكتبة">
+                                    <img src="<?= BASE_URL ?>assets/images/aa.png" class="img-fluid"
+                                        style="height: 80px; filter: brightness(0) invert(1);" alt="شعار المكتبة">
                                 </a>
                             </div>
                         </div>
@@ -129,7 +134,7 @@ if (isset($_SESSION['user_id'])) {
                                             <a class="nav-link text-white " href="<?= BASE_URL ?>favorites.php">
                                                 <i class="fas fa-heart"></i>
                                             </a>                                       
-                                            <a class="nav-link position-relative text-white " href="cart.php">
+                                            <a class="nav-link position-relative text-white " href="<?= BASE_URL ?>cart.php">
                                                 <i class="fas fa-shopping-cart"></i>
                                                 <span class="badge bg-white text-black cart-counter">
                                                     <?= isset($_SESSION['cart']) ? count($_SESSION['cart']) : 0 ?>
@@ -246,6 +251,15 @@ if (isset($_SESSION['user_id'])) {
                     text: '<?= $_SESSION['success'] ?>'
                 });
                 <?php unset($_SESSION['success']); ?>
+            <?php endif; ?>
+
+            <?php if (isset($_SESSION['info'])) : ?>
+                Swal.fire({
+                    icon: 'info',
+                    title: 'تنبيه',
+                    text: '<?= $_SESSION['info'] ?>'
+                });
+                <?php unset($_SESSION['info']); ?>
             <?php endif; ?>
         });
     </script>

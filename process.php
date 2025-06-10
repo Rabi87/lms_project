@@ -338,7 +338,7 @@ if (isset($_POST['add_book']) && isAdmin()) {
             throw new Exception('يجب اختيار صورة غلاف');
         }
         
-        $upload_dir = BASE_PATH . 'assets/images/books/';
+        $upload_dir = 'assets/images/books/';
         $extension = pathinfo($_FILES['cover_image']['name'], PATHINFO_EXTENSION);
         $new_filename = uniqid() . '_' . date('YmdHis') . '.' . $extension;
         $target_path = $upload_dir . $new_filename;
@@ -649,7 +649,7 @@ if (isset($_POST['action'])) {
             $stmt_notif->execute();
         }
         $_SESSION['success'] = "تم ارسال الطلب بنجاح , يمكنك متابعة الطلب في قسم الطلبات العالقة في لوحة التحكم الخاصة بك";
-        header("Location:home.php");
+        header("Location:index.php");
 
         DatabaseLogger::log(
             'loan_success',
@@ -672,62 +672,93 @@ if (isset($_POST['actionii']) && $_POST['actionii'] === 'checkout') {
             throw new Exception('السلة فارغة');
         }
 
-        // حساب المجموع الكلي من السلة
-        $total = array_sum(array_column($_SESSION['cart'], 'price'));
+        // حساب المجموع الكلي مع مراعاة التخفيضات
+        $total = 0;
+        $discounted_total = 0;
+        $cart_items = [];
+
+        foreach ($_SESSION['cart'] as $book_id => $item) {
+            // جلب تفاصيل التخفيض من قاعدة البيانات
+            $book_query = "SELECT has_discount, discount_percentage FROM books WHERE id = ?";
+            $stmt_book = $conn->prepare($book_query);
+            $stmt_book->bind_param("i", $book_id);
+            $stmt_book->execute();
+            $book_result = $stmt_book->get_result();
+            
+            if ($book_result->num_rows > 0) {
+                $book_data = $book_result->fetch_assoc();
+                $has_discount = $book_data['has_discount'];
+                $discount_percentage = $book_data['discount_percentage'];
+                
+                // حساب السعر المخفض
+                $original_price = $item['price'];
+                $discounted_price = $has_discount ? 
+                    $original_price - ($original_price * ($discount_percentage / 100)) : 
+                    $original_price;
+                
+                // تخزين البيانات المعدلة
+                $cart_items[$book_id] = array_merge($item, [
+                    'has_discount' => $has_discount,
+                    'discount_percentage' => $discount_percentage,
+                    'discounted_price' => $discounted_price,
+                    'original_price' => $original_price
+                ]);
+                
+                $total += $original_price;
+                $discounted_total += $discounted_price;
+            }
+        }
 
         // إضافة الطلب إلى جدول orders
-        $stmt = $conn->prepare("INSERT INTO orders (user_id, total, status) VALUES (?, ?, 'pending')");
+        $stmt = $conn->prepare("INSERT INTO orders (user_id, total, discounted_total, status) VALUES (?, ?, ?, 'pending')");
         if (!$stmt) {
             die("خطأ في تحضير الاستعلام: " . $conn->error);
         }
-        $stmt->bind_param("id", $_SESSION['user_id'], $total);
+        $stmt->bind_param("idd", $_SESSION['user_id'], $total, $discounted_total);
         $stmt->execute();
         $order_id = $stmt->insert_id;
 
         // إضافة العناصر إلى جدول order_items
-        foreach ($_SESSION['cart'] as $book_id => $item) {
+        foreach ($cart_items as $book_id => $item) {
             $stmt_item = $conn->prepare("
-                INSERT INTO order_items (order_id, book_id, quantity, price) 
-                VALUES (?, ?, 1, ?)
+                INSERT INTO order_items (order_id, book_id, quantity, original_price, discounted_price) 
+                VALUES (?, ?, 1, ?, ?)
             ");
-            $stmt_item->bind_param("iid", $order_id, $book_id, $item['price']);
+            $original_price = $item['original_price'];
+            $discounted_price = $item['discounted_price'];
+            $stmt_item->bind_param("iidd", $order_id, $book_id, $original_price, $discounted_price);
             $stmt_item->execute();
         }
 
-       
-
-        // التحقق من الرصيد
+        // التحقق من الرصيد (باستخدام السعر المخفض)
         $stmt_wallet = $conn->prepare("SELECT balance FROM wallets WHERE user_id = ?");
         $stmt_wallet->bind_param("i", $_SESSION['user_id']);
         $stmt_wallet->execute();
         $wallet = $stmt_wallet->get_result()->fetch_assoc();
         
-        if ($wallet['balance'] < $total) {
-            $_SESSION['required_amount'] = $total;
-            $_SESSION['book_id'] = $book_id;
-            $_SESSION['action'] = $action;
+        if ($wallet['balance'] < $discounted_total) {
+            $_SESSION['required_amount'] = $discounted_total;
             header("Location: add_funds.php");
             exit();
         }
       
-        // ━━━━━━━━━━ إضافة كل عنصر إلى جدول borrow_requests ━━━━━━━━━━
-        foreach ($_SESSION['cart'] as $book_id => $item) {
-            // إدخال طلب شراء لكل كتاب
+        // إضافة كل عنصر إلى جدول borrow_requests
+        foreach ($cart_items as $book_id => $item) {
+            // إدخال طلب شراء لكل كتاب (باستخدام السعر المخفض)
             $stmt_request = $conn->prepare("
                 INSERT INTO borrow_requests 
                 (user_id, book_id, type, amount, status) 
                 VALUES (?, ?, 'purchase', ?, 'pending')
             ");
-            $stmt_request->bind_param("iid", $_SESSION['user_id'], $book_id, $item['price']);
+            $discounted_price = $item['discounted_price'];
+            $stmt_request->bind_param("iid", $_SESSION['user_id'], $book_id, $discounted_price);
             $stmt_request->execute();
         }
 
-        
-
-        // ━━━━━━━━━━ إرسال إشعار إلى المدير ━━━━━━━━━━
+        // إرسال إشعار إلى المدير
         $admin = $conn->query("SELECT id FROM users WHERE user_type = 'admin' LIMIT 1")->fetch_assoc();
         if ($admin) {
-            $message = "طلب شراء جديد (" . count($_SESSION['cart']) . " عناصر)";
+            $message = "طلب شراء جديد (" . count($cart_items) . " عناصر)";
             $link = BASE_URL . "admin/dashboard.php?section=ops";
 
             $stmt_notif = $conn->prepare("
@@ -741,6 +772,7 @@ if (isset($_POST['actionii']) && $_POST['actionii'] === 'checkout') {
 
         // تفريغ السلة وإظهار الرسالة
         unset($_SESSION['cart']);
+        setcookie('cart', json_encode($_SESSION['cart']), 0, "/");
         $_SESSION['success'] = "تم إرسال طلب الشراء بنجاح! سيتم مراجعته من قبل الإدارة.";
         header("Location: orders.php");
         exit();

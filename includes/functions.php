@@ -74,6 +74,10 @@ function set_error($message) {
     $_SESSION['error'] = $message;
 }
 
+function set_info($message) {
+    $_SESSION['info'] = $message;
+}
+
 function set_success($message) {
     $_SESSION['success'] = $message;
 }

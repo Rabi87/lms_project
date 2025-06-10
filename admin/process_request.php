@@ -10,7 +10,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $action = $_POST['action'];
     
     try {
-            // ━━━━━━━━━━ الحصول على معرف المدير ━━━━━━━━━━
+        // ━━━━━━━━━━ الحصول على معرف المدير ━━━━━━━━━━
         $stmt_admin = $conn->prepare("SELECT id FROM users WHERE user_type = 'admin' LIMIT 1");
         $stmt_admin->execute();
         $admin_id = $stmt_admin->get_result()->fetch_assoc()['id'];
@@ -61,21 +61,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             throw new Exception("رصيد المستخدم غير كافٍ لإكمال العملية");
         }
         
-        // تنفيذ الخصم
-        $stmt_deduct = $conn->prepare("UPDATE wallets SET balance = balance - ? WHERE user_id = ?");
-        $stmt_deduct->bind_param("di", $amount, $user_id);
-        $stmt_deduct->execute();
-
-        // ━━━━━━━━━━ إضافة المبلغ إلى رصيد المدير ━━━━━━━━━━
-        $stmt_add_admin = $conn->prepare("
-        INSERT INTO wallets (user_id, balance)
-        VALUES (?, ?)
-        ON DUPLICATE KEY UPDATE balance = balance + ?
-        ");
-        $stmt_add_admin->bind_param("idd", $admin_id, $amount, $amount);
-        $stmt_add_admin->execute();
-
-        
         mysqli_report(MYSQLI_REPORT_ERROR | MYSQLI_REPORT_STRICT);
         $conn->begin_transaction();
         
@@ -85,7 +70,21 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $loan_duration = 14;
         }else{ $loan_duration = 1000;}
         if ($action === 'approve') {
-            // تحديث حالة الطلب إلى pending_payment
+            // تنفيذ الخصم
+            $stmt_deduct = $conn->prepare("UPDATE wallets SET balance = balance - ? WHERE user_id = ?");
+            $stmt_deduct->bind_param("di", $amount, $user_id);
+            $stmt_deduct->execute();
+
+            // ━━━━━━━━━━ إضافة المبلغ إلى رصيد المدير ━━━━━━━━━━
+            $stmt_add_admin = $conn->prepare("
+            INSERT INTO wallets (user_id, balance)
+            VALUES (?, ?)
+            ON DUPLICATE KEY UPDATE balance = balance + ?
+            ");
+            $stmt_add_admin->bind_param("idd", $admin_id, $amount, $amount);
+            $stmt_add_admin->execute();
+
+            // تحديث حالة الطلب
             $stmt = $conn->prepare("
                 UPDATE borrow_requests 
                 SET 
@@ -113,7 +112,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     transaction_id
                 ) VALUES (?,?,?,?, 'completed', NOW(), ?,?)
             ");
-            $stmt_payment->bind_param("siidss",$user_id, $request_id,$book_id, $amount,$type,$transaction_id); // 'd' لـ decimal
+            $stmt_payment->bind_param("siidss",$user_id, $request_id,$book_id, $amount,$type,$transaction_id);
             $stmt_payment->execute();
 
             // الحصول على user_id من الطلب
@@ -145,7 +144,46 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $stmt_notif->execute();
 
         } else {
-            // ... (نفس كود الرفض السابق)
+            // حالة الرفض
+            $stmt = $conn->prepare("
+                UPDATE borrow_requests 
+                SET 
+                    status = ?, 
+                    processed_at = NOW()
+                WHERE id = ?
+            ");
+            $stmt->bind_param("si", $new_status, $request_id);
+            $stmt->execute();
+
+            // إرجاع الرصيد للمستخدم (إذا كان تم الخصم سابقاً)
+            $stmt_refund = $conn->prepare("
+                UPDATE wallets 
+                SET balance = balance + ? 
+                WHERE user_id = ?
+            ");
+            $stmt_refund->bind_param("di", $amount, $user_id);
+            $stmt_refund->execute();
+
+            // الحصول على عنوان الكتاب
+            $stmt_book = $conn->prepare("
+                SELECT b.title 
+                FROM borrow_requests br
+                JOIN books b ON br.book_id = b.id
+                WHERE br.id = ?
+            ");
+            $stmt_book->bind_param("i", $request_id);
+            $stmt_book->execute();
+            $book_title = $stmt_book->get_result()->fetch_assoc()['title'];
+
+            // إضافة إشعار للمستخدم
+            $message = "تم رفض طلبك لكتاب $book_title بسبب عدم توفر نسخ إضافية حالياً";
+            
+            $stmt_notif = $conn->prepare("
+                INSERT INTO notifications (user_id, message, request_id)
+                VALUES (?, ?, ?)
+            ");
+            $stmt_notif->bind_param("isi", $user_id, $message, $request_id);
+            $stmt_notif->execute();
         }
 
         $conn->commit();

@@ -245,6 +245,12 @@ Swal.fire({
                 <h5 class="mb-0 fw-bold">
                     <i class="fas fa-book me-2"></i> إدارة الكتب
                 </h5>
+                <!-- شريط البحث -->
+            <div class="input-group input-group-sm" style="width: 200px;">
+                <input type="text" id="searchall" class="form-control rounded-pill"
+                    placeholder="ابحث">
+                <span class="input-group-text bg-transparent border-0"><i class="fas fa-search"></i></span>
+            </div>
                 <div class="d-flex">
             
                     <!-- زر إضافة كتاب -->               
@@ -403,6 +409,34 @@ document.querySelectorAll('.book-of-month-toggle').forEach(toggle => {
             }
         });
     });
+});
+// البحث الفوري  
+document.getElementById('searchall').addEventListener('input', function(e) {
+    const searchTerm = e.target.value.toLowerCase().trim();
+    const rows = document.querySelectorAll('tbody tr');
+
+    rows.forEach(row => {
+        // جمع محتوى جميع الخلايا (td) في الصف
+        const cells = row.querySelectorAll('td');
+        let found = false;
+        
+        // البحث في كل خلية من خلايا الصف
+        cells.forEach(cell => {
+            const cellText = cell.textContent.toLowerCase();
+            if (cellText.includes(searchTerm)) {
+                found = true;
+            }
+        });
+
+        // إظهار/إخفاء الصف بناءً على نتيجة البحث
+        row.style.display = found ? '' : 'none';
+    });
+
+    // إخفاء الترقيم عند البحث
+    const pagination = document.querySelector('.pagination');
+    if (pagination) {
+        pagination.style.display = searchTerm ? 'none' : '';
+    }
 });
 
 

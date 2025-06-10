@@ -19,3 +19,5 @@ echo json_encode([
     'success' => true,
     'cart_count' => count($_SESSION['cart'])
 ]);
+// عند إضافة عنصر للسلة
+setcookie('cart', json_encode($_SESSION['cart']), time() + (86400 * 30), "/");

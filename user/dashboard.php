@@ -101,7 +101,7 @@ $transactions = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
 // حساب العدد الكلي للصفحات لعمليات الشحن
 $total_transactions = $conn->query("SELECT FOUND_ROWS()")->fetch_row()[0];
 $total_transactions_pages = ceil($total_transactions / $transactions_per_page);
-$_SESSION['info'] = "في حال لم تجد طلبك هنا انتقل ل قسم الطلبات الجارية و تابع حالته";
+$_SESSION['inform'] = "في حال لم تجد طلبك هنا انتقل ل قسم الطلبات الجارية و تابع حالته";
 
 
 $active_section = isset($_GET['section']) ? htmlspecialchars($_GET['section']) : 'main';
@@ -256,7 +256,7 @@ require __DIR__ . '/../includes/header.php';
             <div id="main" class="content-section <?= ($active_section == 'purchasing') ? 'active' : '' ?>">
                 <div class="card">
                     <div class="card-body">
-                        <?php require __DIR__ . '/orders.php'; ?>
+                        
 
                     </div>
                 </div>
@@ -388,13 +388,13 @@ require __DIR__ . '/../includes/header.php';
                     </div>
                 </div>
             </div>
-
+            <!-- قسم العمليات المعلقة -->
             <div id="waiting" class="content-section <?= ($active_section == 'waiting') ? 'active' : '' ?>">
                 <div class="card">
                     <div class="card-body">
-                        <?php if (isset($_SESSION['info'])): ?>
-                            <div class="alert alert-success"><?= $_SESSION['info'] ?></div>
-                            <?php unset($_SESSION['info']); ?>
+                        <?php if (isset($_SESSION['inform'])): ?>
+                            <div class="alert alert-success"><?= $_SESSION['inform'] ?></div>
+                            <?php unset($_SESSION['inform']); ?>
                         <?php endif; ?>
                         <div class="card border-0 shadow-sm">
                             <div class="card-header bg-gradient-primary text-white py-3">

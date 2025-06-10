@@ -198,31 +198,12 @@ if (!$books_result) {
   border-radius: 5px;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
-.slider-wrapper {
-    display: flex;
-    align-items: center;
-    gap: 20px;
-    position: relative;
-    margin-bottom: 30px;
-}
 
-.static-card {
-    flex: 0 0 200px;
-    height: 350px;
-    background:rgb(255, 255, 255);
-    border-radius: 15px;
-    padding: 20px;
-    box-shadow: 0 5px 15px rgba(0,0,0,0.1);
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    font-size: 1.2rem;
-    color: #000;
-    text-align: center;
-}
-
-.cat-wrapper {
+.cat-wrapper {// إعادة تعيين مؤشرات النتائج
+$new_books_result->data_seek(0);
+$discounted_books_result->data_seek(0);
+$bestsellers_result->data_seek(0);
+$books_result->data_seek(0);
     display: flex;0d6efd
     align-items: center;
     gap: 20px;
@@ -254,141 +235,88 @@ if (!$books_result) {
     color: #fff;
 }
 
-.slider-container {
-    flex: 1;
-    overflow: hidden;
-    position: relative;
-    border-radius: 15px;
-    box-shadow: 0 5px 15px rgba(0,0,0,0.1);
-    height: 400px; /* تحديد ارتفاع ثابت */
-}
 
-.slider {
+/* الحاوية الرئيسية */
+.main-container {
+    max-width: 1200px;
+    max-height: 400px;
+    margin: 0 auto 30px;
+    padding: 0 15px;
     display: flex;
-    transition: transform 0.5s ease-in-out;
-    width: 100%;
-    height: 100%; /* استخدام الارتفاع الكامل */
+    gap: 20px;
+    
 }
-
-.slide {
-    min-width: 100%;
-    flex-shrink: 0;
+/* قسم السلايدر */
+.slideshow-container {
     position: relative;
-    height: 100%; /* استخدام الارتفاع الكامل */
+    flex: 0 0 100%;
+    height: 430px;
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
 }
 
-.slide img {
+.mySlides {
+    display: none;
+    width: 100%;
+    height: 100%;
+    opacity: 0;
+    transition: opacity 1s ease-in-out;
+}
+
+.mySlides.active {
+    display: block;
+    opacity: 1;
+}
+
+.mySlides img {
     width: 100%;
     height: 100%;
     object-fit: cover;
-    border-radius: 15px;
+    
 }
-
-.slider-controls {
+/* أزرار التحكم */
+.prev, .next {
     position: absolute;
     top: 50%;
-    width: 100%;
-    display: flex;
-    justify-content: space-between;
     transform: translateY(-50%);
-    padding: 0 20px;
-    z-index: 10;
-}
-
-.slider-controls button {
-    width: 40px;
-    height: 40px;
-    border-radius: 50%;
-    background: rgba(255, 255, 255, 0.7) !important;
-    border: none;
-    color: #333;
-    font-size: 1.2rem;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    cursor: pointer;
-    transition: all 0.3s;
-    box-shadow: 0 2px 5px rgba(0,0,0,0.2);
-}
-
-.slider-controls button:hover {
-    background: rgba(0, 0, 0, 0.7) !important;
+    padding: 16px;
     color: white;
-    transform: scale(1.1);
+    font-weight: bold;
+    font-size: 20px;
+    cursor: pointer;
+    background: rgba(0,0,0,0.3);
+    z-index: 100;
 }
 
-.slider-indicators {
+.next { right: 0; }
+.prev { left: 0; }
+
+/* المؤشرات */
+/* المؤشرات */
+.indicators {
     position: absolute;
-    bottom: 20px;
-    left: 0;
-    right: 0;
-    display: flex;
-    justify-content: center;
-    gap: 10px;
-    z-index: 10;
+    bottom: 15px;
+    width: 100%;
+    text-align: center;
+    z-index: 100;
 }
 
-.slider-indicators span {
+.indicator {
+    display: inline-block; /* تغيير من none إلى inline-block */
     width: 12px;
     height: 12px;
+    margin: 0 5px;
     border-radius: 50%;
-    background: rgba(255, 255, 255, 0.5);
+    background: rgba(255,255,255,0.5);
     cursor: pointer;
-    transition: all 0.3s;
-    box-shadow: 0 1px 3px rgba(0,0,0,0.3);
+    transition: background 0.3s ease;
 }
 
-.slider-indicators span.active {
-    background: rgba(255, 255, 255, 1);
-    transform: scale(1.2);
+.indicator.active {
+    background: white;
 }
 
-.slide-caption {
-    position: absolute;
-    bottom: 0;
-    left: 0;
-    right: 0;
-    background: rgba(0, 0, 0, 0.6);
-    color: white;
-    padding: 15px 20px;
-    border-bottom-left-radius: 15px;
-    border-bottom-right-radius: 15px;
-    z-index: 5;
-}
-
-.slide-caption h3 {
-    margin-bottom: 5px;
-    font-size: 1.2rem;
-}
-
-@media (max-width: 992px) {
-    .slider-wrapper {
-        flex-direction: column;
-    }
-    
-    .static-card {
-        width: 100%;
-        height: auto;
-        margin-bottom: 20px;
-        flex: none;
-    }
-    
-    .slider-container {
-        height: 350px;
-    }
-}
-
-@media (max-width: 576px) {
-    .slider-container {
-        height: 250px;
-    }
-    
-    .slider-controls button {
-        width: 30px;
-        height: 30px;
-        font-size: 1rem;
-    }
-}
   
 
 </style>
@@ -416,53 +344,37 @@ Swal.fire({
 </script>
 <?php unset($_SESSION['success']); ?>
 <?php endif; ?>
+<div class="container my-5">
 
-<div class="slider-wrapper">
-    <div class="static-card">
-        <i class="fas fa-tag fa-3x mb-3 text-primary"></i>
-        <h5>عروض خاصة</h5>
-        <p class="mt-2">خصومات تصل إلى 50% على مجموعة مختارة من الكتب</p>
-    </div>
-
-    <div class="slider-container">
-        <div class="slider" id="main-slider">
-            <?php foreach ($slides as $index => $slide): ?>
-            <div class="slide">
-                <img src="<?= BASE_URL . $slide['image_path'] ?>" alt="صورة <?= $index + 1 ?>">
-            </div>
-            <?php endforeach; ?>
-        </div>
-        
-        <div class="slider-controls">
-            <button id="prev-slide"><i class="fas fa-chevron-right"></i></button>
-            <button id="next-slide"><i class="fas fa-chevron-left"></i></button>
-        </div>
-        
-        <?php if (count($slides) > 0): ?>
-        <div class="slider-indicators" id="slider-indicators">
-            <?php for ($i = 0; $i < count($slides); $i++): ?>
-            <span <?= $i === 0 ? 'class="active"' : '' ?> data-index="<?= $i ?>"></span>
+<div class="main-container">
+    <div class="slideshow-container">
+        <?php
+        $slides = $conn->query("SELECT * FROM slider_images WHERE is_active = 1");
+        $first = true;
+        while ($slide = $slides->fetch_assoc()):
+        ?>
+        <div class="mySlides <?= $first ? 'active' : '' ?>">
+            <img src="<?= BASE_URL . $slide['image_path'] ?>" alt="Slider Image">
+        </div>       
+        <?php $first = false; endwhile; ?>
+        <a class="prev" onclick="changeSlide(-1)">❮❮</a>
+            <a class="next" onclick="changeSlide(1)">❯❯</a>
+        <!-- المؤشرات -->
+        <div class="indicators">
+            <?php for ($i = 0; $i < $slides->num_rows; $i++): ?>
+                <span class="indicator <?= $i === 0 ? 'active' : '' ?>" onclick="showSlide(<?= $i ?>)"></span>
             <?php endfor; ?>
         </div>
-        <?php endif; ?>
-    </div>
-
-
-    <div class="dot-container">
-        <?php for ($i = 0; $i < count($slides); $i++): ?>
-            <span class="dot" onclick="currentSlide(<?php echo $i + 1; ?>)"></span>
-        <?php endfor; ?>
-    </div>
-
     
-    <div class="static-card">
-        <i class="fas fa-star fa-3x mb-3 text-warning"></i>
-        <a href="category_books.php" class="static-card-link" style="text-decoration: none; color: inherit;">
-        <h5>التصنيفات العامة</h5>
-        <p class="mt-2">اكتشف الكتب حسب التصنيفات المعتمدة في المنصة</p>
-        </a>
+     <!-- أزرار التحكم -->
+        
     </div>
+    
+</div>
 
+
+
+   
 </div>
 
 <!-- أحدث الكتب المضافة -->
@@ -474,6 +386,8 @@ Swal.fire({
     <div class="owl-carousel owl-theme">
         <?php while($book = $new_books_result->fetch_assoc()): 
             $is_discounted = ($book['has_discount'] == 1);
+            $book_id = $book['id'];
+            $is_favorite = in_array($book_id, $favorites);
         ?>
         <div class="item">
             <div class="card h-100 shadow">
@@ -484,7 +398,7 @@ Swal.fire({
                 <?php endif; ?>
 
                 <?php if(!empty($book['cover_image'])): ?>
-                <img src="<?= BASE_URL . $book['cover_image'] ?>" class="card-img-top" alt="غلاف الكتاب"
+                <img src="<?= $book['cover_image'] ?>" class="card-img-top" alt="غلاف الكتاب"
                     style="height: 300px; object-fit: cover;">
                 <?php endif; ?>
                 
@@ -522,11 +436,13 @@ Swal.fire({
                             <i class="fas fa-info"></i>
                         </button>
                         <!-- داخل كل بطاقة كتاب -->
+                       
                         <button
                             class="btn btn-sm <?= $is_favorite ? 'btn-danger' : 'btn-outline-danger' ?> toggle-favorite"
                             data-book-id="<?= $book['id'] ?>">
                             <i class="fas fa-heart"></i>
                         </button>
+
 
                         <?php if(isset($_SESSION['user_id'])): ?>
                         <!-- استعارة الكتاب -->
@@ -599,7 +515,10 @@ Swal.fire({
     <span class="divider-text"><?= __('discounts')?></span>
     </div>
     <div class="owl-carousel owl-theme">
-        <?php while($book = $discounted_books_result->fetch_assoc()): ?>
+        <?php while($book = $discounted_books_result->fetch_assoc()):
+             $book_id = $book['id'];
+            $is_favorite = in_array($book_id, $favorites);
+            ?>
         <div class="item">
             <div class="card h-100 shadow position-relative">
                 <!-- شريط الخصم -->
@@ -713,6 +632,8 @@ Swal.fire({
     <div class="owl-carousel owl-theme bestsellers-carousel">
         <?php while($book = $bestsellers_result->fetch_assoc()): 
             $is_discounted = ($book['has_discount'] == 1);
+             $book_id = $book['id'];
+            $is_favorite = in_array($book_id, $favorites);
         ?>
         <div class="item">
             <div class="card h-100 shadow">
@@ -837,6 +758,8 @@ Swal.fire({
     <div class="owl-carousel owl-theme">
         <?php while($book = $books_result->fetch_assoc()): 
             $is_discounted = ($book['has_discount'] == 1);
+             $book_id = $book['id'];
+            $is_favorite = in_array($book_id, $favorites);
         ?>
         <div class="item">
             <div class="card h-100 shadow">
@@ -937,24 +860,76 @@ Swal.fire({
 
 
 <script>
-// إضافة إلى المفضلة
-$(document).on('click', '.toggle-favorite', function() {
-    <?php if(!isset($_SESSION['user_id'])): ?>
-    Swal.fire('تنبيه!', 'يجب تسجيل الدخول أولاً', 'warning');
-    return;
-    <?php endif; ?>
+ 
+document.addEventListener('DOMContentLoaded', function() {
+    const slides = document.querySelectorAll('.mySlides');
+    if (slides.length === 0) return;
 
-    const bookId = $(this).data('book-id');
-    $.post("<?= BASE_URL ?>toggle_favorite.php", {
-        book_id: bookId
-    }, function(response) {
-        if (response.is_favorite) {
-            Swal.fire('تم!', 'أضيف إلى المفضلة', 'success');
-        } else {
-            Swal.fire('تم!', 'حُذف من المفضلة', 'info');
-        }
-    }).fail(() => Swal.fire('خطأ!', 'حدث خطأ غير متوقع', 'error'));
+    let currentIndex = 0;
+    let slideInterval;
+
+    function showSlide(index) {
+    // إخفاء جميع الشرائح
+    slides.forEach(slide => {
+        slide.classList.remove('active');
     });
+    
+    // إظهار الشريحة المطلوبة
+    slides[index].classList.add('active');
+    currentIndex = index;
+    
+    // تحديث المؤشرات
+    const indicators = document.querySelectorAll('.indicator');
+    indicators.forEach((indicator, i) => {
+        if (i === index) {
+            indicator.classList.add('active');
+        } else {
+            indicator.classList.remove('active');
+        }
+    });
+}
+    function nextSlide() {
+        let nextIndex = (currentIndex + 1) % slides.length;
+        showSlide(nextIndex);
+    }
+
+    function startAutoSlide() {
+        if (slides.length > 1) {
+            slideInterval = setInterval(nextSlide, 7000);
+        }
+    }
+
+    function stopAutoSlide() {
+        clearInterval(slideInterval);
+    }
+
+    // بدء التمرير التلقائي
+    startAutoSlide();
+    
+    // إيقاف التمرير عند تحويم الماوس
+    const sliderContainer = document.querySelector('.slideshow-container');
+    if (sliderContainer) {
+        sliderContainer.addEventListener('mouseenter', stopAutoSlide);
+        sliderContainer.addEventListener('mouseleave', startAutoSlide);
+    }
+    window.changeSlide = function(n) {
+    stopAutoSlide();
+    let newIndex = currentIndex + n;
+    
+    if (newIndex < 0) newIndex = slides.length - 1;
+    else if (newIndex >= slides.length) newIndex = 0;
+    
+    showSlide(newIndex);
+    startAutoSlide();
+}
+
+window.showSlide = function(index) {
+    stopAutoSlide();
+    showSlide(index);
+    startAutoSlide();
+}
+});
+// الكاروسيل
 $(document).ready(function() {
     $('.owl-carousel').each(function() {
         var $carousel = $(this);
@@ -1012,110 +987,25 @@ $(document).on('click', '.toggle-favorite', function() {
             book_id: bookId,
             csrf_token: '<?= $_SESSION['csrf_token'] ?>'
         },
+        dataType: 'json',
         success: function(response) {
-            if (response.is_favorite) {
-                button.removeClass('btn-outline-danger').addClass('btn-danger');
-                Swal.fire('تم!', 'أضيف إلى المفضلة', 'success');
+            if (response.success) {
+                if (response.is_favorite) {
+                    button.removeClass('btn-outline-danger').addClass('btn-danger');
+                    Swal.fire('تم!', 'أضيف إلى المفضلة', 'success');
+                } else {
+                    button.removeClass('btn-danger').addClass('btn-outline-danger');
+                    Swal.fire('تم!', 'حُذف من المفضلة', 'info');
+                }
             } else {
-                button.removeClass('btn-danger').addClass('btn-outline-danger');
-                Swal.fire('تم!', 'حُذف من المفضلة', 'info');
+                Swal.fire('خطأ!', response.message || 'فشلت العملية', 'error');
             }
         },
-        error: function() {
-            Swal.fire('خطأ!', 'فشلت العملية', 'error');
+        error: function(xhr, status, error) {
+            console.error('AJAX Error:', status, error, xhr.responseText);
+            Swal.fire('خطأ!', 'حدث خطأ في الاتصال بالخادم: ' + xhr.responseText, 'error');
         }
     });
-});
-$(document).ready(function() {
-    // سكريبت السلايدر الجديد
-    const slider = $('#main-slider');
-    const slides = slider.find('.slide');
-    const slideCount = slides.length;
-    
-    if (slideCount > 0) {
-        const indicators = $('#slider-indicators span');
-        let currentIndex = 0;
-        let autoSlideInterval;
-
-        // تحديد عرض الحاوية
-        const container = $('.slider-container');
-        const containerWidth = container.width();
-        
-        // تعيين عرض كل شريحة وعرض السلايدر الكلي
-        slides.css('width', containerWidth + 'px');
-        slider.css('width', (slideCount * containerWidth) + 'px');
-        
-        // تحديث العرض عند تغيير حجم النافذة
-        $(window).resize(function() {
-            const newContainerWidth = container.width();
-            slides.css('width', newContainerWidth + 'px');
-            slider.css('width', (slideCount * newContainerWidth) + 'px');
-            goToSlide(currentIndex);
-        });
-
-        function goToSlide(index) {
-            if (index < 0) {
-                index = slideCount - 1;
-            } else if (index >= slideCount) {
-                index = 0;
-            }
-            
-            const slideWidth = slides.eq(0).width();
-            slider.css('transform', 'translateX(-' + (index * slideWidth) + 'px)');
-            
-            if (indicators.length > 0) {
-                indicators.removeClass('active');
-                indicators.eq(index).addClass('active');
-            }
-            currentIndex = index;
-        }
-
-        function nextSlide() {
-            goToSlide(currentIndex + 1);
-        }
-
-        function prevSlide() {
-            goToSlide(currentIndex - 1);
-        }
-
-        function startAutoSlide() {
-            if (slideCount > 1) {
-                autoSlideInterval = setInterval(nextSlide, 5000);
-            }
-        }
-
-        function stopAutoSlide() {
-            clearInterval(autoSlideInterval);
-        }
-
-        // أحداث الأزرار
-        $('#next-slide').click(function() {
-            stopAutoSlide();
-            nextSlide();
-            startAutoSlide();
-        });
-
-        $('#prev-slide').click(function() {
-            stopAutoSlide();
-            prevSlide();
-            startAutoSlide();
-        });
-
-        // أحداث المؤشرات
-        if (indicators.length > 0) {
-            indicators.click(function() {
-                stopAutoSlide();
-                goToSlide(parseInt($(this).data('index')));
-                startAutoSlide();
-            });
-        }
-
-        // بدء التمرير التلقائي
-        startAutoSlide();
-        
-        // إيقاف التمرير التلقائي عند تحويم الماوس
-        container.hover(stopAutoSlide, startAutoSlide);
-    }
 });
     </script>
 
