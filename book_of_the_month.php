@@ -202,7 +202,7 @@ $reviews_result = $reviews->get_result();
 
 <div class="container mt-5">
     <div class="d-flex align-items-center gap-2 mb-4">
-        <a href="home.php" class="btn btn-secondary btn-sm">العودة</a>
+        <a href="index.php" class="btn btn-secondary btn-sm">العودة</a>
     </div>
     
     <div class="book-details-container">

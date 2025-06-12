@@ -562,9 +562,9 @@ Swal.fire({
                         <i class="fas fa-cart-plus"></i>
                         </button>
                         <?php else: ?>
-                        <button class="btn btn-secondary btn-sm" data-bs-toggle="modal" data-bs-target="#loginModal">
-                            <i class="fas fa-sign-in-alt"></i> تسجيل الدخول
-                        </button>
+                        <a href="login.php" class="btn btn-secondary btn-sm">
+        <i class="fas fa-sign-in-alt"></i>
+    </a>
                         <?php endif; ?>
 
                     </div>
@@ -679,9 +679,9 @@ Swal.fire({
                         <i class="fas fa-cart-plus"></i>
                         </button>
                         <?php else: ?>
-                        <button class="btn btn-secondary btn-sm" data-bs-toggle="modal" data-bs-target="#loginModal">
-                            <i class="fas fa-sign-in-alt"></i> تسجيل الدخول
-                        </button>
+                          <a href="login.php" class="btn btn-secondary btn-sm">
+        <i class="fas fa-sign-in-alt"></i>
+    </a>
                         <?php endif; ?>
                     </div>
                 </div>
@@ -802,9 +802,9 @@ Swal.fire({
                         <i class="fas fa-cart-plus"></i>
                         </button>
                         <?php else: ?>
-                        <button class="btn btn-secondary btn-sm" data-bs-toggle="modal" data-bs-target="#loginModal">
-                            <i class="fas fa-sign-in-alt"></i> تسجيل الدخول
-                        </button>
+                          <a href="login.php" class="btn btn-secondary btn-sm">
+        <i class="fas fa-sign-in-alt"></i>
+    </a>
                         <?php endif; ?>
 
                     </div>
@@ -930,9 +930,9 @@ Swal.fire({
                         <i class="fas fa-cart-plus"></i>
                         </button>
                         <?php else: ?>
-                        <button class="btn btn-secondary btn-sm" data-bs-toggle="modal" data-bs-target="#loginModal">
-                            <i class="fas fa-sign-in-alt"></i> تسجيل الدخول
-                        </button>
+                          <a href="login.php" class="btn btn-secondary btn-sm">
+        <i class="fas fa-sign-in-alt"></i>
+    </a>
                         <?php endif; ?>
 
                     </div>

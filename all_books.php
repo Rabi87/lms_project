@@ -1,7 +1,20 @@
 <?php
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
 require __DIR__ . '/includes/config.php';
 require __DIR__ . '/includes/header.php';
 
+
+$favorites = [];
+if (isset($_SESSION['user_id'])) {
+    $user_id = $_SESSION['user_id'];
+    $fav_query = "SELECT book_id FROM favorite_books WHERE user_id = $user_id";
+    $fav_result = $conn->query($fav_query);
+    while ($row = $fav_result->fetch_assoc()) {
+        $favorites[] = $row['book_id'];
+    }
+}
 // جلب التصنيفات من قاعدة البيانات
 $categories = $conn->query("SELECT * FROM categories")->fetch_all(MYSQLI_ASSOC);
 
@@ -18,6 +31,10 @@ $filterAuthor = isset($_GET['author']) ? htmlspecialchars($_GET['author']) : '';
 $filterRating = isset($_GET['rating']) ? intval($_GET['rating']) : 0;
 $searchTerm = isset($_GET['search']) ? htmlspecialchars($_GET['search']) : '';
 $filterMaterial = isset($_GET['material']) ? htmlspecialchars($_GET['material']) : '';
+
+
+
+
 
 // بناء الاستعلام الأساسي
 $baseQuery = "SELECT *, 
@@ -296,6 +313,8 @@ $result = $stmt->get_result();
         <?php if ($result->num_rows > 0): ?>
             <?php while ($book = $result->fetch_assoc()):
                 $is_discounted = ($book['has_discount'] == 1);
+                $book_id = $book['id'];
+            $is_favorite = in_array($book_id, $favorites);
             ?>
                 <!-- بطاقة الكتاب (نفس الكود السابق) -->
                 <div class="col-md-4 col-lg-3">
@@ -355,11 +374,11 @@ $result = $stmt->get_result();
                                 </button>
 
                                 <!-- المفضلة -->
-                                <button
-                                    class="btn btn-sm <?= $is_favorite ? 'btn-danger' : 'btn-outline-danger' ?> toggle-favorite"
-                                    data-book-id="<?= $book['id'] ?>">
-                                    <i class="fas fa-heart"></i>
-                                </button>
+                               <button
+                            class="btn btn-sm <?= $is_favorite ? 'btn-danger' : 'btn-outline-danger' ?> toggle-favorite"
+                            data-book-id="<?= $book['id'] ?>">
+                            <i class="fas fa-heart"></i>
+                        </button>
 
                                 <?php if (isset($_SESSION['user_id'])): ?>
                                     <!-- استعارة الكتاب -->
@@ -380,9 +399,9 @@ $result = $stmt->get_result();
                                         <i class="fas fa-cart-plus"></i>
                                     </button>
                                 <?php else: ?>
-                                    <button class="btn btn-secondary btn-sm" data-bs-toggle="modal" data-bs-target="#loginModal">
-                                        <i class="fas fa-sign-in-alt"></i>
-                                    </button>
+                                     <a href="login.php" class="btn btn-secondary btn-sm">
+        <i class="fas fa-sign-in-alt"></i>
+    </a>
                                 <?php endif; ?>
                             </div>
                         </div>
@@ -400,5 +419,55 @@ $result = $stmt->get_result();
         <?php endif; ?>
     </div>
 </div>
+<script>
+// إضافة/إزالة من المفضلة - نسخة معدلة
+$(document).on('click', '.toggle-favorite', function() {
+    <?php if(!isset($_SESSION['user_id'])): ?>
+    Swal.fire({
+        title: 'تنبيه!',
+        text: 'يجب تسجيل الدخول أولاً',
+        icon: 'warning',
+        confirmButtonText: 'تسجيل الدخول'
+    }).then((result) => {
+        if (result.isConfirmed) {
+            window.location.href = 'login.php?return_url=' + encodeURIComponent(window.location.href);
+        }
+    });
+    return;
+    <?php endif; ?>
+
+    const button = $(this);
+    const bookId = button.data('book-id');
+
+    $.ajax({
+        url: 'toggle_favorite.php',
+        method: 'POST',
+        data: {
+            book_id: bookId,
+            csrf_token: '<?= $_SESSION['csrf_token'] ?? '' ?>'
+        },
+        dataType: 'json',
+        success: function(response) {
+            if (response.success) {
+                // تحديث الأيقونة بدون إعادة تحميل الصفحة
+                button.find('i').toggleClass('fas far'); // تبديل بين القلب المملوء والفارغ
+                
+                Swal.fire({
+                    icon: response.is_favorite ? 'success' : 'info',
+                    title: response.is_favorite ? 'أضيف إلى المفضلة' : 'حُذف من المفضلة',
+                    showConfirmButton: false,
+                    timer: 1500
+                });
+            } else {
+                Swal.fire('خطأ!', response.message || 'فشلت العملية', 'error');
+            }
+        },
+        error: function(xhr) {
+            const errorMsg = xhr.responseJSON?.message || 'حدث خطأ في الاتصال بالخادم';
+            Swal.fire('خطأ!', errorMsg, 'error');
+        }
+    });
+});
+</script>
 
 <?php require __DIR__ . '/includes/footer.php'; ?>

@@ -137,13 +137,12 @@ const complaintFields = {
                 <select class="form-select" name="payment_method" required>
                     <option value="">-- اختر --</option>
                     <option value="credit_card">بطاقة ائتمانية</option>
-                    <option value="mada">مدى</option>
                     <option value="apple_pay">Apple Pay</option>
                     <option value="paypal">PayPal</option>
                 </select>
             </div>
             <div class="col-md-6 mb-3">
-                <label class="form-label">المبلغ (ريال)</label>
+                <label class="form-label">المبلغ (ل.س)</label>
                 <input type="number" class="form-control" name="amount" step="0.01" required>
             </div>
         </div>
