@@ -43,8 +43,6 @@ Swal.fire({
                                 <option value="payment">مشكلة في عملية الدفع</option>
                                 <option value="book">كتاب غير متوفر</option>
                                 <option value="borrow">مشكلة في الاستعارة</option>
-                                <option value="quality">جودة كتاب غير مقبولة</option>
-                                <option value="delivery">تأخر في التوصيل</option>
                                 <option value="other">شكوى أخرى</option>
                             </select>
                         </div>
@@ -180,48 +178,7 @@ const complaintFields = {
         </div>
     `,
     
-    quality: `
-        <div class="mb-3">
-            <label class="form-label">اسم الكتاب</label>
-            <input type="text" class="form-control" name="quality_book_title" required>
-        </div>
-        <div class="mb-3">
-            <label class="form-label">نوع المشكلة</label>
-            <select class="form-select" name="quality_issue_type" required>
-                <option value="">-- اختر --</option>
-                <option value="printing">جودة طباعة</option>
-                <option value="missing">صفحات ناقصة</option>
-                <option value="damaged">كتاب تالف</option>
-                <option value="content">محتوى غير مكتمل</option>
-                <option value="format">تنسيق غير صحيح</option>
-            </select>
-        </div>
-        <div class="mb-3">
-            <label class="form-label">رقم الإصدار</label>
-            <input type="text" class="form-control" name="edition">
-        </div>
-    `,
     
-    delivery: `
-        <div class="mb-3">
-            <label class="form-label">رقم الطلب</label>
-            <input type="text" class="form-control" name="order_id" required>
-        </div>
-        <div class="row">
-            <div class="col-md-6 mb-3">
-                <label class="form-label">تاريخ الطلب</label>
-                <input type="date" class="form-control" name="order_date" required>
-            </div>
-            <div class="col-md-6 mb-3">
-                <label class="form-label">تاريخ التوصيل المتوقع</label>
-                <input type="date" class="form-control" name="expected_delivery" required>
-            </div>
-        </div>
-        <div class="mb-3">
-            <label class="form-label">عنوان التوصيل</label>
-            <textarea class="form-control" name="delivery_address" rows="2"></textarea>
-        </div>
-    `,
     
     other: ''
 };

@@ -5,7 +5,12 @@ if (session_status() === PHP_SESSION_NONE) {
 require __DIR__ . '/includes/config.php';
 require __DIR__ . '/includes/header.php';
 
+// تأكد من وجود csrf_token
+if (empty($_SESSION['csrf_token'])) {
+    $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
+}
 
+// جلب المفضلة للمستخدم
 $favorites = [];
 if (isset($_SESSION['user_id'])) {
     $user_id = $_SESSION['user_id'];
@@ -15,6 +20,7 @@ if (isset($_SESSION['user_id'])) {
         $favorites[] = $row['book_id'];
     }
 }
+
 // جلب التصنيفات من قاعدة البيانات
 $categories = $conn->query("SELECT * FROM categories")->fetch_all(MYSQLI_ASSOC);
 
@@ -372,13 +378,19 @@ $result = $stmt->get_result();
                                     onclick="window.location.href='details.php?id=<?= $book['id'] ?>'">
                                     <i class="fas fa-info"></i>
                                 </button>
+                                <?php if (isset($_SESSION['user_id'])): ?>
+<script>
+console.log("User ID: <?= $_SESSION['user_id'] ?>");
+console.log("Favorites: <?= implode(',', $favorites) ?>");
+console.log("CSRF Token: <?= $_SESSION['csrf_token'] ?>");
+</script>
+<?php endif; ?>
 
                                 <!-- المفضلة -->
-                               <button
-                            class="btn btn-sm <?= $is_favorite ? 'btn-danger' : 'btn-outline-danger' ?> toggle-favorite"
-                            data-book-id="<?= $book['id'] ?>">
-                            <i class="fas fa-heart"></i>
-                        </button>
+                                <button class="btn btn-sm <?= in_array($book['id'], $favorites) ? 'btn-danger' : 'btn-outline-danger' ?> toggle-favorite"
+                                    data-book-id="<?= $book['id'] ?>">
+                                    <i class="fas fa-heart"></i>
+                                </button>
 
                                 <?php if (isset($_SESSION['user_id'])): ?>
                                     <!-- استعارة الكتاب -->
@@ -420,52 +432,52 @@ $result = $stmt->get_result();
     </div>
 </div>
 <script>
-// إضافة/إزالة من المفضلة - نسخة معدلة
-$(document).on('click', '.toggle-favorite', function() {
-    <?php if(!isset($_SESSION['user_id'])): ?>
-    Swal.fire({
-        title: 'تنبيه!',
-        text: 'يجب تسجيل الدخول أولاً',
-        icon: 'warning',
-        confirmButtonText: 'تسجيل الدخول'
-    }).then((result) => {
-        if (result.isConfirmed) {
-            window.location.href = 'login.php?return_url=' + encodeURIComponent(window.location.href);
-        }
-    });
-    return;
-    <?php endif; ?>
+$(document).ready(function() {
+    // إضافة/إزالة من المفضلة
+    $(document).on('click', '.toggle-favorite', function() {
+        const button = $(this);
+        const bookId = button.data('book-id');
+        
+        <?php if(!isset($_SESSION['user_id'])): ?>
+            Swal.fire({
+                title: 'تنبيه!',
+                text: 'يجب تسجيل الدخول أولاً',
+                icon: 'warning',
+                confirmButtonText: 'تسجيل الدخول'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    window.location.href = 'login.php';
+                }
+            });
+            return;
+        <?php endif; ?>
 
-    const button = $(this);
-    const bookId = button.data('book-id');
-
-    $.ajax({
-        url: 'toggle_favorite.php',
-        method: 'POST',
-        data: {
-            book_id: bookId,
-            csrf_token: '<?= $_SESSION['csrf_token'] ?? '' ?>'
-        },
-        dataType: 'json',
-        success: function(response) {
-            if (response.success) {
-                // تحديث الأيقونة بدون إعادة تحميل الصفحة
-                button.find('i').toggleClass('fas far'); // تبديل بين القلب المملوء والفارغ
-                
-                Swal.fire({
-                    icon: response.is_favorite ? 'success' : 'info',
-                    title: response.is_favorite ? 'أضيف إلى المفضلة' : 'حُذف من المفضلة',
-                    showConfirmButton: false,
-                    timer: 1500
-                });
-            } else {
-                Swal.fire('خطأ!', response.message || 'فشلت العملية', 'error');
+        $.ajax({
+            url: 'toggle_favorite.php',
+            method: 'POST',
+            data: {
+                book_id: bookId,
+                csrf_token: '<?= $_SESSION['csrf_token'] ?>'
+            },
+            dataType: 'json',
+            success: function(response) {
+                if (response.success) {
+                    if (response.is_favorite) {
+                        button.removeClass('btn-outline-danger').addClass('btn-danger');
+                        Swal.fire('تم!', 'أضيف إلى المفضلة', 'success');
+                    } else {
+                        button.removeClass('btn-danger').addClass('btn-outline-danger');
+                        Swal.fire('تم!', 'حُذف من المفضلة', 'info');
+                    }
+                } else {
+                    Swal.fire('خطأ!', response.message || 'فشلت العملية', 'error');
+                }
+            },
+            error: function(xhr, status, error) {
+                console.error('AJAX Error:', status, error, xhr.responseText);
+                Swal.fire('خطأ!', 'حدث خطأ في الاتصال بالخادم: ' + xhr.responseText, 'error');
             }
-        },
-        error: function(xhr) {
-            const errorMsg = xhr.responseJSON?.message || 'حدث خطأ في الاتصال بالخادم';
-            Swal.fire('خطأ!', errorMsg, 'error');
-        }
+        });
     });
 });
 </script>
