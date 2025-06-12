@@ -2,17 +2,22 @@
 if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
+if (isset($_GET['remove'])) {
+    $book_id = (int)$_GET['remove'];
+    if (isset($_SESSION['cart'][$book_id])) {
+        unset($_SESSION['cart'][$book_id]);
+        setcookie('cart', json_encode($_SESSION['cart']), 0, "/");
+         // إعادة التوجيه لإزالة معلمة remove من الرابط
+        header('Location: cart.php');
+        exit();
+    }
+}
 require __DIR__ . '/includes/config.php';
 require __DIR__ . '/includes/header.php';
 
 
 // معالجة حذف العناصر
-if (isset($_GET['remove'])) {
-    $book_id = (int)$_GET['remove'];
-    if (isset($_SESSION['cart'][$book_id])) {
-        unset($_SESSION['cart'][$book_id]);
-    }
-}
+
 
 // احتساب المجموع الكلي مع مراعاة التخفيضات
 $total = 0;
