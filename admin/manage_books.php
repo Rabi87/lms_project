@@ -186,6 +186,15 @@ Swal.fire({
     text-align: right;
     /* محاذاة النص لليمين */
 }
+.book-of-month-highlight {
+    background-color: rgba(255, 215, 0, 0.15) !important;
+    box-shadow: 0 0 8px rgba(255, 215, 0, 0.3);
+    transition: all 0.3s ease;
+}
+
+.book-of-month-highlight td {
+    font-weight: bold;
+}
 </style>
 <!-- بطاقات الإحصائيات -->
 <div class="row mb-4">
@@ -294,6 +303,7 @@ Swal.fire({
                     </thead>
                     <tbody>
                         <?php while($book = $books->fetch_assoc()): ?>
+                        <tr <?= $book['book_of_the_month'] ? 'class="book-of-month-highlight"' : '' ?>>
                         <tr>
                             <td class="column-0"><?= htmlspecialchars($book['title']) ?></td>
                             <td class="column-1"><?= htmlspecialchars($book['author']) ?></td>
@@ -386,11 +396,30 @@ function confirmDelete(e) {
     }
 }
 // تحديث حالة كتاب الشهر عبر AJAX
-document.querySelectorAll('.book-of-month-toggle').forEach(toggle => {
-    toggle.addEventListener('change', function() {
-        const bookId = this.getAttribute('data-book-id');
-        const isChecked = this.checked ? 1 : 0;
+document.addEventListener('change', function(e) {
+    if (e.target.classList.contains('book-of-month-toggle')) {
+        const toggle = e.target;
+        const bookId = toggle.getAttribute('data-book-id');
+        const isChecked = toggle.checked;
 
+        // إلغاء تفعيل جميع التبديلات الأخرى في الجدول
+        document.querySelectorAll('.book-of-month-toggle').forEach(otherToggle => {
+            if (otherToggle !== toggle) {
+                otherToggle.checked = false;
+                otherToggle.closest('tr').classList.remove('book-of-month-highlight');
+            }
+        });
+
+        
+        // تغيير المظهر فوراً
+        const row = toggle.closest('tr');
+        if (isChecked) {
+            row.classList.add('book-of-month-highlight');
+        } else {
+            row.classList.remove('book-of-month-highlight');
+        }
+        
+        // إرسال الطلب إلى الخادم
         fetch('../update_book_of_month.php', {
             method: 'POST',
             headers: {
@@ -398,17 +427,28 @@ document.querySelectorAll('.book-of-month-toggle').forEach(toggle => {
             },
             body: JSON.stringify({
                 book_id: bookId,
-                status: isChecked
+                status: isChecked ? 1 : 0
             })
         })
         .then(response => response.json())
         .then(data => {
             if (!data.success) {
+                // إرجاع الحالة الأصلية في حالة الخطأ
+                toggle.checked = !isChecked;
+                if (isChecked) {
+                    row.classList.remove('book-of-month-highlight');
+                } else {
+                    row.classList.add('book-of-month-highlight');
+                }
                 alert('حدث خطأ!');
-                this.checked = !isChecked;
             }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            toggle.checked = !isChecked;
+            alert('حدث خطأ في الاتصال بالخادم');
         });
-    });
+    }
 });
 // البحث الفوري  
 document.getElementById('searchall').addEventListener('input', function(e) {
