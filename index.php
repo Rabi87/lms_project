@@ -508,6 +508,10 @@ Swal.fire({
                     <?php if($is_discounted): ?>
                     <div class="d-flex justify-content-between align-items-center">
                         <div>
+                            <span class="badge bg-info">
+                            <i class="fas fa-calendar-alt"></i>
+                            <?= date('Y-m-d', strtotime($book['created_at'])) ?>
+                        </span>
                             <span class="text-danger fs-5 fw-bold">
                                 <?= number_format($book['discounted_price']) ?>
                             </span>
@@ -817,10 +821,13 @@ Swal.fire({
     </div>
     <!-- زر المزيد -->
     <div class="text-center mt-3">
-        <a href="all_books.php?type=bestsellers" class="btn btn-outline-primary load-more">
+        <a href="all_books.php?type=bestsellers&section=bestsellers" class="btn btn-outline-primary load-more">
             عرض المزيد </i>
         </a>
     </div>
+
+
+
     <?php else: ?>
     <div class="alert alert-info">لا توجد بيانات عن الكتب الأكثر مبيعًا</div>
     <?php endif; ?>

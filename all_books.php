@@ -2,15 +2,20 @@
 if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
+error_reporting(E_ALL);
+ini_set('display_errors', 1);
+
+// تسجيل البيانات الواردة
+
 require __DIR__ . '/includes/config.php';
 require __DIR__ . '/includes/header.php';
 
-// تأكد من وجود csrf_token
+// توليد CSRF token إذا لم موجود
 if (empty($_SESSION['csrf_token'])) {
     $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
 }
 
-// جلب المفضلة للمستخدم
+// جلب المفضلة
 $favorites = [];
 if (isset($_SESSION['user_id'])) {
     $user_id = $_SESSION['user_id'];
@@ -21,136 +26,120 @@ if (isset($_SESSION['user_id'])) {
     }
 }
 
-// جلب التصنيفات من قاعدة البيانات
+// جلب البيانات الأساسية
 $categories = $conn->query("SELECT * FROM categories")->fetch_all(MYSQLI_ASSOC);
-
-// جلب المؤلفين من قاعدة البيانات
 $authors = $conn->query("SELECT DISTINCT author FROM books")->fetch_all(MYSQLI_ASSOC);
-// جلب أنواع المواد المميزة (كتاب، مجلة، صحيفة) // إضافة جديدة
 $materialTypes = $conn->query("SELECT DISTINCT material_type FROM books WHERE material_type IS NOT NULL AND material_type != ''")->fetch_all(MYSQLI_ASSOC);
-// تحديد نوع القائمة من الرابط
-$type = isset($_GET['type']) ? htmlspecialchars($_GET['type']) : '';
 
-// استلام معايير التصفية من الرابط
+// معالجة معاملات البحث والتصفية
+$type = isset($_GET['type']) ? strtolower(trim($_GET['type'])) : '';
 $filterCategory = isset($_GET['category']) ? intval($_GET['category']) : 0;
 $filterAuthor = isset($_GET['author']) ? htmlspecialchars($_GET['author']) : '';
 $filterRating = isset($_GET['rating']) ? intval($_GET['rating']) : 0;
 $searchTerm = isset($_GET['search']) ? htmlspecialchars($_GET['search']) : '';
 $filterMaterial = isset($_GET['material']) ? htmlspecialchars($_GET['material']) : '';
+$section = isset($_GET['section']) ? $_GET['section'] : '';
 
-
-
-
-
-// بناء الاستعلام الأساسي
-$baseQuery = "SELECT *, 
-    IF(has_discount = 1, 
-        (price - (price * (discount_percentage / 100))), 
+// استعلام الكتب الأكثر مبيعًا مع حساب عدد المرات
+// استعلام الكتب الأكثر مبيعًا
+$baseQuery = "SELECT 
+    b.*,
+    IF(b.has_discount = 1, 
+        (b.price - (b.price * (b.discount_percentage / 100))), 
         NULL
-    ) AS discounted_price 
-FROM books 
+    ) AS discounted_price,
+    COUNT(br.id) AS sales_count
+FROM books b
+LEFT JOIN borrow_requests br 
+    ON b.id = br.book_id 
+    AND br.status = 'approved' 
 WHERE 1=1";
 
-// إضافة شروط التصفية حسب النوع
+// تحديد نوع القائمة
 switch ($type) {
     case 'bestsellers':
-        $baseQuery .= " ORDER BY created_at DESC LIMIT 10";
+        $baseQuery .= " GROUP BY b.id ORDER BY sales_count DESC";
         $title = "الأكثر مبيعًا";
         break;
     case 'discounted':
-        $baseQuery .= " AND has_discount = 1 ORDER BY discount_percentage DESC";
+        $baseQuery .= " AND b.has_discount = 1 GROUP BY b.id ORDER BY b.discount_percentage DESC";
         $title = "العروض الخاصة";
         break;
     case 'new':
-        $baseQuery .= " ORDER BY created_at DESC";
+        $baseQuery .= " GROUP BY b.id ORDER BY b.created_at DESC";
         $title = "أحدث الإضافات";
         break;
     default:
+        $baseQuery .= " GROUP BY b.id ORDER BY b.created_at DESC";
         $title = "جميع الكتب";
 }
 
-// بناء شروط التصفية
+
+
+// إضافة شروط التصفية
 $conditions = [];
 $params = [];
 $types = '';
 
-// إضافة شرط التصنيف
 if ($filterCategory > 0) {
-    $conditions[] = " category_id = ? ";
+    $conditions[] = " b.category_id = ? ";
     $params[] = $filterCategory;
     $types .= 'i';
 }
 
-// إضافة شرط المؤلف
 if (!empty($filterAuthor)) {
-    $conditions[] = " author LIKE ? ";
+    $conditions[] = " b.author LIKE ? ";
     $params[] = '%' . $filterAuthor . '%';
     $types .= 's';
 }
 
-// إضافة شرط التقييم
 if ($filterRating > 0) {
-    $conditions[] = " evaluation >= ? ";
+    $conditions[] = " b.evaluation >= ? ";
     $params[] = $filterRating;
     $types .= 'i';
 }
 
-// إضافة شرط البحث الجديد
 if (!empty($searchTerm)) {
     $conditions[] = "(
-        title LIKE ? OR 
-        author LIKE ? OR 
-        isbn LIKE ? OR 
-        category_id IN (SELECT category_id FROM categories WHERE category_name LIKE ?)
+        b.title LIKE ? OR 
+        b.author LIKE ? OR 
+        b.isbn LIKE ? OR 
+        b.category_id IN (SELECT category_id FROM categories WHERE category_name LIKE ?)
     )";
-     $params[] = '%' . $searchTerm . '%';
-    $params[] = '%' . $searchTerm . '%';
-    $params[] = '%' . $searchTerm . '%';
-    $params[] = '%' . $searchTerm . '%';
-    
+    $params = array_merge($params, array_fill(0, 4, '%' . $searchTerm . '%'));
     $types .= 'ssss';
 }
-// إضافة شرط نوع المادة // إضافة جديدة
+
 if (!empty($filterMaterial)) {
-    $conditions[] = " material_type = ? ";
+    $conditions[] = " b.material_type = ? ";
     $params[] = $filterMaterial;
     $types .= 's';
 }
-// دمج الشروط مع الاستعلام الأساسي
+
+// دمج الشروط مع الاستعلام
 if (!empty($conditions)) {
     $whereClause = " AND " . implode(" AND ", $conditions);
-
-    // إذا كان هناك نوع محدد، نزيل ORDER BY/LIMIT ونضيفه لاحقاً
-    if ($type !== '') {
-        $baseQuery = preg_replace('/ORDER BY.*$/', '', $baseQuery);
-        $baseQuery = preg_replace('/LIMIT.*$/', '', $baseQuery);
-    }
-
     $baseQuery = str_replace("WHERE 1=1", "WHERE 1=1" . $whereClause, $baseQuery);
-
-    // إعادة إضافة ORDER BY/LIMIT إذا كان هناك نوع محدد
-    if ($type === 'bestsellers') {
-        $baseQuery .= " ORDER BY created_at DESC LIMIT 10";
-    } elseif ($type === 'discounted') {
-        $baseQuery .= " ORDER BY discount_percentage DESC";
-    } elseif ($type === 'new') {
-        $baseQuery .= " ORDER BY created_at DESC";
-    }
 }
 
 // تنفيذ الاستعلام
 $stmt = $conn->prepare($baseQuery);
-
 if (!empty($params)) {
     $stmt->bind_param($types, ...$params);
 }
+
 
 $stmt->execute();
 $result = $stmt->get_result();
 ?>
 
+
 <style>
-    /* الأنماط السابقة... */
+    .badge.bg-danger {
+    display: block !important;
+    position: static !important;
+    opacity: 1 !important;
+}
 
     /* أنماط الفلتر الجديدة */
     .filter-section {
@@ -218,6 +207,29 @@ $result = $stmt->get_result();
     text-decoration: line-through;
 }
 </style>
+
+<?php if (isset($_SESSION['error'])): ?>
+<script>
+Swal.fire({
+    icon: 'warning',
+    title: 'انتبه.. !',
+    text: '<?= $_SESSION['error'] ?>'
+});
+</script>
+<?php unset($_SESSION['error']); ?>
+<?php endif; ?>
+
+<?php if (isset($_SESSION['success'])): ?>
+<script>
+Swal.fire({
+    icon: 'success',
+    title: 'شكرا لك.. !',
+    text: '<?= $_SESSION['success'] ?>'
+});
+
+</script>
+<?php unset($_SESSION['success']); ?>
+<?php endif; ?>
 
 <div class="container my-5">
     <div class="d-flex align-items-center gap-2 mb-4">
@@ -314,53 +326,41 @@ $result = $stmt->get_result();
         </form>
     </div>
 
-    <!-- عرض الكتب -->
+    <<!-- عرض الكتب -->
     <div class="row g-4">
+        
         <?php if ($result->num_rows > 0): ?>
-            <?php while ($book = $result->fetch_assoc()):
+            <?php while ($book = $result->fetch_assoc()): 
                 $is_discounted = ($book['has_discount'] == 1);
-                $book_id = $book['id'];
+                 $book_id = $book['id'];
             $is_favorite = in_array($book_id, $favorites);
             ?>
-                <!-- بطاقة الكتاب (نفس الكود السابق) -->
                 <div class="col-md-4 col-lg-3">
                     <div class="card h-100 shadow">
-                        <!-- شريط الخصم -->
                         <?php if ($is_discounted): ?>
                             <div class="discount-ribbon">
                                 خصم <?= $book['discount_percentage'] ?>%
                             </div>
                         <?php endif; ?>
+                        
 
                         <?php if (!empty($book['cover_image'])): ?>
-                            <img src="<?= BASE_URL . $book['cover_image'] ?>" class="card-img-top" alt="غلاف الكتاب"
-                                style="height: 300px; object-fit: cover;">
+                            <img src="<?= BASE_URL . $book['cover_image'] ?>" class="card-img-top" alt="غلاف الكتاب" style="height: 300px; object-fit: cover;">
                         <?php endif; ?>
+                        
                         <div class="card-body">
                             <h5 class="card-title"><?= htmlspecialchars($book['title']) ?></h5>
                             <p class="text-muted"><?= htmlspecialchars($book['author']) ?></p>
-
-                            <!-- عرض السعر -->
-                            <div class="d-flex justify-content-between align-items-center">
-                                <?php if ($is_discounted): ?>
-                                    <div>
-                                        <span class="discounted-price">
-                                            <?= number_format($book['discounted_price']) ?> ل.س
-                                        </span>
-                                        <span class="text-decoration-line-through text-muted ms-2">
-                                            <?= number_format($book['price']) ?>
-                                        </span>
-                                    </div>
-                                <?php else: ?>
-                                    <span class="text-success"><?= number_format($book['price']) ?> ل.س</span>
-                                <?php endif; ?>
-
-                                <?php if ($type === 'bestsellers'): ?>
-                                    <span class="badge bg-danger">🔥 <?= $book['sales_count'] ?> مبيعًا</span>
-                                <?php endif; ?>
-                            </div>
-
-                            <!-- التقييم -->
+                        
+                            <!-- عرض عدد المبيعات للأكثر مبيعًا -->
+                           <?php if ($section === 'bestsellers'): ?>
+    <div class="d-flex align-items-center mb-2">
+        <span class="badge bg-danger me-2">
+            <i class="fas fa-fire"></i>
+            <?= (int)$book['sales_count'] ?> مبيعًا
+        </span>
+    </div>
+<?php endif; ?>   <!-- التقييم -->
                             <div class="mt-2">
                                 <?php
                                 $rating = $book['evaluation'];
@@ -379,18 +379,18 @@ $result = $stmt->get_result();
                                     <i class="fas fa-info"></i>
                                 </button>
                                 <?php if (isset($_SESSION['user_id'])): ?>
-<script>
-console.log("User ID: <?= $_SESSION['user_id'] ?>");
-console.log("Favorites: <?= implode(',', $favorites) ?>");
-console.log("CSRF Token: <?= $_SESSION['csrf_token'] ?>");
-</script>
-<?php endif; ?>
+                                <script>
+                                console.log("User ID: <?= $_SESSION['user_id'] ?>");
+                                console.log("Favorites: <?= implode(',', $favorites) ?>");
+                                console.log("CSRF Token: <?= $_SESSION['csrf_token'] ?>");
+                                </script>
+                                <?php endif; ?>
 
                                 <!-- المفضلة -->
-                                <button class="btn btn-sm <?= in_array($book['id'], $favorites) ? 'btn-danger' : 'btn-outline-danger' ?> toggle-favorite"
-                                    data-book-id="<?= $book['id'] ?>">
-                                    <i class="fas fa-heart"></i>
-                                </button>
+                                <button class="btn btn-sm <?= $is_favorite ? 'btn-danger' : 'btn-outline-danger' ?> toggle-favorite"
+    data-book-id="<?= $book['id'] ?>">
+    <i class="fas fa-heart"></i>
+</button>
 
                                 <?php if (isset($_SESSION['user_id'])): ?>
                                     <!-- استعارة الكتاب -->
@@ -412,10 +412,11 @@ console.log("CSRF Token: <?= $_SESSION['csrf_token'] ?>");
                                     </button>
                                 <?php else: ?>
                                      <a href="login.php" class="btn btn-secondary btn-sm">
-        <i class="fas fa-sign-in-alt"></i>
-    </a>
+                                        <i class="fas fa-sign-in-alt"></i>
+                                     </a>
                                 <?php endif; ?>
                             </div>
+
                         </div>
                     </div>
                 </div>
@@ -431,53 +432,56 @@ console.log("CSRF Token: <?= $_SESSION['csrf_token'] ?>");
         <?php endif; ?>
     </div>
 </div>
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/OwlCarousel2/2.3.4/owl.carousel.min.js"></script>
 <script>
-$(document).ready(function() {
-    // إضافة/إزالة من المفضلة
-    $(document).on('click', '.toggle-favorite', function() {
-        const button = $(this);
-        const bookId = button.data('book-id');
-        
-        <?php if(!isset($_SESSION['user_id'])): ?>
-            Swal.fire({
-                title: 'تنبيه!',
-                text: 'يجب تسجيل الدخول أولاً',
-                icon: 'warning',
-                confirmButtonText: 'تسجيل الدخول'
-            }).then((result) => {
-                if (result.isConfirmed) {
-                    window.location.href = 'login.php';
-                }
-            });
-            return;
-        <?php endif; ?>
-
-        $.ajax({
-            url: 'toggle_favorite.php',
-            method: 'POST',
-            data: {
-                book_id: bookId,
-                csrf_token: '<?= $_SESSION['csrf_token'] ?>'
-            },
-            dataType: 'json',
-            success: function(response) {
-                if (response.success) {
-                    if (response.is_favorite) {
-                        button.removeClass('btn-outline-danger').addClass('btn-danger');
-                        Swal.fire('تم!', 'أضيف إلى المفضلة', 'success');
-                    } else {
-                        button.removeClass('btn-danger').addClass('btn-outline-danger');
-                        Swal.fire('تم!', 'حُذف من المفضلة', 'info');
-                    }
-                } else {
-                    Swal.fire('خطأ!', response.message || 'فشلت العملية', 'error');
-                }
-            },
-            error: function(xhr, status, error) {
-                console.error('AJAX Error:', status, error, xhr.responseText);
-                Swal.fire('خطأ!', 'حدث خطأ في الاتصال بالخادم: ' + xhr.responseText, 'error');
+$(document).on('click', '.toggle-favorite', function() {
+    const button = $(this);
+    const bookId = button.data('book-id');
+    
+    <?php if(!isset($_SESSION['user_id'])): ?>
+        Swal.fire({
+            title: 'تنبيه!',
+            text: 'يجب تسجيل الدخول أولاً',
+            icon: 'warning',
+            confirmButtonText: 'تسجيل الدخول'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                window.location.href = 'login.php';
             }
         });
+        return;
+    <?php endif; ?>
+
+    console.log("Toggle favorite for book ID:", bookId);
+    console.log("CSRF Token: <?= $_SESSION['csrf_token'] ?>");
+    
+    $.ajax({
+        url: 'toggle_favorite.php',
+        method: 'POST',
+        data: {
+            book_id: bookId,
+            csrf_token: '<?= $_SESSION['csrf_token'] ?>'
+        },
+        dataType: 'json',
+        success: function(response) {
+            console.log("Response:", response);
+            if (response.success) {
+                if (response.is_favorite) {
+                    button.removeClass('btn-outline-danger').addClass('btn-danger');
+                    Swal.fire('تم!', 'أضيف إلى المفضلة', 'success');
+                } else {
+                    button.removeClass('btn-danger').addClass('btn-outline-danger');
+                    Swal.fire('تم!', 'حُذف من المفضلة', 'info');
+                }
+            } else {
+                Swal.fire('خطأ!', response.message || 'فشلت العملية', 'error');
+            }
+        },
+        error: function(xhr, status, error) {
+            console.error('AJAX Error:', status, error, xhr.responseText);
+            Swal.fire('خطأ!', 'حدث خطأ في الاتصال بالخادم: ' + xhr.responseText, 'error');
+        }
     });
 });
 </script>

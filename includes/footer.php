@@ -110,6 +110,7 @@
 <!-- Owl Carousel JS -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/OwlCarousel2/2.3.4/owl.carousel.min.js"></script>
 
+
 <!-- تهيئة الكاروسيل -->
 <script>
    document.addEventListener('DOMContentLoaded', function() {
