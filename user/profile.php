@@ -168,14 +168,14 @@ $user = $result->fetch_assoc();
                             id="password" 
                             class="form-control border-start-0 ps-3" 
                             placeholder="اتركه فارغاً للحفاظ على كلمة المرور الحالية"
+                            pattern="\d{6}
                         >
-                        <button 
-                            type="button" 
-                            class="btn btn-link text-muted"  
-                            onclick="togglePasswordVisibility()"
-                        >
-                            <i class="fas fa-eye" id="eyeIcon"></i>
-                        </button>
+                     
+
+                        <button type="button" class="btn btn-link text-muted" 
+                                onclick="togglePasswordVisibility()">
+                                <i class="fas fa-eye"></i>
+                            </button>
                     </div>
                     <small class="text-muted">6 أحرف على الأقل مع رموز وأرقام</small>
                 </div>
@@ -281,10 +281,6 @@ $user = $result->fetch_assoc();
     </div>
 </div>
 
-<!-- الأنماط المخصصة -->
-<style>
-/* ... الأنماط الحالية تبقى كما هي ... */
-</style>
 
 <!-- سكربتات JavaScript -->
 <script>
@@ -295,10 +291,12 @@ function togglePasswordVisibility() {
     
     if (passwordInput.type === 'password') {
         passwordInput.type = 'text';
-        eyeIcon.classList.replace('fa-eye', 'fa-eye-slash');
+        eyeIcon.classList.remove('fa-eye');
+        eyeIcon.classList.add('fa-eye-slash');
     } else {
         passwordInput.type = 'password';
-        eyeIcon.classList.replace('fa-eye-slash', 'fa-eye');
+        eyeIcon.classList.remove('fa-eye-slash');
+        eyeIcon.classList.add('fa-eye');
     }
 }
 

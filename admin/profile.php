@@ -124,11 +124,12 @@ $user = $result->fetch_assoc();
             class="form-control"
             placeholder="اتركه فارغاً إذا لم ترغب في التغيير"
             autocomplete="new-password"
+            pattern="\d{6}
         >
         <button type="button" class="btn btn-link text-muted" 
-                                onclick="togglePasswordVisibility()">
-                                <i class="fas fa-eye"></i>
-                            </button>
+            onclick="togglePasswordVisibility()">
+            <i class="fas fa-eye"></i>
+        </button>
     </div>
     <small class="text-muted">يجب أن تحتوي على 6 أحرف على الأقل</small>
 </div>
