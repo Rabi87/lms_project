@@ -1,9 +1,19 @@
 <?php
 // manage_reports.php
+include __DIR__ . '/../includes/config.php';
 
+// معالجة تصدير PDF أولاً (قبل أي إخراج)
+if (isset($_POST['export_pdf'])) {
+    // يجب أن نضمن أن هذه المعلمات موجودة
+    $selectedReport = $_POST['report_type'] ?? 'users';
+    $startDate = $_POST['start_date'] ?? date('Y-m-01');
+    $endDate = $_POST['end_date'] ?? date('Y-m-d');
+    
+    // إعادة توجيه لإنشاء PDF
+    header("Location: generate_report_pdf.php?report_type=$selectedReport&start_date=$startDate&end_date=$endDate");
+    exit();
+}
 
-
- include __DIR__ . '/../includes/config.php';
 // معالجة النموذج إذا تم إرساله
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $selectedReport = $_POST['report_type'];
@@ -11,7 +21,11 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $endDate = $_POST['end_date'];
 } else {
     $selectedReport = 'users'; // التقرير الافتراضي
+    $startDate = date('Y-m-01');
+    $endDate = date('Y-m-d');
 }
+
+// الآن يمكننا تضمين الهيدر
 include __DIR__ . '/../includes/header.php';
 ?>
 
@@ -96,6 +110,14 @@ include __DIR__ . '/../includes/header.php';
                         </select>
                         <button type="submit" class="btn btn-light btn-sm">
                             تطبيق
+                        </button>
+                        <!-- زر تصدير PDF -->
+                        <button 
+                            type="submit" 
+                            name="export_pdf" 
+                            class="btn export-btn btn-sm text-white"
+                        >
+                            <i class="fas fa-file-pdf me-1"></i> تصدير PDF
                         </button>
                     </form>
                 </div>

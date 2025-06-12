@@ -44,7 +44,8 @@ Swal.fire({
         <div class="col-md-8">
             <div class="card border-0 shadow-sm" style="border-radius: 15px;">
                 <div class="card-header bg-gradient-info text-white py-3">
-                    <h4 class="mb-0 fw-bold"><i class="fas fa-user-plus me-2"></i> إنشاء حساب جديد</h4>
+                    <h4 class="mb-0 fw-bold">
+                        <i class="fas fa-user-plus me-2"></i> إنشاء حساب جديد</h4>
                 </div>
                 <div class="card-body p-4">
                     <form action="process.php" method="POST" id="regForm">

@@ -32,8 +32,8 @@ if (isset($_POST['register'])) {
         $password = password_hash($_POST['password'], PASSWORD_DEFAULT);
 
         // ----------- التحقق من البريد الإلكتروني واسم المستخدم -----------
-        $check_stmt = $conn->prepare("SELECT email, name FROM users WHERE email = ? OR name = ?");
-        $check_stmt->bind_param("ss", $email, $name);
+        $check_stmt = $conn->prepare("SELECT email FROM users WHERE email = ?");
+        $check_stmt->bind_param("s", $email);
         $check_stmt->execute();
         $check_result = $check_stmt->get_result();
         
@@ -43,9 +43,7 @@ if (isset($_POST['register'])) {
             
             if ($row['email'] === $email) {
                 throw new Exception("البريد الإلكتروني مسجل مسبقًا");
-            } elseif ($row['name'] === $name) {
-                throw new Exception("اسم المستخدم مسجل مسبقًا");
-            }
+            } 
         }
         $check_stmt->close();
 
@@ -136,12 +134,12 @@ if (isset($_POST['login'])) {
 
     
 
-    $name = $_POST['name'];
+    $email = $_POST['email'];
     $password = $_POST['password'];
     
     try {
-        $stmt = $conn->prepare("SELECT * FROM users WHERE name = ?");
-        $stmt->bind_param("s", $name);
+        $stmt = $conn->prepare("SELECT * FROM users WHERE email = ?");
+        $stmt->bind_param("s", $email);
         $stmt->execute();
         $result = $stmt->get_result();
         
@@ -394,12 +392,22 @@ if (isset($_POST['add_book']) && isAdmin()) {
         );
         if ($stmt->execute()) {
             $_SESSION['success'] = "تمت إضافة الكتاب بنجاح!";
+             DatabaseLogger::log(
+            'book_added_success',
+            'Admin',
+            'تمت إضافة كتاب بنجاح'
+        );
             header("Location: " . BASE_URL . "admin/dashboard.php?section=books");
         } else {
             
             throw new Exception("فشل في إضافة الكتاب: " . $stmt->error); 
         }    
     } catch (Exception $e) {
+        DatabaseLogger::log(
+            'login_failed',
+            'Admin',
+            $e->getMessage()
+        );
         $_SESSION['error'] = $e->getMessage();
         
         header("Location:" .BASE_URL."admin/dashboard.php?section=books");
@@ -606,7 +614,7 @@ if (isset($_POST['action'])) {
 
         if ($check_borrow->get_result()->num_rows > 0) {
             $_SESSION['error'] = "لا يمكنك استعارة هذا الكتاب الآن. لديك استعارة نشطة!";
-            header("Location:home.php"); // أو الصفحة الحالية
+            header("Location:index.php"); // أو الصفحة الحالية
             exit();
         }}
         
@@ -710,7 +718,10 @@ if (isset($_POST['actionii']) && $_POST['actionii'] === 'checkout') {
         }
 
         // إضافة الطلب إلى جدول orders
-        $stmt = $conn->prepare("INSERT INTO orders (user_id, total, discounted_total, status) VALUES (?, ?, ?, 'pending')");
+        $stmt = $conn->prepare("
+            INSERT INTO orders 
+            (user_id, total, discounted_total, status) 
+            VALUES (?, ?, ?, 'pending')");
         if (!$stmt) {
             die("خطأ في تحضير الاستعلام: " . $conn->error);
         }
@@ -719,16 +730,16 @@ if (isset($_POST['actionii']) && $_POST['actionii'] === 'checkout') {
         $order_id = $stmt->insert_id;
 
         // إضافة العناصر إلى جدول order_items
-        foreach ($cart_items as $book_id => $item) {
-            $stmt_item = $conn->prepare("
-                INSERT INTO order_items (order_id, book_id, quantity, original_price, discounted_price) 
-                VALUES (?, ?, 1, ?, ?)
-            ");
-            $original_price = $item['original_price'];
-            $discounted_price = $item['discounted_price'];
-            $stmt_item->bind_param("iidd", $order_id, $book_id, $original_price, $discounted_price);
-            $stmt_item->execute();
-        }
+foreach ($cart_items as $book_id => $item) {
+    $stmt_item = $conn->prepare("
+        INSERT INTO order_items (order_id, book_id, quantity, original_price, discounted_price, price) 
+        VALUES (?, ?, 1, ?, ?, ?)
+    ");
+    $original_price = $item['original_price'];
+    $discounted_price = $item['discounted_price'];
+    $stmt_item->bind_param("iiddd", $order_id, $book_id, $original_price, $discounted_price, $discounted_price);
+    $stmt_item->execute();
+}
 
         // التحقق من الرصيد (باستخدام السعر المخفض)
         $stmt_wallet = $conn->prepare("SELECT balance FROM wallets WHERE user_id = ?");
@@ -774,7 +785,12 @@ if (isset($_POST['actionii']) && $_POST['actionii'] === 'checkout') {
         unset($_SESSION['cart']);
         setcookie('cart', json_encode($_SESSION['cart']), 0, "/");
         $_SESSION['success'] = "تم إرسال طلب الشراء بنجاح! سيتم مراجعته من قبل الإدارة.";
-        header("Location: orders.php");
+         DatabaseLogger::log(
+            'purchased_request_success',
+            $_SESSION['user_name'],
+            'تم طلب شراء كتاب '
+        );
+        header("Location: index.php");
         exit();
 
     } catch (Exception $e) {
@@ -908,12 +924,14 @@ if (isset($_POST['delete_request']) && isset($_SESSION['user_id'])) {
             throw new Exception("فشل في حذف الطلب");
         }
         
-        header("Location:".BASE_URL."user/dashboard.php");
+        header("Location:".BASE_URL."user/dashboard.php?section=waiting");
+        exit();
     } catch (Exception $e) {
         $_SESSION['error'] = $e->getMessage();
-        header("Location:".BASE_URL."user/dashboard.php");
+        header("Location:".BASE_URL."user/dashboard.php?section=waiting");
+        exit();
     }
-    exit();
+    
 }
 
 // ======== معالجة إرسال الشكوى ========

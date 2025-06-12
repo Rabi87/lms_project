@@ -176,6 +176,11 @@ if ($new_users_result) {
                 <div class="list-group-item list-group-item-action" data-notif="<?= $notif['notification_id'] ?>">
                     <div class="d-flex justify-content-between align-items-start">
                         <div class="me-3">
+                            <a 
+                            class="btn btn-sm btn-outline-primary"
+                            onclick="markAsRead(<?= $notif['notification_id'] ?>, '<?= $notif['link'] ?>', event)">
+                             X
+                        </a>
                             <i class="fas fa-bell text-warning me-2"></i>
                             <span><?= htmlspecialchars($notif['message']) ?></span>
                         </div>

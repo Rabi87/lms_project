@@ -317,7 +317,92 @@ $books_result->data_seek(0);
     background: white;
 }
 
-  
+/* التصميم المعدل للبطاقات */
+.cat-wrapper {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 20px;
+    position: relative;
+    margin-bottom: 30px;
+    padding: 0 15px;
+}
+
+.cat-card {
+    height: 100px;
+    background: #fff;
+    border-radius: 15px;
+    padding: 20px;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    font-size: 3rem;
+    color: #000;
+    font-style: bold;
+    text-align: center;
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
+    z-index: 1;
+}
+
+.cat-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    
+    opacity: 0;
+    z-index: -1;
+    transition: opacity 0.3s ease;
+}
+
+.cat-card:hover {
+    transform: translateY(-10px);
+    color: #A12;
+    shadow: 10px 10px 25px rgba(0,0,0,0.2);
+}
+
+.cat-card:hover::before {
+    opacity: 1;
+}
+
+.cat-card h1 {
+    margin: 0;
+    font-size: 3rem;
+    transition: all 0.3s ease;
+}
+
+.cat-card:hover h1 {
+    transform: scale(1.1);
+}
+
+/* التجاوبية */
+@media (max-width: 992px) {
+    .cat-wrapper {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+@media (max-width: 576px) {
+    .cat-wrapper {
+        grid-template-columns: 1fr;
+    }
+    
+    .cat-card {
+        height: 90px;
+        font-size: 1.1rem;
+    }
+    
+    .cat-card h1 {
+        font-size: 1.3rem;
+    }
+}
+
+
 
 </style>
 
@@ -368,15 +453,28 @@ Swal.fire({
     
      <!-- أزرار التحكم -->
         
+    </div>  
+</div>  
+</div>
+<!--  التصنيفات -->
+<div class="cat-wrapper">
+    <div class="cat-card" style="background-image: url('assets/1.jpeg');">  
+        <a href="all_books.php?type=&search=&category=0&author=&rating=0&material=كتاب" class="static-card-link" style="text-decoration: none; color: inherit;">
+        <h1>كتب</h1>
+    </a>
     </div>
-    
+     <div class="cat-card" style="background-image: url('assets/1.jpeg');">  
+        <a href="all_books.php?type=&search=&category=0&author=&rating=0&material=مجلة" class="static-card-link" style="text-decoration: none; color: inherit;">
+        <h1>مجلات</h1>
+    </a>
+    </div>
+     <div class="cat-card" style="background-image: url('assets/1.jpeg');">  
+       <a href="all_books.php?type=&search=&category=0&author=&rating=0&material=جريدة" class="static-card-link" style="text-decoration: none; color: inherit;">
+        <h1>صحف</h1>
+    </a>
+    </div>
+  
 </div>
-
-
-
-   
-</div>
-
 <!-- أحدث الكتب المضافة -->
 <div class="container my-5">
     <div class="divider">
@@ -490,17 +588,18 @@ Swal.fire({
 
     <!--  التصنيفات -->
 <div class="cat-wrapper">
-    <div class="cat-card">
+   <div class="cat-card" style="background-image: url('assets/1.jpeg');">       
         <a href="all_books.php?type=&search=&category=2&author=&rating=0" class="static-card-link" style="text-decoration: none; color: inherit;">
-        <h1>العلمية</h1>
+        <h1>علمية</h1>
         </a>
     </div>
-     <div class="cat-card">
+    
+     <div class="cat-card" style="background-image: url('assets/1.jpeg');">  
         <a href="all_books.php?type=&search=&category=3&author=&rating=0" class="static-card-link" style="text-decoration: none; color: inherit;">
         <h1>تاريخية</h1>
         </a>
     </div>
-     <div class="cat-card">
+     <div class="cat-card" style="background-image: url('assets/1.jpeg');">  
        <a href="all_books.php?type=&search=&category=1&author=&rating=0" class="static-card-link" style="text-decoration: none; color: inherit;">
         <h1>أدبية</h1>
         </a>
@@ -604,20 +703,20 @@ Swal.fire({
 
       <!--  التصنيفات -->
 <div class="cat-wrapper">
-    <div class="cat-card">
-        <a href="category_books.php" class="static-card-link" style="text-decoration: none; color: inherit;">
+    <div class="cat-card" style="background-image: url('assets/1.jpeg');">  
+        <a href="all_books.php?type=&search=&category=8&author=&rating=0" class="static-card-link" style="text-decoration: none; color: inherit;">
         <h1>أطفال</h1>
-        </a>
+    </a>
     </div>
-     <div class="cat-card">
-        <a href="category_books.php" class="static-card-link" style="text-decoration: none; color: inherit;">
+     <div class="cat-card" style="background-image: url('assets/1.jpeg');">  
+        <a href="all_books.php?type=&search=&category=4&author=&rating=0" class="static-card-link" style="text-decoration: none; color: inherit;">
         <h1>برمجة</h1>
-        </a>
+    </a>
     </div>
-     <div class="cat-card">
-       <a href="category_books.php" class="static-card-link" style="text-decoration: none; color: inherit;">
+     <div class="cat-card" style="background-image: url('assets/1.jpeg');">  
+       <a href="all_books.php?type=&search=&category=5&author=&rating=0" class="static-card-link" style="text-decoration: none; color: inherit;">
         <h1>ذكاء</h1>
-        </a>
+    </a>
     </div>
   
 </div>
@@ -729,20 +828,20 @@ Swal.fire({
 
       <!--  التصنيفات -->
 <div class="cat-wrapper">
-    <div class="cat-card">
-        <a href="category_books.php" class="static-card-link" style="text-decoration: none; color: inherit;">
+    <div class="cat-card" style="background-image: url('assets/1.jpeg');">  
+        <a href="all_books.php?type=&search=&category=13&author=&rating=0" class="static-card-link" style="text-decoration: none; color: inherit;">
         <h1>سياسة</h1>
-        </a>
+    </a>
     </div>
-     <div class="cat-card">
-        <a href="category_books.php" class="static-card-link" style="text-decoration: none; color: inherit;">
+     <div class="cat-card" style="background-image: url('assets/1.jpeg');">  
+        <a href="all_books.php?type=&search=&category=10&author=&rating=0" class="static-card-link" style="text-decoration: none; color: inherit;">
         <h1>أقتصاد</h1>
-        </a>
+    </a>
     </div>
-     <div class="cat-card">
-       <a href="category_books.php" class="static-card-link" style="text-decoration: none; color: inherit;">
+     <div class="cat-card" style="background-image: url('assets/1.jpeg');">  
+       <a href="all_books.php?type=&search=&category=12&author=&rating=0" class="static-card-link" style="text-decoration: none; color: inherit;">
         <h1>فنون</h1>
-        </a>
+    </a>
     </div>
   
 </div>

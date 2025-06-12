@@ -21,6 +21,15 @@ if (isset($_GET['export'])) {
 if (isset($_GET['delete'])) {
     try {
         $book_id = (int)$_GET['delete'];
+
+        $stmta = $conn->prepare("SELECT * FROM favorite_books WHERE book_id = ? ");
+        $stmta->bind_param("i", $book_id);
+        $stmta->execute();
+        $active_requestsa = $stmta->get_result()->fetch_row()[0];
+        
+        if ($active_requestsa > 0) {
+            throw new Exception("لا يمكن حذف الكتاب لأنه ضمن قائمة المفضلة لأكثر من مستخدم");
+        }
         
         $stmt = $conn->prepare("SELECT COUNT(*) FROM borrow_requests WHERE book_id = ? AND status IN ('approved', 'pending')");
         $stmt->bind_param("i", $book_id);
@@ -84,16 +93,7 @@ Swal.fire({
 <?php unset($_SESSION['success']); ?>
 <?php endif; ?>
 
-<?php if (isset($_SESSION['error'])): ?>
-<script>
-Swal.fire({
-    icon: 'error',
-    title: 'خطأ!',
-    text: '<?= $_SESSION['error'] ?>'
-});
-</script>
-<?php unset($_SESSION['error']); ?>
-<?php endif; ?>
+
 <style>
 .card {
     border-radius: 12px;

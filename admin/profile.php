@@ -1,5 +1,5 @@
 <?php
-ob_start(); // إضافة تخزين مؤقت للإخراج
+
 if (!isset($_SESSION['user_id']) || $_SESSION['user_type'] != 'admin') {
     header("Location: ../login.php");
     exit();
@@ -35,8 +35,9 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['update_profile'])) {
         } else {
             $error = "خطأ في التحديث: " . $conn->error;
         }
-        header("Location: dashboard.php?section=operations");
-ob_end_flush(); // إرسال المحتوى وتنظيف المخزن المؤقت
+        
+        echo '<script>window.location.href = "dashboard.php?section=operations";</script>';
+
 exit();
        
     }
@@ -129,7 +130,7 @@ $user = $result->fetch_assoc();
                                 <i class="fas fa-eye"></i>
                             </button>
     </div>
-    <small class="text-muted">يجب أن تحتوي على 8 أحرف على الأقل</small>
+    <small class="text-muted">يجب أن تحتوي على 6 أحرف على الأقل</small>
 </div>
                 
                 <div class="d-grid gap-2 mt-4">

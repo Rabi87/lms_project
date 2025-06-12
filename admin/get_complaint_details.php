@@ -63,7 +63,8 @@ if (isset($_POST['resolve'])) {
     if ($updateStmt->execute()) {
         $_SESSION['success'] = "تم حل الشكوى بنجاح";
         
-        header("Location: " . BASE_URL . "admin/dashboard.php?section=complaints");
+        
+        echo '<script>window.location.href = "dashboard.php?section=complaints";</script>';
         exit();
     } else {
         $error = "حدث خطأ أثناء حل الشكوى";

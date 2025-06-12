@@ -144,6 +144,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $stmt_notif->execute();
 
         } else {
+            
             // حالة الرفض
             $stmt = $conn->prepare("
                 UPDATE borrow_requests 
@@ -154,16 +155,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             ");
             $stmt->bind_param("si", $new_status, $request_id);
             $stmt->execute();
-
-            // إرجاع الرصيد للمستخدم (إذا كان تم الخصم سابقاً)
-            $stmt_refund = $conn->prepare("
-                UPDATE wallets 
-                SET balance = balance + ? 
-                WHERE user_id = ?
-            ");
-            $stmt_refund->bind_param("di", $amount, $user_id);
-            $stmt_refund->execute();
-
             // الحصول على عنوان الكتاب
             $stmt_book = $conn->prepare("
                 SELECT b.title 
@@ -194,6 +185,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $_SESSION['error'] = "خطأ: " . $e->getMessage();
     }
     
-    header("Location: " . BASE_URL . "admin/dashboard.php");
+    header("Location: " . BASE_URL . "admin/dashboard.php?section=ops");
     exit();
 }

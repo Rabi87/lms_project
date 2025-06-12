@@ -2,9 +2,7 @@
 if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
-error_reporting(E_ALL);
-ini_set('display_errors', 1);
-ini_set('display_startup_errors', 1);
+
 require __DIR__ . '/../includes/config.php';
 
 if (!isset($_SESSION['user_id'])) {
@@ -29,7 +27,7 @@ $stmt = $conn->prepare("
         br.due_date, 
         br.reading_completed,
         DATEDIFF(br.due_date, CURDATE()) AS remaining_days,
-        MAX(n.link) AS book_link 
+        MAX(n.link) AS book_link -- اختيار أحد الروابط في حالة التكرار
     FROM borrow_requests br
     JOIN books b ON br.book_id = b.id
     LEFT JOIN notifications n ON 
@@ -39,6 +37,7 @@ $stmt = $conn->prepare("
         br.user_id = ? 
         AND br.status = 'approved'
     GROUP BY br.id 
+    ORDER BY br.id  DESC
     LIMIT ? OFFSET ?
 ");
 $stmt->bind_param("iii", $user_id, $borrowed_per_page, $borrowed_offset);
@@ -101,92 +100,92 @@ $transactions = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
 // حساب العدد الكلي للصفحات لعمليات الشحن
 $total_transactions = $conn->query("SELECT FOUND_ROWS()")->fetch_row()[0];
 $total_transactions_pages = ceil($total_transactions / $transactions_per_page);
-$_SESSION['inform'] = "في حال لم تجد طلبك هنا انتقل ل قسم الطلبات الجارية و تابع حالته";
+$_SESSION['infoo']="في حال لم تجد طلبك هنا انتقل ل قسم الطلبات الجارية و تابع حالته";
 
 
 $active_section = isset($_GET['section']) ? htmlspecialchars($_GET['section']) : 'main';
-require __DIR__ . '/../includes/header.php';
+require __DIR__ . '/../includes/header.php'; 
 ?>
 
 <?php if (isset($_SESSION['success'])): ?>
-    <script>
-        Swal.fire({
-            icon: 'success',
-            title: 'شكرا لك.. !',
-            text: '<?= $_SESSION['success'] ?>'
-        });
-    </script>
-    <?php unset($_SESSION['success']); ?>
+<script>
+Swal.fire({
+    icon: 'success',
+    title: 'شكرا لك.. !',
+    text: '<?= $_SESSION['success'] ?>'
+});
+</script>
+<?php unset($_SESSION['success']); ?>
 <?php endif; ?>
 
 <?php if (isset($_SESSION['error'])): ?>
-    <script>
-        Swal.fire({
-            icon: 'warning',
-            title: 'انتبه.. !',
-            text: '<?= $_SESSION['error'] ?>'
-        });
-    </script>
-    <?php unset($_SESSION['error']); ?>
+<script>
+Swal.fire({
+    icon: 'warning',
+    title: 'انتبه.. !',
+    text: '<?= $_SESSION['error'] ?>'
+});
+</script>
+<?php unset($_SESSION['error']); ?>
 <?php endif; ?>
 
 <style>
-    .table-danger td {
-        background-color: #f8d7da !important;
-    }
+.table-danger td {
+    background-color: #f8d7da !important;
+}
 
-    .table-success td {
-        background-color: #d4edda !important;
-    }
+.table-success td {
+    background-color: #d4edda !important;
+}
 
-    .fa-book {
-        color: #856404;
-    }
+.fa-book {
+    color: #856404;
+}
 
-    .fa-coins {
-        color: #155724;
-    }
+.fa-coins {
+    color: #155724;
+}
 
-    .card {
-        border-radius: 12px;
-        overflow: hidden;
-        border: none;
-        box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.1);
-    }
+.card {
+    border-radius: 12px;
+    overflow: hidden;
+    border: none;
+    box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.1);
+}
 
-    .bg-gradient-primary {
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    }
+.bg-gradient-primary {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+}
 
-    .table-responsive {
-        max-height: 500px;
-        scrollbar-width: thin;
-        scrollbar-color: #667eea #f8f9fa;
-    }
+.table-responsive {
+    max-height: 500px;
+    scrollbar-width: thin;
+    scrollbar-color: #667eea #f8f9fa;
+}
 
-    .table-responsive::-webkit-scrollbar {
-        width: 8px;
-        height: 8px;
-    }
+.table-responsive::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+}
 
-    .table-responsive::-webkit-scrollbar-thumb {
-        background-color: #667eea;
-        border-radius: 10px;
-    }
+.table-responsive::-webkit-scrollbar-thumb {
+    background-color: #667eea;
+    border-radius: 10px;
+}
 
-    .table-responsive::-webkit-scrollbar-track {
-        background-color: #f8f9fa;
-    }
+.table-responsive::-webkit-scrollbar-track {
+    background-color: #f8f9fa;
+}
 
-    .badge {
-        font-weight: 500;
-        padding: 0.35em 0.65em;
-    }
+.badge {
+    font-weight: 500;
+    padding: 0.35em 0.65em;
+}
 
-    .pagination .page-item.active .page-link {
-        background-color: #667eea;
-        border-color: #667eea;
-    }
+.pagination .page-item.active .page-link {
+    background-color: #667eea;
+    border-color: #667eea;
+}
 </style>
 <div class="container-fluid">
     <div class="row">
@@ -230,13 +229,7 @@ require __DIR__ . '/../includes/header.php';
                 <button onclick="showSection('waiting')"
                     class="btn text-start text-white d-flex align-items-center gap-3 py-3 hover-effect  <?= ($active_section == 'waiting') ? 'active' : '' ?>"
                     style="background: linear-gradient(135deg, #4a5568 0%, #2d3748 100%);border-radius: 15px;">
-                    <i class="fas fa-user"></i> طلبات الاستعارة
-                </button>
-
-                <button onclick="showSection('purchasing')"
-                    class="btn text-start text-white d-flex align-items-center gap-3 py-3 hover-effect  <?= ($active_section == 'purchasing') ? 'active' : '' ?>"
-                    style="background: linear-gradient(135deg, #4a5568 0%, #2d3748 100%);border-radius: 15px;">
-                    <i class="fas fa-user"></i> طلبات الشراء
+                    <i class="fas fa-user"></i> العمليات المعلقة
                 </button>
 
 
@@ -249,15 +242,6 @@ require __DIR__ . '/../includes/header.php';
                 <div class="card">
                     <div class="card-body">
                         <?php require __DIR__ . '/main.php'; ?>
-                    </div>
-                </div>
-            </div>
-
-            <div id="main" class="content-section <?= ($active_section == 'purchasing') ? 'active' : '' ?>">
-                <div class="card">
-                    <div class="card-body">
-                        
-
                     </div>
                 </div>
             </div>
@@ -283,104 +267,104 @@ require __DIR__ . '/../includes/header.php';
                                     </div>
                                 </div>
                                 <div class="card-body p-0">
-                                    <?php if (count($borrowed_books) > 0): ?>
-                                        <div class="table-responsive">
-                                            <table class="table table-hover mb-0">
-                                                <thead class="sticky-top bg-light">
-                                                    <tr>
-                                                        <th>العنوان</th>
-                                                        <th>المؤلف</th>
-                                                        <th>تاريخ الاستعارة</th>
-                                                        <th>تاريخ الاستحقاق</th>
-                                                        <th>الحالة</th>
-                                                        <th>الرابط</th>
-                                                    </tr>
-                                                </thead>
-                                                <tbody>
-                                                    <?php foreach ($borrowed_books as $index => $book):
-                                                        $remaining = $book['remaining_days'];
-                                                        $status_class = '';
-                                                        $status_text = '';
-
-                                                        if ($book['reading_completed'] == TRUE) {
-                                                            $status_class = 'returned';
-                                                            $status_text = '<span class="text-primary">تم الإرجاع</span>';
-                                                        } elseif ($remaining < 0) {
-                                                            $status_class = 'overdue';
-                                                            $status_text = '<span class="text-danger">متأخر ' . abs($remaining) . ' يوم</span>';
-                                                        } elseif ($remaining <= 3) {
-                                                            $status_class = 'due-soon';
-                                                            $status_text = '<span class="text-warning">' . $remaining . ' أيام</span>';
-                                                        } elseif ($remaining > 900) {
-                                                            $status_class = 'due-soon';
-                                                            $status_text = '<span class="text-success"> تم شراءه</span>';
-                                                        } else {
-                                                            $status_text = $remaining . ' يوم';
-                                                        }
-                                                    ?>
-                                                        <tr>
-                                                            <td><?= ($borrowed_page - 1) * $borrowed_per_page + $index + 1 ?>
-                                                            </td>
-                                                            <td><?= htmlspecialchars($book['title']) ?></td>
-                                                            <td><?= htmlspecialchars($book['author']) ?></td>
-                                                            <td><?= date('Y/m/d', strtotime($book['request_date'])) ?></td>
-                                                            <td><?= date('Y/m/d', strtotime($book['due_date'])) ?></td>
-                                                            <td><?= $status_text ?></td>
-                                                            <td>
-                                                                <?php if (!empty($book['book_link'])): ?>
-                                                                    <?php if (!$book['reading_completed']): ?>
-                                                                        <a href="<?= htmlspecialchars($book['book_link']) ?>"
-                                                                            class="btn btn-primary btn-sm" target="_blank">
-                                                                            <i class="fas fa-book-open"></i> قراءة
-                                                                        </a>
-                                                                    <?php else: ?>
-                                                                        <span class="text-muted">(تمت القراءة)</span>
-                                                                    <?php endif; ?>
-                                                                <?php else: ?>
-                                                                    <span class="text-muted">غير متوفر</span>
-                                                                <?php endif; ?>
-                                                            </td>
-                                                        </tr>
-                                                    <?php endforeach; ?>
-                                                </tbody>
-                                            </table>
-                                        </div>
-                                        <!-- الترقيم -->
-                                        <?php if ($total_borrowed_pages > 1): ?>
-                                            <div class="card-footer bg-light">
-                                                <nav aria-label="Page navigation">
-                                                    <ul class="pagination justify-content-center mb-0">
-                                                        <?php if ($borrowed_page > 1): ?>
-                                                            <li class="page-item"><a class="page-link" href="?page=<?= $borrowed_page - 1 ?>
+                                    <?php if(count($borrowed_books) > 0): ?>
+                                    <div class="table-responsive">
+                                        <table class="table table-hover mb-0">
+                                            <thead class="sticky-top bg-light">
+                                                <tr>
+                                                    <th>العنوان</th>
+                                                    <th>المؤلف</th>
+                                                    <th>تاريخ الاستعارة</th>
+                                                    <th>تاريخ الاستحقاق</th>
+                                                    <th>الحالة</th>
+                                                    <th>الرابط</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                <?php foreach ($borrowed_books as $index => $book): 
+                                                    $remaining = $book['remaining_days'];
+                                                    $status_class = '';
+                                                    $status_text = '';
+                                                    
+                                                    if ($book['reading_completed'] == TRUE) {
+                                                        $status_class = 'returned';
+                                                        $status_text = '<span class="text-primary">تم الإرجاع</span>';
+                                                    } elseif ($remaining < 0) {
+                                                        $status_class = 'overdue';
+                                                        $status_text = '<span class="text-danger">متأخر ' . abs($remaining) . ' يوم</span>';
+                                                    } elseif ($remaining <= 3) {
+                                                        $status_class = 'due-soon';
+                                                        $status_text = '<span class="text-warning">' . $remaining . ' أيام</span>';                             
+                                                    } elseif ($remaining > 900) {
+                                                        $status_class = 'due-soon';
+                                                        $status_text = '<span class="text-success"> تم شراءه</span>'; 
+                                                                            
+                                                    } else {
+                                                        $status_text = $remaining . ' يوم';
+                                                    }
+                                                ?>
+                                                <tr>
+                                                    <td><?= ($borrowed_page - 1) * $borrowed_per_page + $index + 1 ?>
+                                                    </td>
+                                                    <td><?= htmlspecialchars($book['title']) ?></td>
+                                                    <td><?= htmlspecialchars($book['author']) ?></td>
+                                                    <td><?= date('Y/m/d', strtotime($book['request_date'])) ?></td>
+                                                    <td><?= date('Y/m/d', strtotime($book['due_date'])) ?></td>
+                                                    <td><?= $status_text ?></td>
+                                                    <td>
+                                                        <?php if (!empty($book['book_link'])): ?>
+                                                        <?php if (!$book['reading_completed']): ?>
+                                                        <a href="<?= htmlspecialchars($book['book_link']) ?>"
+                                                            class="btn btn-primary btn-sm" target="_blank">
+                                                            <i class="fas fa-book-open"></i> قراءة
+                                                        </a>
+                                                        <?php else: ?>
+                                                        <span class="text-muted">(تمت القراءة)</span>
+                                                        <?php endif; ?>
+                                                        <?php else: ?>
+                                                        <span class="text-muted">غير متوفر</span>
+                                                        <?php endif; ?>
+                                                    </td>
+                                                </tr>
+                                                <?php endforeach; ?>
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                    <!-- الترقيم -->
+                                    <?php if ($total_borrowed_pages > 1): ?>
+                                    <div class="card-footer bg-light">
+                                        <nav aria-label="Page navigation">
+                                            <ul class="pagination justify-content-center mb-0">
+                                                <?php if ($borrowed_page > 1): ?>
+                                                <li class="page-item"><a class="page-link" href="?page=<?= $borrowed_page - 1 ?>
                                                         &section=ops" aria-label="السابق">
-                                                                    <span aria-hidden="true">&laquo;</span>
-                                                                </a>
-                                                            </li>
-                                                        <?php endif; ?>
+                                                        <span aria-hidden="true">&laquo;</span>
+                                                    </a>
+                                                </li>
+                                                <?php endif; ?>
 
-                                                        <?php for ($i = 1; $i <= $total_borrowed_pages; $i++): ?>
-                                                            <li class="page-item <?= ($i == $borrowed_page) ? 'active' : '' ?>">
-                                                                <a class="page-link"
-                                                                    href="?page=<?= $i ?>&section=ops"><?= $i ?></a>
-                                                            </li>
-                                                        <?php endfor; ?>
+                                                <?php for ($i = 1; $i <= $total_borrowed_pages; $i++): ?>
+                                                <li class="page-item <?= ($i == $borrowed_page) ? 'active' : '' ?>">
+                                                    <a class="page-link"href="?page=<?= $i ?>&section=ops"><?= $i ?></a>
+                                                </li>
+                                                <?php endfor; ?>
 
-                                                        <?php if ($borrowed_page < $total_borrowed_pages): ?>
-                                                            <li class="page-item">
-                                                                <a class="page-link"
-                                                                    href="?page=<?= $borrowed_page + 1 ?>&section=ops"
-                                                                    aria-label="التالي">
-                                                                    <span aria-hidden="true">&raquo;</span>
-                                                                </a>
-                                                            </li>
-                                                        <?php endif; ?>
-                                                    </ul>
-                                                </nav>
-                                            </div>
-                                        <?php endif; ?>
+                                                <?php if ($borrowed_page < $total_borrowed_pages): ?>
+                                                <li class="page-item">
+                                                    <a class="page-link"
+                                                        href="?page=<?= $borrowed_page + 1 ?>&section=ops"
+                                                        aria-label="التالي">
+                                                        <span aria-hidden="true">&raquo;</span>
+                                                    </a>
+                                                </li>
+                                                <?php endif; ?>
+                                            </ul>
+                                        </nav>
+                                    </div>
+                                    <?php endif; ?>
 
                                     <?php else: ?>
-                                        <div class="alert alert-info m-3">لا يوجد كتب مستعارة حالياً</div>
+                                    <div class="alert alert-info m-3">لا يوجد كتب مستعارة حالياً</div>
                                     <?php endif; ?>
                                 </div>
                             </div>
@@ -388,13 +372,13 @@ require __DIR__ . '/../includes/header.php';
                     </div>
                 </div>
             </div>
-            <!-- قسم العمليات المعلقة -->
+
             <div id="waiting" class="content-section <?= ($active_section == 'waiting') ? 'active' : '' ?>">
                 <div class="card">
                     <div class="card-body">
-                        <?php if (isset($_SESSION['inform'])): ?>
-                            <div class="alert alert-success"><?= $_SESSION['inform'] ?></div>
-                            <?php unset($_SESSION['inform']); ?>
+                        <?php if (isset($_SESSION['info'])): ?>
+                        <div class="alert alert-success"><?= $_SESSION['infoo'] ?></div>
+                        <?php unset($_SESSION['infoo']); ?>
                         <?php endif; ?>
                         <div class="card border-0 shadow-sm">
                             <div class="card-header bg-gradient-primary text-white py-3">
@@ -403,79 +387,79 @@ require __DIR__ . '/../includes/header.php';
                                 </h5>
                             </div>
                             <div class="card-body p-0">
-                                <?php if (count($pending_requests) > 0): ?>
-                                    <div class="table-responsive">
-                                        <table class="table table-hover mb-0">
-                                            <thead class="sticky-top bg-light">
-                                                <tr>
-                                                    <th>العنوان</th>
-                                                    <th>المؤلف</th>
-                                                    <th>تاريخ الطلب</th>
-                                                    <th>الحالة</th>
-                                                    <th>إجراءات</th>
-                                                </tr>
-                                            </thead>
-                                            <tbody>
-                                                <?php foreach ($pending_requests as $request): ?>
-                                                    <tr>
-                                                        <td><?= htmlspecialchars($request['title']) ?></td>
-                                                        <td><?= htmlspecialchars($request['author']) ?></td>
-                                                        <td><?= date('Y/m/d', strtotime($request['request_date'])) ?></td>
-                                                        <td><span class="badge bg-warning">قيد المراجعة</span></td>
-                                                        <td>
-                                                            <form method="POST" action="../process.php"
-                                                                onsubmit="return confirm('هل تريد حذف هذا الطلب؟');">
-                                                                <input type="hidden" name="request_id"
-                                                                    value="<?= $request['id'] ?>">
-                                                                <input type="hidden" name="csrf_token"
-                                                                    value="<?= $_SESSION['csrf_token'] ?>">
-                                                                <button type="submit" name="delete_request"
-                                                                    class="btn btn-danger btn-sm">
-                                                                    <i class="fas fa-trash"></i> حذف
-                                                                </button>
-                                                            </form>
-                                                        </td>
-                                                    </tr>
-                                                <?php endforeach; ?>
-                                            </tbody>
-                                        </table>
-                                    </div>
+                                <?php if(count($pending_requests) > 0): ?>
+                                <div class="table-responsive">
+                                    <table class="table table-hover mb-0">
+                                        <thead class="sticky-top bg-light">
+                                            <tr>
+                                                <th>العنوان</th>
+                                                <th>المؤلف</th>
+                                                <th>تاريخ الطلب</th>
+                                                <th>الحالة</th>
+                                                <th>إجراءات</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <?php foreach ($pending_requests as $request): ?>
+                                            <tr>
+                                                <td><?= htmlspecialchars($request['title']) ?></td>
+                                                <td><?= htmlspecialchars($request['author']) ?></td>
+                                                <td><?= date('Y/m/d', strtotime($request['request_date'])) ?></td>
+                                                <td><span class="badge bg-warning">قيد المراجعة</span></td>
+                                                <td>
+                                                    <form method="POST" action="../process.php"
+                                                        onsubmit="return confirm('هل تريد حذف هذا الطلب؟');">
+                                                        <input type="hidden" name="request_id"
+                                                            value="<?= $request['id'] ?>">
+                                                        <input type="hidden" name="csrf_token"
+                                                            value="<?= $_SESSION['csrf_token'] ?>">
+                                                        <button type="submit" name="delete_request"
+                                                            class="btn btn-danger btn-sm">
+                                                            <i class="fas fa-trash"></i> حذف
+                                                        </button>
+                                                    </form>
+                                                </td>
+                                            </tr>
+                                            <?php endforeach; ?>
+                                        </tbody>
+                                    </table>
+                                </div>
 
-                                    <!-- الترقيم للطلبات المعلقة -->
-                                    <?php if ($total_pending_pages > 1): ?>
-                                        <div class="card-footer bg-light">
-                                            <nav aria-label="Page navigation">
-                                                <ul class="pagination justify-content-center mb-0">
-                                                    <?php if ($pending_page > 1): ?>
-                                                        <li class="page-item">
-                                                            <a class="page-link" href="?p_page=<?= $pending_page - 1 ?>#pending"
-                                                                aria-label="السابق">
-                                                                <span aria-hidden="true">&laquo;</span>
-                                                            </a>
-                                                        </li>
-                                                    <?php endif; ?>
+                                <!-- الترقيم للطلبات المعلقة -->
+                                <?php if ($total_pending_pages > 1): ?>
+                                <div class="card-footer bg-light">
+                                    <nav aria-label="Page navigation">
+                                        <ul class="pagination justify-content-center mb-0">
+                                            <?php if ($pending_page > 1): ?>
+                                            <li class="page-item">
+                                                <a class="page-link" href="?p_page=<?= $pending_page - 1 ?>#pending"
+                                                    aria-label="السابق">
+                                                    <span aria-hidden="true">&laquo;</span>
+                                                </a>
+                                            </li>
+                                            <?php endif; ?>
 
-                                                    <?php for ($i = 1; $i <= $total_pending_pages; $i++): ?>
-                                                        <li class="page-item <?= ($i == $pending_page) ? 'active' : '' ?>">
-                                                            <a class="page-link" href="?p_page=<?= $i ?>#pending"><?= $i ?></a>
-                                                        </li>
-                                                    <?php endfor; ?>
+                                            <?php for ($i = 1; $i <= $total_pending_pages; $i++): ?>
+                                            <li class="page-item <?= ($i == $pending_page) ? 'active' : '' ?>">
+                                                <a class="page-link" href="?p_page=<?= $i ?>#pending"><?= $i ?></a>
+                                            </li>
+                                            <?php endfor; ?>
 
-                                                    <?php if ($pending_page < $total_pending_pages): ?>
-                                                        <li class="page-item">
-                                                            <a class="page-link" href="?p_page=<?= $pending_page + 1 ?>#pending"
-                                                                aria-label="التالي">
-                                                                <span aria-hidden="true">&raquo;</span>
-                                                            </a>
-                                                        </li>
-                                                    <?php endif; ?>
-                                                </ul>
-                                            </nav>
-                                        </div>
-                                    <?php endif; ?>
+                                            <?php if ($pending_page < $total_pending_pages): ?>
+                                            <li class="page-item">
+                                                <a class="page-link" href="?p_page=<?= $pending_page + 1 ?>#pending"
+                                                    aria-label="التالي">
+                                                    <span aria-hidden="true">&raquo;</span>
+                                                </a>
+                                            </li>
+                                            <?php endif; ?>
+                                        </ul>
+                                    </nav>
+                                </div>
+                                <?php endif; ?>
 
                                 <?php else: ?>
-                                    <div class="alert alert-info m-3">لا توجد طلبات معلقة</div>
+                                <div class="alert alert-info m-3">لا توجد طلبات معلقة</div>
                                 <?php endif; ?>
                             </div>
                         </div>
@@ -492,78 +476,78 @@ require __DIR__ . '/../includes/header.php';
                             </h5>
                         </div>
                         <div class="card-body p-0">
-                            <?php if (count($transactions) > 0): ?>
-                                <div class="table-responsive">
-                                    <table class="table table-hover mb-0">
-                                        <thead class="sticky-top bg-light">
-                                            <tr>
-                                                <th>نوع العملية</th>
-                                                <th>القيمة</th>
-                                                <th>التاريخ</th>
-                                                <th>الرقم المرجعي</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody>
-                                            <?php foreach ($transactions as $transaction): ?>
-                                                <tr
-                                                    class="<?= $transaction['type'] == 'topup' ? 'table-success' : 'table-danger' ?>">
-                                                    <td>
-                                                        <?= $transaction['type_ar'] ?>
-                                                        <?php if ($transaction['type'] == 'borrow'): ?>
-                                                            <i class="fas fa-book ms-2"></i>
-                                                        <?php else: ?>
-                                                            <i class="fas fa-coins ms-2"></i>
-                                                        <?php endif; ?>
-                                                    </td>
-                                                    <td>
-                                                        <?= number_format($transaction['value'], 2) ?> ل.س
-                                                        <?= $transaction['type'] == 'topup' ? '+' : '-' ?>
-                                                    </td>
-                                                    <td><?= date('Y/m/d H:i', strtotime($transaction['date'])) ?></td>
-                                                    <td class="text-muted"><?= $transaction['transaction_id'] ?></td>
-                                                </tr>
-                                            <?php endforeach; ?>
-                                        </tbody>
-                                    </table>
-                                </div>
-
-                                <!-- الترقيم لعمليات الشحن -->
-                                <?php if ($total_transactions_pages > 1): ?>
-                                    <div class="card-footer bg-light">
-                                        <nav aria-label="Page navigation">
-                                            <ul class="pagination justify-content-center mb-0">
-                                                <?php if ($transactions_page > 1): ?>
-                                                    <li class="page-item">
-                                                        <a class="page-link"
-                                                            href="?t_page=<?= $transactions_page - 1 ?>#transactions"
-                                                            aria-label="السابق">
-                                                            <span aria-hidden="true">&laquo;</span>
-                                                        </a>
-                                                    </li>
+                            <?php if(count($transactions) > 0): ?>
+                            <div class="table-responsive">
+                                <table class="table table-hover mb-0">
+                                    <thead class="sticky-top bg-light">
+                                        <tr>
+                                            <th>نوع العملية</th>
+                                            <th>القيمة</th>
+                                            <th>التاريخ</th>
+                                            <th>الرقم المرجعي</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <?php foreach ($transactions as $transaction): ?>
+                                        <tr
+                                            class="<?= $transaction['type'] == 'topup' ? 'table-success' : 'table-danger' ?>">
+                                            <td>
+                                                <?= $transaction['type_ar'] ?>
+                                                <?php if($transaction['type'] == 'borrow'): ?>
+                                                <i class="fas fa-book ms-2"></i>
+                                                <?php else: ?>
+                                                <i class="fas fa-coins ms-2"></i>
                                                 <?php endif; ?>
+                                            </td>
+                                            <td>
+                                                <?= number_format($transaction['value'], 2) ?> ل.س
+                                                <?= $transaction['type'] == 'topup' ? '+' : '-' ?>
+                                            </td>
+                                            <td><?= date('Y/m/d H:i', strtotime($transaction['date'])) ?></td>
+                                            <td class="text-muted"><?= $transaction['transaction_id'] ?></td>
+                                        </tr>
+                                        <?php endforeach; ?>
+                                    </tbody>
+                                </table>
+                            </div>
 
-                                                <?php for ($i = 1; $i <= $total_transactions_pages; $i++): ?>
-                                                    <li class="page-item <?= ($i == $transactions_page) ? 'active' : '' ?>">
-                                                        <a class="page-link" href="?t_page=<?= $i ?>#transactions"><?= $i ?></a>
-                                                    </li>
-                                                <?php endfor; ?>
+                            <!-- الترقيم لعمليات الشحن -->
+                            <?php if ($total_transactions_pages > 1): ?>
+                            <div class="card-footer bg-light">
+                                <nav aria-label="Page navigation">
+                                    <ul class="pagination justify-content-center mb-0">
+                                        <?php if ($transactions_page > 1): ?>
+                                        <li class="page-item">
+                                            <a class="page-link"
+                                                href="?t_page=<?= $transactions_page - 1 ?>#transactions"
+                                                aria-label="السابق">
+                                                <span aria-hidden="true">&laquo;</span>
+                                            </a>
+                                        </li>
+                                        <?php endif; ?>
 
-                                                <?php if ($transactions_page < $total_transactions_pages): ?>
-                                                    <li class="page-item">
-                                                        <a class="page-link"
-                                                            href="?t_page=<?= $transactions_page + 1 ?>#transactions"
-                                                            aria-label="التالي">
-                                                            <span aria-hidden="true">&raquo;</span>
-                                                        </a>
-                                                    </li>
-                                                <?php endif; ?>
-                                            </ul>
-                                        </nav>
-                                    </div>
-                                <?php endif; ?>
+                                        <?php for ($i = 1; $i <= $total_transactions_pages; $i++): ?>
+                                        <li class="page-item <?= ($i == $transactions_page) ? 'active' : '' ?>">
+                                            <a class="page-link" href="?t_page=<?= $i ?>#transactions"><?= $i ?></a>
+                                        </li>
+                                        <?php endfor; ?>
+
+                                        <?php if ($transactions_page < $total_transactions_pages): ?>
+                                        <li class="page-item">
+                                            <a class="page-link"
+                                                href="?t_page=<?= $transactions_page + 1 ?>#transactions"
+                                                aria-label="التالي">
+                                                <span aria-hidden="true">&raquo;</span>
+                                            </a>
+                                        </li>
+                                        <?php endif; ?>
+                                    </ul>
+                                </nav>
+                            </div>
+                            <?php endif; ?>
 
                             <?php else: ?>
-                                <div class="alert alert-info m-3">لا توجد عمليات شحن سابقة</div>
+                            <div class="alert alert-info m-3">لا توجد عمليات شحن سابقة</div>
                             <?php endif; ?>
                         </div>
                     </div>
@@ -581,31 +565,31 @@ require __DIR__ . '/../includes/header.php';
     </div>
 </div>
 <script>
-    function showSection(sectionId) {
-        // تحديث الرابط بإضافة المعلمة section
-        const url = new URL(window.location.href);
-        url.searchParams.set('section', sectionId);
-        window.history.replaceState({}, '', url);
+function showSection(sectionId) {
+    // تحديث الرابط بإضافة المعلمة section
+    const url = new URL(window.location.href);
+    url.searchParams.set('section', sectionId);
+    window.history.replaceState({}, '', url);
 
-        // إزالة النشاط من جميع الأزرار
-        document.querySelectorAll('.sidebar .btn').forEach(btn => {
-            btn.classList.remove('active');
-        });
+    // إزالة النشاط من جميع الأزرار
+    document.querySelectorAll('.sidebar .btn').forEach(btn => {
+        btn.classList.remove('active');
+    });
 
-        // إخفاء جميع الأقسام
-        document.querySelectorAll('.content-section').forEach(section => {
-            section.classList.remove('active');
-        });
+    // إخفاء جميع الأقسام
+    document.querySelectorAll('.content-section').forEach(section => {
+        section.classList.remove('active');
+    });
 
-        // إظهار القسم المحدد وإضافة النشاط للزر
-        document.getElementById(sectionId).classList.add('active');
-        event.target.classList.add('active');
-    }
+    // إظهار القسم المحدد وإضافة النشاط للزر
+    document.getElementById(sectionId).classList.add('active');
+    event.target.classList.add('active');
+}
 
-    // دالة التحكم بالشريط الجانبي
-    function toggleSidebar() {
-        document.querySelector('.sidebar').classList.toggle('active');
-    }
+// دالة التحكم بالشريط الجانبي
+function toggleSidebar() {
+    document.querySelector('.sidebar').classList.toggle('active');
+}
 </script>
 
 <?php require __DIR__ . '/../includes/footer.php'; ?>

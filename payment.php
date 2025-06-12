@@ -19,7 +19,7 @@ if (!isset($_SESSION['user_id']) || $_SESSION['user_type'] !== 'user') {
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     //$amount = isset($_POST['funds']) ? (float)$_POST['funds'] : 0;
     $amount = isset($_SESSION['funds']) ? (float)$_SESSION['funds'] : 50000; 
-   
+    unset($_SESSION['funds']);
     try {
         // التحقق من CSRF token
         if (!verify_csrf_token($_POST['csrf_token'])) {
@@ -92,7 +92,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             send_notification(
                 $_SESSION['user_id'],
                 "تم شحن " . number_format($amount, 2) . " ليرة بنجاح",
-                BASE_URL . 'user/dashboard.php'
+                BASE_URL . 'user/dashboard.php?section=funds'
             );
                         // بعد جلب القيمة
             unset($_SESSION['required_amount']);

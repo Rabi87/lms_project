@@ -31,9 +31,9 @@ require __DIR__ . '/includes/header.php';
 <?php endif; ?>
 
 
-<div class="container mt-5">
+<div class="container mt-51">
     <div class="row justify-content-center">
-        <div class="col-md-6">
+        <div class="col-md-8">
             <div class="card border-0 shadow-sm" style="border-radius: 15px;">
                 <div class="card-header bg-gradient-primary text-white py-3">
                     <h4 class="mb-0 fw-bold">
@@ -41,45 +41,32 @@ require __DIR__ . '/includes/header.php';
                     </h4>
                 </div>
                 <div class="card-body p-4">
-                    <form action="<?= BASE_URL ?>process.php" method="POST">
+                    <form action="<?= BASE_URL ?>process.php" method="POST" id="regForm">
                         <!-- حقل اسم المستخدم مع أيقونة -->
                         <div class="mb-4 input-group">
-                            <span class="input-group-text bg-light border-end-0">
-                                <i class="fas fa-user text-primary"></i>
-                            </span>
-                            <input type="text" class="form-control" 
-                                placeholder="اسم المستخدم" 
-                                name="name" 
-                                style="border-left: 0;">
+                            <span class="input-group-text bg-light"><i class="fas fa-envelope text-info"></i></span>
+                            <input type="email" class="form-control" name="email" placeholder="البريد الإلكتروني" required>
                         </div>
-
-                        <!-- حقل كلمة المرور مع أيقونة -->
+                        <!-- حقل كلمة المرور مع أيقونة -->                       
                         <div class="mb-4 input-group">
-                            <span class="input-group-text bg-light border-end-0">
-                                <i class="fas fa-lock text-primary"></i>
-                            </span>
-                            <input type="password" 
-                                class="form-control" 
-                                id="password"
-                                placeholder="كلمة المرور"
-                                name="password" 
-                                style="border-left: 0;">
+                                <span class="input-group-text bg-light"><i class="fas fa-lock text-info"></i></span>
+                                <input type="password" class="form-control" name="password" id="password" placeholder="كلمة المرور" required>
+                            
                             <!-- زر إظهار/إخفاء -->
-                            <button type="button" class="btn btn-link text-muted" 
-                                onclick="togglePassword()">
+                            <button type="button" 
+                                    class="btn btn-link text-muted" 
+                                    onclick="togglePassword()">
                                 <i class="fas fa-eye"></i>
                             </button>
                         </div>
-
                         <!-- خيار تذكرني -->
                         <div class="mb-4 form-check">
                             <input type="checkbox" class="form-check-input" id="remember" name="remember_me">
                             <label class="form-check-label" for="remember">تذكر الحساب</label>
                         </div>
-
                         <!-- زر الدخول -->
                         <button type="submit" name="login" 
-                            class="btn btn-primary w-100 py-2 fw-bold">
+                            class="btn btn-primary w-100 py-2 fw-bold" onclick="validateStep1()">
                             <i class="fas fa-sign-in-alt me-2"></i> دخول
                         </button>
                     </form>
@@ -101,26 +88,46 @@ require __DIR__ . '/includes/header.php';
 </div>
 
 <style>
-.card {
-    border-radius: 15px;
-    overflow: hidden;
-    border: none !important;
+    .error-msg {
+    color: #dc3545;
+    font-size: 0.85rem;
+    animation: slideDown 0.3s ease;
+}
+@keyframes slideDown {
+    from { opacity: 0; transform: translateY(-10px); }
+    to { opacity: 1; transform: translateY(0); }
 }
 
-.bg-gradient-primary {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-}
-
-.input-group-text {
-    transition: all 0.3s;
-}
-
-.form-control:focus {
-    box-shadow: none;
-    border-color: #667eea;
-}
 </style>
 <script>
+function validateStep1() {
+    document.querySelectorAll('.error-msg').forEach(e => e.remove());
+
+    
+    const email = document.querySelector('[name="email"]').value.trim();
+    const password = document.getElementById('password').value;
+    let isValid = true;  
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+        showError('[name="email"]', 'البريد الإلكتروني غير صالح');
+        isValid = false;
+    }
+
+    if (password.length < 6) {
+        showError('#password', 'كلمة المرور يجب أن تكون 6 أحرف على الأقل');
+        isValid = false;
+    }
+
+   
+}
+
+function showError(selector, message) {
+    const input = document.querySelector(selector);
+    const errorElem = document.createElement('div');
+    errorElem.className = 'error-msg mt-2';
+    errorElem.innerHTML = `<i class="fas fa-exclamation-circle me-2"></i>${message}`;
+    input.closest('.input-group').appendChild(errorElem);
+}
 function togglePassword() {
     const passwordField = document.getElementById('password');
     const eyeIcon = document.getElementById('eyeIcon');
@@ -133,5 +140,7 @@ function togglePassword() {
         eyeIcon.classList.replace('bi-eye-slash', 'bi-eye');
     }
 }
+
 </script>
+
 <?php require __DIR__ . '/includes/footer.php'; ?>

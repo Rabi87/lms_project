@@ -7,7 +7,8 @@ $categories = $conn->query("SELECT * FROM categories")->fetch_all(MYSQLI_ASSOC);
 
 // جلب المؤلفين من قاعدة البيانات
 $authors = $conn->query("SELECT DISTINCT author FROM books")->fetch_all(MYSQLI_ASSOC);
-
+// جلب أنواع المواد المميزة (كتاب، مجلة، صحيفة) // إضافة جديدة
+$materialTypes = $conn->query("SELECT DISTINCT material_type FROM books WHERE material_type IS NOT NULL AND material_type != ''")->fetch_all(MYSQLI_ASSOC);
 // تحديد نوع القائمة من الرابط
 $type = isset($_GET['type']) ? htmlspecialchars($_GET['type']) : '';
 
@@ -16,6 +17,7 @@ $filterCategory = isset($_GET['category']) ? intval($_GET['category']) : 0;
 $filterAuthor = isset($_GET['author']) ? htmlspecialchars($_GET['author']) : '';
 $filterRating = isset($_GET['rating']) ? intval($_GET['rating']) : 0;
 $searchTerm = isset($_GET['search']) ? htmlspecialchars($_GET['search']) : '';
+$filterMaterial = isset($_GET['material']) ? htmlspecialchars($_GET['material']) : '';
 
 // بناء الاستعلام الأساسي
 $baseQuery = "SELECT *, 
@@ -85,7 +87,12 @@ if (!empty($searchTerm)) {
     
     $types .= 'ssss';
 }
-
+// إضافة شرط نوع المادة // إضافة جديدة
+if (!empty($filterMaterial)) {
+    $conditions[] = " material_type = ? ";
+    $params[] = $filterMaterial;
+    $types .= 's';
+}
 // دمج الشروط مع الاستعلام الأساسي
 if (!empty($conditions)) {
     $whereClause = " AND " . implode(" AND ", $conditions);
@@ -221,7 +228,7 @@ $result = $stmt->get_result();
         </div>
 
             <!-- فلتر التصنيفات -->
-            <div class="col-md-4 filter-group">
+            <div class="col-md-3 filter-group">
                 <label class="form-label fw-bold">التصنيف</label>
                 <select name="category" class="form-select">
                     <option value="0">جميع التصنيفات</option>
@@ -235,7 +242,7 @@ $result = $stmt->get_result();
             </div>
 
             <!-- فلتر المؤلفين -->
-            <div class="col-md-4 filter-group">
+            <div class="col-md-3 filter-group">
                 <label class="form-label fw-bold">المؤلف</label>
                 <select name="author" class="form-select">
                     <option value="">جميع المؤلفين</option>
@@ -249,7 +256,7 @@ $result = $stmt->get_result();
             </div>
 
             <!-- فلتر التقييم -->
-            <div class="col-md-4 filter-group">
+            <div class="col-md-3 filter-group">
                 <label class="form-label fw-bold">التقييم</label>
                 <select name="rating" class="form-select">
                     <option value="0">جميع التقييمات</option>
@@ -258,6 +265,20 @@ $result = $stmt->get_result();
                     <option value="3" <?= $filterRating == 3 ? 'selected' : '' ?>>3 نجوم فأكثر</option>
                     <option value="2" <?= $filterRating == 2 ? 'selected' : '' ?>>2 نجوم فأكثر</option>
                     <option value="1" <?= $filterRating == 1 ? 'selected' : '' ?>>1 نجمة فأكثر</option>
+                </select>
+            </div>
+
+            <!-- فلتر نوع المادة (إضافة جديدة) -->
+            <div class="col-md-3 filter-group">
+                <label class="form-label fw-bold">نوع المادة</label>
+                <select name="material" class="form-select">
+                    <option value="">جميع الأنواع</option>
+                    <?php foreach ($materialTypes as $type): ?>
+                        <option value="<?= htmlspecialchars($type['material_type']) ?>"
+                            <?= $filterMaterial == $type['material_type'] ? 'selected' : '' ?>>
+                            <?= htmlspecialchars($type['material_type']) ?>
+                        </option>
+                    <?php endforeach; ?>
                 </select>
             </div>
 
