@@ -193,21 +193,18 @@ require __DIR__ . '/../includes/functions.php';
                                 </span>
                             </td>
                             <td class="text-end">
-                                <form method="POST" action="<?= BASE_URL ?>admin/process_request.php"
-                                    class="d-flex gap-2">
-                                    <input type="hidden" name="csrf_token" value="<?= $_SESSION['csrf_token'] ?>">
-                                    <input type="hidden" name="request_id" value="<?= $request['request_id'] ?>">
-                                    <select name="action" class="form-select form-select-sm" required>
-                                        <option value="approve"
-                                            <?= $request['status'] === 'approved' ? 'disabled' : '' ?>>موافقة</option>
-                                        <option value="reject"
-                                            <?= $request['status'] === 'rejected' ? 'disabled' : '' ?>>رفض</option>
-                                    </select>
-                                    <button type="submit" class="btn btn-sm btn-primary">
-                                        <i class="fas fa-save"></i>
-                                    </button>
-                                </form>
-                            </td>
+    <form method="POST" action="<?= BASE_URL ?>admin/process_request.php" class="d-inline">
+        <input type="hidden" name="csrf_token" value="<?= $_SESSION['csrf_token'] ?>">
+        <input type="hidden" name="request_id" value="<?= $request['request_id'] ?>">
+        <select name="action" onchange="this.form.submit()" 
+            class="form-select form-select-sm border-<?= getStatusColor($request['status']) ?>"
+            <?= ($request['status'] === 'approved' || $request['status'] === 'rejected') ? 'disabled' : '' ?>>
+            <option value="pending" <?= $request['status'] === 'pending' ? 'selected' : '' ?>>قيد المراجعة</option>
+            <option value="approve" <?= $request['status'] === 'approved' ? 'selected' : '' ?>>موافقة</option>
+            <option value="reject" <?= $request['status'] === 'rejected' ? 'selected' : '' ?>>رفض</option>
+        </select>
+    </form>
+</td>
                         </tr>
                         <?php endforeach; ?>
                     </tbody>

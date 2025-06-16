@@ -11,12 +11,7 @@ if (!isset($_SESSION['user_id']) || $_SESSION['user_type'] !== 'admin') {
     header("Location: " . BASE_URL . "login.php");
     exit();
 }
-// معالجة طلب التصدير
-if (isset($_GET['export'])) {
-    require __DIR__ . '/export_books_report.php';
-    exit(); 
 
-}
 // معالجة حذف الكتاب
 if (isset($_GET['delete'])) {
     try {
@@ -31,7 +26,7 @@ if (isset($_GET['delete'])) {
             throw new Exception("لا يمكن حذف الكتاب لأنه ضمن قائمة المفضلة لأكثر من مستخدم");
         }
         
-        $stmt = $conn->prepare("SELECT COUNT(*) FROM borrow_requests WHERE book_id = ? AND status IN ('approved', 'pending')");
+        $stmt = $conn->prepare("SELECT COUNT(*) FROM borrow_requests WHERE book_id = ? AND status IN ('approved', 'pending') AND type='borrow'");
         $stmt->bind_param("i", $book_id);
         $stmt->execute();
         $active_requests = $stmt->get_result()->fetch_row()[0];

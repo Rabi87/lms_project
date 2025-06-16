@@ -4,6 +4,7 @@ if (session_status() === PHP_SESSION_NONE) {
 error_reporting(E_ALL);
 ini_set('display_errors', 1);
 ini_set('display_startup_errors', 1);
+ini_set('log_errors', 1);
 require __DIR__ . '/includes/config.php';
 
 // التحقق من تسجيل الدخول
@@ -199,52 +200,57 @@ $is_passed = $due_date < $today;
     <link href="<?= BASE_URL ?>assets/css/style.css" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="https://unpkg.com/viewerjs/dist/viewer.min.css">
     <style>
-    .star-rating {
-        display: flex;
-        align-items: center;
-        gap: 5px;
-    }
-
-    .star-rating label {
-        font-size: 24px;
-        color: #ccc;
-        cursor: pointer;
-        transition: color 0.3s;
-    }
-
-    .star-rating input[type="radio"] {
-        display: none;
-    }
-
-    .star-rating input[type="radio"]:checked~label,
-    .star-rating label:hover,
-    .star-rating label:hover~label {
-        color: #ffcc00;
-    }
-
-    .rating-display {
-        margin-top: 10px;
-        font-size: 18px;
-        color: #333;
-    }
-
-    .card {
+    .book-viewer {
         position: relative;
-        user-select: none;
-        /* منع تحديد النص */
+        height: 80vh;
+        overflow: hidden;
+        background-color: #f5f5f5;
+        border: 1px solid #ddd;
+        margin-bottom: 20px;
     }
-
-    .card::after {
-        content: "";
-        position: absolute;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-        z-index: 999;
+    
+    .page-container {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        padding: 20px 0;
+    }
+    
+    .page-image {
+        max-width: 100%;
+        max-height: 70vh;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+        user-select: none;
         pointer-events: none;
-        /* لا يؤثر على تفاعل الـ iframe */
+    }
+    
+    .page-controls {
+        display: flex;
+        justify-content: center;
+        margin: 20px 0;
+        gap: 15px;
+    }
+    
+    .page-info {
+        text-align: center;
+        font-size: 1.2rem;
+        margin: 10px 0;
+    }
+    
+    .loading-indicator {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        font-size: 2rem;
+        color: #666;
+    }
+    
+    .watermarked {
+        background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="400" height="400" opacity="0.05"><text x="50%" y="50%" dominant-baseline="middle" text-anchor="middle" font-family="Arial" font-size="30" fill="gray"><?= BASE_URL ?></text></svg>');
+        background-repeat: repeat;
     }
     </style>
 </head>
@@ -287,11 +293,32 @@ $is_passed = $due_date < $today;
         <?php unset($_SESSION['error']); ?>
         <?php endif; ?>
         <!-- عرض الملف -->
-        <div class="card" style="position: relative;">
+        <!-- عرض الملف كصور -->
+        <div class="card">
             <div class="card-body">
-                <h3 class="card-title"><?= htmlspecialchars($book['title']) ?></h3>
-                <iframe src="<?= htmlspecialchars($file_path) ?>#toolbar=0&navpanes=0" width="100%" height="600px"
-                    frameborder="0"></iframe>
+                <h3 class="card-title text-center"><?= htmlspecialchars($book['title']) ?></h3>
+                
+                <div class="book-viewer">
+                    <div class="loading-indicator">
+                        <i class="fas fa-spinner fa-spin"></i> جاري تحميل الكتاب...
+                    </div>
+                    
+                    <div class="page-container" id="pageContainer" style="display:none;">
+                        <img id="currentPage" class="page-image" src="" alt="صفحة الكتاب">
+                        <div class="page-info">
+                            الصفحة <span id="currentPageNum">1</span> من <span id="totalPages">0</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="page-controls">
+                    <button id="prevPage" class="btn btn-primary" disabled>
+                        <i class="fas fa-arrow-right"></i> السابقة
+                    </button>
+                    <button id="nextPage" class="btn btn-primary" disabled>
+                        التالية <i class="fas fa-arrow-left"></i>
+                    </button>
+                </div>
             </div>
         </div>
 
@@ -338,7 +365,99 @@ $is_passed = $due_date < $today;
         });
     });
     </script>
-
+<!-- مكتبات JavaScript -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://unpkg.com/viewerjs/dist/viewer.min.js"></script>
+    
+    <script>
+    $(document).ready(function() {
+        const requestId = <?= $request_id ?>;
+        let pages = [];
+        let currentPage = 1;
+        
+        // جلب صفحات الكتاب
+        function loadBookPages() {
+            $.ajax({
+                url: 'pdf_to_images.php?request_id=' + requestId,
+                type: 'GET',
+                dataType: 'json',
+                success: function(response) {
+                    pages = response.pages;
+                    if (pages.length > 0) {
+                        $('#totalPages').text(pages.length);
+                        showPage(1);
+                        $('.loading-indicator').hide();
+                        $('#pageContainer').show();
+                        updateControls();
+                    } else {
+                        $('.loading-indicator').html('<div class="alert alert-danger">فشل في تحميل الكتاب</div>');
+                    }
+                },
+                error: function() {
+                    $('.loading-indicator').html('<div class="alert alert-danger">حدث خطأ أثناء تحميل الكتاب</div>');
+                }
+            });
+        }
+        
+        // عرض صفحة محددة
+        function showPage(pageNum) {
+            currentPage = pageNum;
+            $('#currentPage').attr('src', pages[pageNum - 1]);
+            $('#currentPageNum').text(pageNum);
+            updateControls();
+        }
+        
+        // تحديث حالة أزرار التحكم
+        function updateControls() {
+            $('#prevPage').prop('disabled', currentPage <= 1);
+            $('#nextPage').prop('disabled', currentPage >= pages.length);
+        }
+        
+        // أحداث الأزرار
+        $('#prevPage').click(function() {
+            if (currentPage > 1) {
+                showPage(currentPage - 1);
+            }
+        });
+        
+        $('#nextPage').click(function() {
+            if (currentPage < pages.length) {
+                showPage(currentPage + 1);
+            }
+        });
+        
+        // بدء تحميل الكتاب
+        loadBookPages();
+        
+        // حماية المحتوى
+        // 1. منع النقر الأيمن
+        $(document).on('contextmenu', function(e) {
+            e.preventDefault();
+            alert('غير مسموح بالنقر الأيمن');
+        });
+        
+        // 2. منع اختصارات لوحة المفاتيح
+        $(document).on('keydown', function(e) {
+            // منع Ctrl+S, Ctrl+C, Ctrl+P
+            if (e.ctrlKey && (e.key === 's' || e.key === 'c' || e.key === 'p')) {
+                e.preventDefault();
+                alert('غير مسموح بهذه العملية');
+            }
+            
+            // مفاتيح الأسهم للتنقل بين الصفحات
+            if (e.key === 'ArrowRight') {
+                $('#prevPage').click();
+            } else if (e.key === 'ArrowLeft') {
+                $('#nextPage').click();
+            }
+        });
+        
+        // 3. منع سحب الصور
+        $('.page-image').on('dragstart', function(e) {
+            e.preventDefault();
+        });
+    });
+    </script>
 </body>
-
 </html>
+

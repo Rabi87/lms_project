@@ -130,10 +130,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $stmt_book->bind_param("i", $request_id);
             $stmt_book->execute();
             $book_title = $stmt_book->get_result()->fetch_assoc()['title'];
-
-
+            if($type === 'borrow' ||$type === 'renew'){
             // إضافة إشعار للمستخدم
-            $message = "يمكنك تصفح كتاب $book_title على الرابط التالي"; 
+            $message = "يمكنك تصفح كتاب $book_title على الرابط التالي لمدة 14 يوم من تاريخ هذا الإشعار"; 
             $payment_link = BASE_URL . "read_book.php?request_id=" . $request_id;
             
             $stmt_notif = $conn->prepare("
@@ -142,6 +141,23 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             ");
             $stmt_notif->bind_param("issis", $user_id, $message, $payment_link,$request_id,$exp_date);
             $stmt_notif->execute();
+            }
+            else
+            { 
+                // إضافة إشعار للمستخدم
+            $message = "يمكنك تحميل كتاب $book_title على الرابط التالي"; 
+            $payment_link = BASE_URL . "read_book.php?request_id=" . $request_id;
+            
+            $stmt_notif = $conn->prepare("
+                INSERT INTO notifications (user_id, message, link,request_id,expires_at)
+                VALUES (?, ?, ?, ?,?)
+            ");
+            $stmt_notif->bind_param("issis", $user_id, $message, $payment_link,$request_id,$exp_date);
+            $stmt_notif->execute();
+            }
+
+
+            
 
         } else {
             

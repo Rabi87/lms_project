@@ -108,7 +108,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         <div class="mb-3">
                             <label for="password" class="form-label">كلمة المرور</label>
                             <div class="input-group">
-                                <input type="text" class="form-control" id="password" name="password" required>
+                                <input type="text" class="form-control"  name="password" required>
                                
                             </div>
                             <small class="form-text text-muted">سيتم إرسال كلمة المرور عبر الرسائل الداخلية للمستخدم</small>
@@ -129,16 +129,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     </div>
 
 
-<script>
-    // توليد كلمة مرور عشوائية
-    document.getElementById('generatePassword').addEventListener('click', function() {
-        const charset = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%^&*()_+";
-        let password = "";
-        for (let i = 0; i < 10; i++) {
-            password += charset.charAt(Math.floor(Math.random() * charset.length));
-        }
-        document.getElementById('password').value = password;
-    });
-</script>
+
+
 
 <?php require __DIR__ . '/../includes/footer.php'; ?>

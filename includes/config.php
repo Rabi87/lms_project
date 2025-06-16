@@ -21,7 +21,7 @@ if (!defined('BASE_URL'))
 $host = "localhost";
 $user = "phpmyadmin";
 $password = "P@ssw0rd_123!";
-$dbname = "library_db";
+$dbname = "test_db";
 
 
 $conn = new mysqli($host, $user, $password, $dbname);

@@ -137,13 +137,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     placeholder="ابحث بالبريد الإلكتروني">
                 <span class="input-group-text bg-transparent border-0"><i class="fas fa-search"></i></span>
             </div>
-
-            <div>
+             <div>
                 <a href="add_user.php" class="btn btn-info btn-sm rounded-pill me-2">
                     <i class="fas fa-user-plus me-1"></i> عضو جديد
                 </a>
                 
             </div>
+
+         
         </div>
     </div>
 
@@ -270,17 +271,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     </div>
 </div>
 
-<script>
-// توليد كلمة مرور عشوائية
-document.getElementById('generatePassword').addEventListener('click', function() {
-    const charset = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%^&*()_+";
-    let password = "";
-    for (let i = 0; i < 10; i++) {
-        password += charset.charAt(Math.floor(Math.random() * charset.length));
-    }
-    document.getElementById('password').value = password;
-});
-</script>
+
 <!-- JavaScript for Confirmation -->
 <script>
 function confirmDelete(hasRequests) {

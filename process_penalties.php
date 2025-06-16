@@ -12,7 +12,7 @@ $conn->begin_transaction();
 $settings = [];
 $result = $conn->query("SELECT name,value FROM settings WHERE name IN ('late_fee', 'borrow_fee', 'purchase_price')");
 while ($row = $result->fetch_assoc()) {
-    $settings[$row['name'] = $row['value']];
+    $settings[$row['name']] = $row['value'];
 }
 
 // التحقق من وجود جميع الإعدادات المطلوبة
@@ -60,10 +60,21 @@ try {
 
         $penalty_amount = $days_overdue * $settings['late_fee'];
         $user_id = $row['user_id'];
+       
         $current_balance = $row['balance'];
 
         // 3. التحقق من وجود رصيد كافي لدى المستخدم
         if ($current_balance < $penalty_amount) {
+            // إضافة إشعار للمستخدم
+            $message = "رصيد غير كافي للمستخدم $user_ids. الرصيد الحالي: $current_balance, المطلوب: $penalty_amount"; 
+            $payment_link = BASE_URL . "user/dashboard.php?section=ops";
+            
+            $stmt_notif = $conn->prepare("
+                INSERT INTO notifications (user_id, message, link,request_id,expires_at)
+                VALUES (?, ?, ?, ?,?)
+            ");
+            $stmt_notif->bind_param("issis", $user_id, $message, $payment_link,$request_id,$exp_date);
+            $stmt_notif->execute();
             error_log("رصيد غير كافي للمستخدم $user_id. الرصيد الحالي: $current_balance, المطلوب: $penalty_amount");
             continue;
         }

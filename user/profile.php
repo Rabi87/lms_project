@@ -63,9 +63,9 @@ if (isset($_POST['delete_account'])) {
         
         if (password_verify($password, $user_data['password'])) {
             // Delete user account
-            $update_sql = "UPDATE users SET status = 0 WHERE id = $user_id";
+           $delete_sql = "DELETE FROM users WHERE id = $user_id";
             
-            if ($conn->query($update_sql)) {
+            if ($conn->query($delete_sql)) {
                 // Destroy session and redirect
                 session_destroy();
                 echo '<script>window.location.href = "../login.php";</script>';

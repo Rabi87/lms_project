@@ -2,8 +2,6 @@
 if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
-
-
 require __DIR__ . '/includes/config.php';
 require __DIR__ . '/includes/functions.php';
 
@@ -12,27 +10,16 @@ if (!isset($_SESSION['user_id']) || $_SESSION['user_type'] !== 'user') {
     redirect(BASE_URL . 'login.php');
 }
 
-// تعيين المبلغ الافتراضي
-
-//$amount = $_SESSION['funds'] ?? 23000;
-
+// ━━━━━━━━━━ معالجة عملية الدفع (عند الضغط على زر الدفع) ━━━━━━━━━━
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    //$amount = isset($_POST['funds']) ? (float)$_POST['funds'] : 0;
-    $amount = isset($_SESSION['funds']) ? (float)$_SESSION['funds'] : 50000; 
-    unset($_SESSION['funds']);
     try {
         // التحقق من CSRF token
         if (!verify_csrf_token($_POST['csrf_token'])) {
             throw new Exception('طلب غير مصرح به');
         }
 
-        // التحقق من الحقول المطلوبة
-        $required_fields = ['card_number', 'expiry', 'cvv'];
-        foreach ($required_fields as $field) {
-            if (empty($_POST[$field])) {
-                throw new Exception("يجب أن تكون البطاقة صالحة لمدة 30 يوم من تاريخ الطلب على أقل تقدير");
-            }
-        }
+        // جلب المبلغ المطلوب من النموذج
+        $amount = isset($_POST['required_amount']) ? (float)$_POST['required_amount'] : 25000;
 
         // ━━━━━━━━━━ محاكاة الدفع ━━━━━━━━━━
         $payment_data = [
@@ -74,14 +61,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     payment_type
                 ) VALUES (?, ?, 'completed', NOW(), ?,'topup')
             ");
-            $_SESSION['success'] = "تم الدفع " ;
-
-           
+            
             if (!$stmt_payment) {
-                $_SESSION['error'] = "خطأ في إعداد استعلام الدفع " ;
-                header("Location:user/dashboard.php"); // أو الصفحة الحالية
-                exit();
+                throw new Exception("خطأ في إعداد استعلام الدفع");
             }
+            
             $stmt_payment->bind_param("ids", $_SESSION['user_id'], $amount, $transaction_id);
             $stmt_payment->execute();
 
@@ -94,11 +78,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 "تم شحن " . number_format($amount, 2) . " ليرة بنجاح",
                 BASE_URL . 'user/dashboard.php?section=funds'
             );
-                        // بعد جلب القيمة
-            unset($_SESSION['required_amount']);
-            unset($_SESSION['action']);
+            
+            // تنظيف بيانات الجلسة بعد الدفع
+            if (isset($_SESSION['required_amount'])) {
+                unset($_SESSION['required_amount']);
+            }
+            if (isset($_SESSION['funds'])) {
+                unset($_SESSION['funds']);
+            }
 
-            set_success("تمت عملية الدفع بنجاح!");
+            $_SESSION['success'] = "تمت عملية الدفع بنجاح!";
             redirect(BASE_URL . 'user/dashboard.php');
 
         } catch (Exception $e) {
@@ -107,18 +96,24 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
 
     } catch (Exception $e) {
-        set_info($e->getMessage());
+        $_SESSION['error'] = $e->getMessage();
         redirect(BASE_URL . 'payment.php');
     }
-}else{
-    
-    $amount = isset($_SESSION['funds']) ? (float)$_SESSION['funds'] : 50000;  
 }
 
-// ━━━━━━━━━━ عرض واجهة الدفع ━━━━━━━━━━
+// ━━━━━━━━━━ عرض واجهة الدفع (عند فتح الصفحة) ━━━━━━━━━━
+// تحديد المبلغ الافتراضي
+$default_amount = 25000;
+
+// إذا كان هناك مبلغ محدد في الجلسة
+ if (isset($_SESSION['funds'])) {
+    $amount = (float)$_SESSION['funds'];
+} else {
+    $amount = $default_amount;
+}
+
 require __DIR__ . '/includes/header.php';
 ?>
-
 
 <style>
 .payment-card {

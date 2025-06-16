@@ -132,8 +132,6 @@ if (isset($_POST['action']) && $_POST['action'] === 'toggle_favorite') {
 // ======== معالجة تسجيل الدخول ========
 if (isset($_POST['login'])) {
 
-    
-
     $email = $_POST['email'];
     $password = $_POST['password'];
     
@@ -561,19 +559,10 @@ if (isset($_POST['action'])) {
         $stmt_book->close();
 
         // ━━━━━━━━━━ تحديد المبلغ المطلوب بناءً على نوع العملية ━━━━━━━━━━
-        if ($action === 'borrow') {
-            // جلب سعر الإعارة من الإعدادات إذا لزم الأمر
-            $stmt_rental = $conn->prepare("SELECT value FROM settings WHERE name='purchase_price'");
-            $stmt_rental->execute();
-            $result_rental = $stmt_rental->get_result();
-            $row_rental = $result_rental->fetch_assoc();
-            $purchase_price = $row_rental['value'];
-            $stmt_rental->close();
-        } else {
-            // استخدام سعر الكتاب للشراء
-            $purchase_price = $book_price;
-        }
-
+     
+        // استخدام سعر الكتاب للشراء
+        $purchase_price = $book_price;
+        
         // جلب سعر الإعارة
         $stmt_rental = $conn->prepare("SELECT value FROM settings WHERE name='rental_price'");
         $stmt_rental->execute();
@@ -597,26 +586,28 @@ if (isset($_POST['action'])) {
 
         // ━━━━━━━━━━ التحقق من عدم وجود استعارة نشطة ━━━━━━━━━━
         if($action === 'borrow'){
-        $check_borrow = $conn->prepare("
-            SELECT id
-            FROM borrow_requests 
-            WHERE 
-                user_id = ? 
-                AND book_id = ? 
-                AND status IN ('pending', 'approved')
-                AND due_date > NOW() 
-                AND reading_completed = 0
-                
-        ");
-        $check_borrow->bind_param("ii", $_SESSION['user_id'], $book_id);
-        $check_borrow->execute();
-        $borrow_user=$_SESSION['user_id'];
+            $check_borrow = $conn->prepare("
+                SELECT id
+                FROM borrow_requests 
+                WHERE 
+                    user_id = ? 
+                    AND book_id = ? 
+                    AND type='borrow'
+                    AND status IN ('pending', 'approved')
+                    AND due_date > NOW() 
+                    AND reading_completed = 0
+                    
+            ");
+            $check_borrow->bind_param("ii", $_SESSION['user_id'], $book_id);
+            $check_borrow->execute();
+            $borrow_user=$_SESSION['user_id'];
 
-        if ($check_borrow->get_result()->num_rows > 0) {
-            $_SESSION['error'] = "لا يمكنك استعارة هذا الكتاب الآن. لديك استعارة نشطة!";
-            header("Location:index.php"); // أو الصفحة الحالية
-            exit();
-        }}
+            if ($check_borrow->get_result()->num_rows > 0) {
+                $_SESSION['error'] = "لا يمكنك استعارة هذا الكتاب الآن. لديك استعارة نشطة!";
+                header("Location:index.php"); 
+                exit();
+            }
+        }
         
         // التحقق من الرصيد
         $stmt_wallet = $conn->prepare("SELECT balance FROM wallets WHERE user_id = ?");

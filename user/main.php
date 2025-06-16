@@ -12,6 +12,13 @@ if (!isset($_SESSION['user_id']) || $_SESSION['user_type'] !== 'user') {
     header("Location: " . BASE_URL . "login.php");
     exit();
 }
+ $stmt_rental = $conn->prepare("SELECT value FROM settings WHERE name='rental_price'");
+        $stmt_rental->execute();
+        $result_rental = $stmt_rental->get_result();
+        $row_rental = $result_rental->fetch_assoc();
+        $rental_price = $row_rental['value'];
+        $stmt_rental->close();
+
 $stmt = $conn->prepare("SELECT name FROM users WHERE id = ?");
     $stmt->bind_param("i", $_SESSION['user_id']);
     $stmt->execute();
@@ -116,22 +123,26 @@ Swal.fire({
                         </div>
                     </div>
                     <?php else: ?>
-                    <h2 class="display-5 mb-3 fw-bold <?= $balance < 5000 ? 'text-danger' : 'text-success' ?>">
+                    <h2 class="display-5 mb-3 fw-bold <?= $balance <  $rental_price  ? 'text-danger' : 'text-success' ?>">
                         <?= number_format($balance, 2) ?> 
                                         </h2>
-                    <?php if ($balance < 5000): ?>
+                    <?php if ($balance <  $rental_price ): ?>
                     <div class="alert alert-danger py-2 mb-0 small">
                         <i class="fas fa-exclamation-circle me-2"></i>
-                        الرصيد الحالي لا يكفي للاستعارة (الحد الأدنى 5,000 ليرة)
+                        الرصيد الحالي لا يكفي للاستعارة (الحد الأدنى  <?= $rental_price ?>ليرة)
                     </div>
                     <?php endif; ?>
                     <?php endif; ?>
                 </div>
 
                 <div class="card-footer bg-light text-center py-2">
-                    <a href="<?= BASE_URL ?>payment.php" class="btn btn-sm btn-outline-primary rounded-pill">
-                        <i class="fas fa-coins me-1"></i> شحن الرصيد
-                    </a>
+                    <div class="card-footer bg-light text-center py-2">
+    <form action="<?= BASE_URL ?>payment.php" method="GET">
+        <button type="submit" class="btn btn-sm btn-outline-primary rounded-pill" name="charge">
+            <i class="fas fa-coins me-1"></i> شحن الرصيد
+        </button>
+    </form>
+</div>
                 </div>
             </div>
         </div>

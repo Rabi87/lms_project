@@ -289,44 +289,7 @@ Swal.fire({
                 </div>
             </div>
 
-            <!--قسم الأخبار -->
-            <div id="news_ticker" class="content-section <?= ($active_section == 'news_ticker') ? 'active' : '' ?>">
-                <div class="card">
-                    <div class="card-body">
-                        <h4>إدارة الأخبار</h4>
-
-                        <!-- إضافة خبر جديد -->
-                        <form action="process_news.php" method="POST">
-                            <div class="mb-3">
-                                <textarea name="content" class="form-control" placeholder="محتوى الخبر"
-                                    required></textarea>
-                            </div>
-                            <button type="submit" name="add_news" class="btn btn-primary">إضافة</button>
-                        </form>
-
-                        <!-- قائمة الأخبار -->
-                        <div class="mt-4">
-                                        <?php
-                            $news = $conn->query("SELECT * FROM news_ticker");
-                            while ($item = $news->fetch_assoc()):
-                            ?>
-                            <div class="card mb-3">
-                                <div class="card-body">
-                                    <form action="process_news.php" method="POST">
-                                        <input type="hidden" name="news_id" value="<?= $item['id'] ?>">
-                                        <textarea name="content"
-                                            class="form-control mb-2"><?= $item['content'] ?></textarea>
-                                        <button type="submit" name="update_news" class="btn btn-warning">تحديث</button>
-                                        <button type="submit" name="delete_news" class="btn btn-danger">حذف</button>
-                                    </form>
-                                </div>
-                            </div>
-                            <?php endwhile; ?>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
+           
             <!-- قسم  الاعدادات -->
             <div id="settings" class="content-section <?= ($active_section == 'settings') ? 'active' : '' ?>">
                 <div class="card border-0 shadow-sm">
