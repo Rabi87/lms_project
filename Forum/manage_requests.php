@@ -7,14 +7,24 @@ require __DIR__ . '/../includes/config.php';
 // التحقق من وجود group_id في الرابط
 $group_id = isset($_GET['group_id']) ? intval($_GET['group_id']) : null;
 
-// ------ تحقق الأمان: التأكد من أن المستخدم مالك المجموعة ------
+// ------ تحقق الأمان: التأكد من أن المستخدم مالك أو مالك مشارك أو مدير ------
+$isAdmin = false;
+$adminCheck = $conn->query("SELECT id FROM users WHERE id = {$_SESSION['user_id']} AND user_type = 'admin'");
+if ($adminCheck->num_rows > 0) {
+    $isAdmin = true;
+}
+
 if ($group_id) {
-    $stmt = $conn->prepare("SELECT owner_id FROM users_groups WHERE group_id = ?");
+    $stmt = $conn->prepare("SELECT owner_id, co_owner_id FROM users_groups WHERE group_id = ?");
     $stmt->bind_param("i", $group_id);
     $stmt->execute();
     $result = $stmt->get_result()->fetch_assoc();
     
-    if (!$result || $result['owner_id'] != $_SESSION['user_id']) {
+    // التحقق من أن المستخدم هو مالك أو مالك مشارك أو مدير
+    if (!$result || 
+        ($result['owner_id'] != $_SESSION['user_id'] && 
+         $result['co_owner_id'] != $_SESSION['user_id'] && 
+         !$isAdmin)) {
         die("<div class='alert alert-danger m-3'>ليس لديك صلاحية لإدارة هذه المجموعة!</div>");
     }
 }
@@ -25,18 +35,16 @@ $sql = "
     FROM join_requests r
     JOIN users u ON r.user_id = u.id
     JOIN users_groups g ON r.group_id = g.group_id
-    WHERE g.owner_id = ? 
-    AND r.status = 'pending'
+    WHERE r.status = 'pending'
 ";
 
-// إضافة شرط التصفية إذا وُجد group_id
-if ($group_id) {
-    $sql .= " AND g.group_id = ?";
+// إذا كان هناك group_id ولم يكن المستخدم مديراً، نضيف شرط أن يكون المستخدم مالكاً أو مشاركاً
+if ($group_id && !$isAdmin) {
+    $sql .= " AND (g.owner_id = ? OR g.co_owner_id = ?)";
     $stmt = $conn->prepare($sql);
-    $stmt->bind_param("ii", $_SESSION['user_id'], $group_id);
+    $stmt->bind_param("ii", $_SESSION['user_id'], $_SESSION['user_id']);
 } else {
     $stmt = $conn->prepare($sql);
-    $stmt->bind_param("i", $_SESSION['user_id']);
 }
 
 $stmt->execute();

@@ -128,18 +128,21 @@ if (isset($_COOKIE['cart'])) {
                                             <span class="badge bg-light text-dark mt-1" style="font-size: 0.75rem;">
                                                 <?= ($_SESSION['user_type'] == 'admin') ? 'مدير النظام' : 'مستخدم' ?>
                                             </span>
-                                        </div>    
+                                        </div> 
+                                        <?php if(isset($_SESSION['user_type']) && $_SESSION['user_type']==='user'): ?>  
                                         <div class="vertical-divider"
-                                            style="border-right: 2px solid rgba(255,255,255,0.3); height: 40px;"></div>                                                        
-                                            <a class="nav-link text-white " href="<?= BASE_URL ?>favorites.php">
-                                                <i class="fas fa-heart"></i>
-                                            </a>                                       
-                                            <a class="nav-link position-relative text-white " href="<?= BASE_URL ?>cart.php">
-                                                <i class="fas fa-shopping-cart"></i>
-                                                <span class="badge bg-white text-black cart-counter">
-                                                    <?= isset($_SESSION['cart']) ? count($_SESSION['cart']) : 0 ?>
-                                                </span>
-                                            </a>                                             
+                                            style="border-right: 2px solid rgba(255,255,255,0.3); height: 40px;">
+                                        </div>                                                        
+                                        <a class="nav-link text-white " href="<?= BASE_URL ?>favorites.php">
+                                            <i class="fas fa-heart"></i>
+                                        </a>                                       
+                                        <a class="nav-link position-relative text-white " href="<?= BASE_URL ?>cart.php">
+                                            <i class="fas fa-shopping-cart"></i>
+                                            <span class="badge bg-white text-black cart-counter">
+                                                <?= isset($_SESSION['cart']) ? count($_SESSION['cart']) : 0 ?>
+                                            </span>
+                                        </a> 
+                                         <?php endif; ?>                                            
                                     </div>
 
                                     <!-- زر الخروج -->
@@ -192,10 +195,12 @@ if (isset($_COOKIE['cart'])) {
                         <li class="nav-item"> <a class="nav-link" href="<?= BASE_URL ?>index.php">المكتبة</a> </li>
                         <li class="nav-item"> <a class="nav-link" href="<?= BASE_URL ?>book_of_the_month.php">كتاب الشهر</a> </li>
                         <?php if (isset($_SESSION['user_id'])): ?>
+                        <?php if(isset($_SESSION['user_type']) && $_SESSION['user_type']==='user'): ?>  
                         <li class="nav-item">
                             <a class="nav-link" href="<?= BASE_URL ?>recommended_books.php">
                                 </i>تفضيلاتك                            </a>
                         </li>
+                        <?php endif; ?>
                         <li class="nav-item"> <a class="nav-link"
                                 href="<?= BASE_URL ?>Forum/manage_groups.php">المنتدى</a></li>
                         <li class="nav-item"> <a class="nav-link"

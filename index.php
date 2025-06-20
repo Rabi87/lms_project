@@ -141,7 +141,7 @@ if (!$books_result) {
 /* تنسيقات الكتب المخفضة */
 .discount-ribbon {
     position: absolute;
-    top: 10px;
+    top: 30px;
     left: -10px;
     background: #dc3545;
     color: white;
@@ -212,28 +212,6 @@ $books_result->data_seek(0);
     
 }
 
-.cat-card {
-    flex: 0 0 420px;
-    height: 100px;
-    background:rgb(255, 255, 255);
-    border-radius: 15px;
-    padding: 20px;
-    box-shadow: 0 5px 15px rgba(0,0,0,0.1);
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    font-size: 1.2rem;
-    color: #000;
-    text-align: center;
-    transition: transform 0.3s;
-    
-}
-.cat-card:hover{
-    transform: translateY(-10px);
-    background:#303a4b;
-    color: #fff;
-}
 
 
 /* الحاوية الرئيسية */
@@ -251,9 +229,9 @@ $books_result->data_seek(0);
     position: relative;
     flex: 0 0 100%;
     height: 430px;
-    border-radius: 8px;
+    
     overflow: hidden;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    
 }
 
 .mySlides {
@@ -327,59 +305,6 @@ $books_result->data_seek(0);
     padding: 0 15px;
 }
 
-.cat-card {
-    height: 100px;
-    background: #fff;
-    border-radius: 15px;
-    padding: 20px;
-    box-shadow: 0 5px 15px rgba(0,0,0,0.1);
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    font-size: 3rem;
-    color: #000;
-    font-style: bold;
-    text-align: center;
-    transition: all 0.3s ease;
-    position: relative;
-    overflow: hidden;
-    z-index: 1;
-}
-
-.cat-card::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    
-    opacity: 0;
-    z-index: -1;
-    transition: opacity 0.3s ease;
-}
-
-.cat-card:hover {
-    transform: translateY(-10px);
-    color: #A12;
-    shadow: 10px 10px 25px rgba(0,0,0,0.2);
-}
-
-.cat-card:hover::before {
-    opacity: 1;
-}
-
-.cat-card h1 {
-    margin: 0;
-    font-size: 3rem;
-    transition: all 0.3s ease;
-}
-
-.cat-card:hover h1 {
-    transform: scale(1.1);
-}
-
 /* التجاوبية */
 @media (max-width: 992px) {
     .cat-wrapper {
@@ -387,22 +312,86 @@ $books_result->data_seek(0);
     }
 }
 
-@media (max-width: 576px) {
-    .cat-wrapper {
-        grid-template-columns: 1fr;
-    }
+
+.evel{
+    color:red;
+    text-align:center;
+}
+.stats-section {
     
-    .cat-card {
-        height: 90px;
-        font-size: 1.1rem;
-    }
     
-    .cat-card h1 {
-        font-size: 1.3rem;
-    }
+    padding: 30px;
+    margin: 30px 0;
+   
 }
 
 
+
+
+.stat-value {
+    color:rgb(153, 156, 162);
+    font-size: 2.5rem;
+    font-weight: bold;
+    margin-bottom: 10px;
+}
+
+.stat-label {
+    color: #555;
+    font-size: 1.2rem;
+    margin-bottom: 0;
+}
+/* تنسيقات الـ cat-card الموجودة أصلاً - سأعدل بعضها */
+.cat-card {
+    height: 100px; /* زيادة الارتفاع لاستيعاب التصميم الجديد */
+     border: 1px solid #303a4b;
+    border-radius: 15px;
+    padding: 15px;
+    background:rgb(56, 66, 84);
+    color:rgb(205, 207, 212);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
+    z-index: 1;
+}
+
+.cat-card:hover {
+   
+    background:rgb(56, 66, 84);
+    box-shadow: 0 10px 25px rgba(83, 85, 87, 0.4);
+}
+
+.static-card-link {
+    text-decoration: none;
+    color: inherit;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+    width: 100%;
+}
+.cat-card .card-content {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    width: 70%;
+    height: 100%;
+}
+
+.cat-card h1 {
+    margin: 0;
+    font-size: 2rem;
+    font-weight: bold;
+    transition: all 0.3s ease;
+}
+
+.cat-card:hover h1 {
+    transform: scale(1.1);
+    color: #fff;
+}
 
 </style>
 
@@ -429,9 +418,9 @@ Swal.fire({
 </script>
 <?php unset($_SESSION['success']); ?>
 <?php endif; ?>
-<div class="container my-5">
 
-<div class="main-container">
+
+    <!-- قسم السلايدر -->   
     <div class="slideshow-container">
         <?php
         $slides = $conn->query("SELECT * FROM slider_images WHERE is_active = 1");
@@ -442,323 +431,251 @@ Swal.fire({
             <img src="<?= BASE_URL . $slide['image_path'] ?>" alt="Slider Image">
         </div>       
         <?php $first = false; endwhile; ?>
-        <a class="prev" onclick="changeSlide(-1)">❮❮</a>
-            <a class="next" onclick="changeSlide(1)">❯❯</a>
+        <a class="prev text-decoration-none" onclick="changeSlide(-1)">❮❮</a>
+            <a class="next text-decoration-none" onclick="changeSlide(1)">❯❯</a>
         <!-- المؤشرات -->
         <div class="indicators">
             <?php for ($i = 0; $i < $slides->num_rows; $i++): ?>
                 <span class="indicator <?= $i === 0 ? 'active' : '' ?>" onclick="showSlide(<?= $i ?>)"></span>
             <?php endfor; ?>
         </div>
-    
-     <!-- أزرار التحكم -->
+
+
         
     </div>  
-</div>  
-</div>
-<!--  التصنيفات -->
-<div class="cat-wrapper">
-    <div class="cat-card" style="background-image: url('assets/1.jpeg');">  
-        <a href="all_books.php?type=&search=&category=0&author=&rating=0&material=كتاب" class="static-card-link" style="text-decoration: none; color: inherit;">
-        <h1>كتب</h1>
-    </a>
+    <!-- قسم الإحصائيات -->  
+    <div class="row stats-section">
+        <!-- مؤلفين -->
+        <div class="col-md-3 col-sm-6 mb-4">
+            <div class="stat-card text-center p-4 rounded">
+                <img src="assets/images/mobile-app.svg" class="card-img-top" alt="غلاف الكتاب"
+                    style="height: 100px;width:100px; object-fit: cover;">
+                <h3 class="stat-value"><?php 
+                    $author_query = "SELECT COUNT(DISTINCT author) AS author_count FROM books";
+                    $author_result = $conn->query($author_query);
+                    $author_count = $author_result ? $author_result->fetch_assoc()['author_count'] : 0;
+                    echo $author_count;
+                ?></h3>
+                <p class="stat-label">مؤلف</p>
+                <span style="font-weight: lighter; font-size: 15px;color:rgb(151, 140, 140)">تهدف مكتبة LMS إلى إنشاء أكبر قاعدة بيانات لمؤلفين الكتب العربية عبر التاريخ</span>
+            </div>
+        </div>
+        
+        <!-- كتب -->
+        <div class="col-md-3 col-sm-6 mb-4">
+            <div class="stat-card text-center p-4 rounded">
+                <img src="assets/images/digital-library.svg" class="card-img-top" alt="غلاف الكتاب" style="height: 100px;width:100px; object-fit: cover;">
+                <h3 class="stat-value"><?php 
+                    $book_query = "SELECT COUNT(*) AS book_count FROM books";
+                    $book_result = $conn->query($book_query);
+                    $book_count = $book_result ? $book_result->fetch_assoc()['book_count'] : 0;
+                    echo $book_count;
+                ?></h3>
+                <p class="stat-label">كتاب</p>
+                <span style="font-weight: lighter; font-size: 15px;color:rgb(151, 140, 140)">آلاف الكتب المنشورة على مكتبة LMS منها ما نشره المؤلف بنفسه أو فريق المكتبة</span>
+            </div>
+        </div>
+        
+        <!-- عمليات بحث يومية -->
+        <div class="col-md-3 col-sm-6 mb-4">
+            <div class="stat-card text-center p-4 rounded">
+                <img src="assets/images/home_search.svg" class="card-img-top" alt="غلاف الكتاب"style="height: 100px;width:100px; object-fit: cover;">
+                <h3 class="stat-value">1000</h3>
+                <p class="stat-label">عملية بحث يومية</p>
+                <span style="font-weight: lighter; font-size: 15px;color:rgb(151, 140, 140)">أكثر من 1000  عملية بحث عن كتاب عربي و أجنبي تحدث يومياً على مكتبة LMS</span>
+            </div>
+        </div>
+        
+        <!-- زوار شهرياً -->
+        <div class="col-md-3 col-sm-6 mb-4">
+            <div class="stat-card text-center p-4 rounded">
+                <img src="assets/images/online-education.svg" class="card-img-top" alt="غلاف الكتاب"style="height: 100px;width:100px; object-fit: cover;">
+                <h3 class="stat-value">8,000</h3>
+                <p class="stat-label">زائر شهرياً</p>
+                <span style="font-weight: lighter; font-size: 15px;color:rgb(151, 140, 140)">يزور موقع مكتبة LMS اكثر من 8 آلاف زائر مهتم بالكتب العربية شهرياً حول العالم</span>
+            </div>
+        </div>
+        
     </div>
-     <div class="cat-card" style="background-image: url('assets/1.jpeg');">  
-        <a href="all_books.php?type=&search=&category=0&author=&rating=0&material=مجلة" class="static-card-link" style="text-decoration: none; color: inherit;">
-        <h1>مجلات</h1>
-    </a>
-    </div>
-     <div class="cat-card" style="background-image: url('assets/1.jpeg');">  
-       <a href="all_books.php?type=&search=&category=0&author=&rating=0&material=جريدة" class="static-card-link" style="text-decoration: none; color: inherit;">
-        <h1>صحف</h1>
-    </a>
-    </div>
-  
-</div>
-<!-- أحدث الكتب المضافة -->
-<div class="container my-5">
-    <div class="divider">
-    <?php if ($new_books_result->num_rows > 0): ?>
-    <span class="divider-text"><?= __('latest_additions') ?></span>
-    </div>
-    <div class="owl-carousel owl-theme">
-        <?php while($book = $new_books_result->fetch_assoc()): 
-            $is_discounted = ($book['has_discount'] == 1);
-            $book_id = $book['id'];
-            $is_favorite = in_array($book_id, $favorites);
-        ?>
-        <div class="item">
-            <div class="card h-100 shadow">
-                <?php if($is_discounted): ?>
-                <div class="discount-ribbon">
-                    خصم <?= $book['discount_percentage'] ?>%
-                </div>
-                <?php endif; ?>
+    <!--  التصنيفات -->
+    <div class="cat-wrapper">
+        <!-- كتب -->
+        <div class="cat-card">  
+            <div class="card-content">
+            <!-- <img src="assets/images/books.png" class="card-img" alt="كتب"> -->
+                <a href="all_books.php?type=&search=&category=0&author=&rating=0&material=كتاب" class="btn static-card-link btn-outline">
+                    <h1>كتب</h1>
+                </a>
+            </div>
+        </div>
+        
+        <!-- مجلات -->
+        <div class="cat-card">  
+            <div class="card-content">
+            <!-- <img src="assets/images/magazine.png" class="card-img" alt="مجلات"> -->
+                <a href="all_books.php?type=&search=&category=0&author=&rating=0&material=مجلة" class="static-card-link">
+                    <h1>مجلات</h1>
+                </a>
+            </div>
+        </div>
+        
+        <!-- صحف -->
+        <div class="cat-card">  
+            <div class="card-content">
+            <!--  <img src="assets/images/news.png" class="card-img" alt="صحف">-->
+                <a href="all_books.php?type=&search=&category=0&author=&rating=0&material=جريدة" class="static-card-link">
+                    <h1>صحف</h1>
+                </a>
+            </div>
+        </div>
 
-                <?php if(!empty($book['cover_image'])): ?>
-                <img src="<?= $book['cover_image'] ?>" class="card-img-top" alt="غلاف الكتاب"
-                    style="height: 300px; object-fit: cover;">
-                <?php endif; ?>
-                
-                <div class="card-body">
-                    <h5 class="card-title"><?= htmlspecialchars($book['title']) ?></h5>
-                    <p class="text-muted"><?= htmlspecialchars($book['author']) ?></p>
-                    
-                    <!-- عرض الأسعار -->
+    </div>
+    <!-- أحدث الكتب المضافة -->
+    <div class="container my-5">
+        <div class="divider">
+        <?php if ($new_books_result->num_rows > 0): ?>
+        <span class="divider-text"><?= __('latest_additions') ?></span>
+        </div>
+        <div class="owl-carousel owl-theme">
+            <?php while($book = $new_books_result->fetch_assoc()): 
+                $is_discounted = ($book['has_discount'] == 1);
+                $book_id = $book['id'];
+                $is_favorite = in_array($book_id, $favorites);
+            ?>
+            <div class="item">
+                <div class="card h-100 shadow">
                     <?php if($is_discounted): ?>
-                    <div class="d-flex justify-content-between align-items-center">
-                        <div>
-                            <span class="badge bg-info">
-                            <i class="fas fa-calendar-alt"></i>
-                            <?= date('Y-m-d', strtotime($book['created_at'])) ?>
-                        </span>
-                            <span class="text-danger fs-5 fw-bold">
-                                <?= number_format($book['discounted_price']) ?>
-                            </span>
-                            <span class="text-decoration-line-through text-muted ms-2">
-                                <?= number_format($book['price']) ?>
-                            </span>
-                        </div>
-                    </div>
-                    <?php else: ?>
-                    <div class="d-flex justify-content-between align-items-center">
-                        <span class="badge bg-info">
-                            <i class="fas fa-calendar-alt"></i>
-                            <?= date('Y-m-d', strtotime($book['created_at'])) ?>
-                        </span>
-                        <span class="text-success"><?= number_format($book['price']) ?> ل.س</span>
+                    <div class="discount-ribbon">
+                        خصم <?= $book['discount_percentage'] ?>%
                     </div>
                     <?php endif; ?>
-                    <!-- الأيقونات -->
-                    <div class="d-flex justify-content-between mt-3">
-
-                        <!-- أيقونة التفاصيل -->
-                        <button class="btn btn-info btn-sm"
-                            onclick="window.location.href='details.php?id=<?= $book['id'] ?>'">
-                            <i class="fas fa-info"></i>
-                        </button>
-                        <!-- داخل كل بطاقة كتاب -->
-                       
-                        <button
-                            class="btn btn-sm <?= $is_favorite ? 'btn-danger' : 'btn-outline-danger' ?> toggle-favorite"
-                            data-book-id="<?= $book['id'] ?>">
-                            <i class="fas fa-heart"></i>
-                        </button>
-
-
-                        <?php if(isset($_SESSION['user_id'])): ?>
-                        <!-- استعارة الكتاب -->
-                        <form method="POST" action="process.php" class="d-inline">
-                            <input type="hidden" name="csrf_token" value="<?= $_SESSION['csrf_token'] ?>">
-                            <input type="hidden" name="book_id" value="<?= $book['id'] ?>">
-                            <input type="hidden" name="action" value="borrow">
-                            <button type="submit" class="btn btn-primary btn-sm">
-                                <i class="fas fa-hand-holding"></i>
-                            </button>
-                        </form>
-
-                        <!-- شراء الكتاب -->
-                        <button class="btn btn-success btn-sm add-to-cart" 
-                            data-book-id="<?= $book['id'] ?>"
-                            data-book-title="<?= htmlspecialchars($book['title']) ?>"
-                            data-book-price="<?= $book['price'] ?>"
-                            data-book-image="<?= $book['cover_image'] ?>">
-                        <i class="fas fa-cart-plus"></i>
-                        </button>
-                        <?php else: ?>
-                        <a href="login.php" class="btn btn-secondary btn-sm">
-        <i class="fas fa-sign-in-alt"></i>
-    </a>
-                        <?php endif; ?>
-
+                    <div class="evel">
+                    <?php
+                        $rating = $book['evaluation'];
+                        for ($i = 1; $i <= 5; $i++) {
+                            echo $i <= $rating ? '★' : '☆';
+                        }
+                        ?>
                     </div>
-                </div>
 
-
-            </div>
-        </div>
-        <?php endwhile; ?>
-    </div>
-    <!-- زر المزيد -->
-    <div class="text-center mt-3">
-        <a href="all_books.php?type=new" class="btn btn-outline-primary load-more">
-            عرض المزيد </i>
-        </a>
-    </div>
-    <?php else: ?>
-    <div class="alert alert-info">لا توجد كتب جديدة</div>
-    <?php endif; ?>
-</div>
-
-    <!--  التصنيفات -->
-<div class="cat-wrapper">
-   <div class="cat-card" style="background-image: url('assets/1.jpeg');">       
-        <a href="all_books.php?type=&search=&category=2&author=&rating=0" class="static-card-link" style="text-decoration: none; color: inherit;">
-        <h1>علمية</h1>
-        </a>
-    </div>
-    
-     <div class="cat-card" style="background-image: url('assets/1.jpeg');">  
-        <a href="all_books.php?type=&search=&category=3&author=&rating=0" class="static-card-link" style="text-decoration: none; color: inherit;">
-        <h1>تاريخية</h1>
-        </a>
-    </div>
-     <div class="cat-card" style="background-image: url('assets/1.jpeg');">  
-       <a href="all_books.php?type=&search=&category=1&author=&rating=0" class="static-card-link" style="text-decoration: none; color: inherit;">
-        <h1>أدبية</h1>
-        </a>
-    </div>
-  
-</div>
-
-<!-- الكتب المخفضة -->
-<div class="container my-5">
-    <div class="divider">
-    <?php if ($discounted_books_result->num_rows > 0): ?>
-    <span class="divider-text"><?= __('discounts')?></span>
-    </div>
-    <div class="owl-carousel owl-theme">
-        <?php while($book = $discounted_books_result->fetch_assoc()):
-             $book_id = $book['id'];
-            $is_favorite = in_array($book_id, $favorites);
-            ?>
-        <div class="item">
-            <div class="card h-100 shadow position-relative">
-                <!-- شريط الخصم -->
-                <div class="discount-ribbon">
-                    خصم <?= $book['discount_percentage'] ?>%
-                </div>
-
-                <?php if(!empty($book['cover_image'])): ?>
-                <img src="<?= BASE_URL . $book['cover_image'] ?>" class="card-img-top" alt="غلاف الكتاب"
-                    style="height: 300px; object-fit: cover;">
-                <?php endif; ?>
-
-                <div class="card-body">
-                    <h5 class="card-title"><?= htmlspecialchars($book['title']) ?></h5>
-                    <p class="text-muted"><?= htmlspecialchars($book['author']) ?></p>
-
-                    <div class="d-flex justify-content-between align-items-center">
-                        <div>
-                            <span class="text-danger fs-5 fw-bold">
-                                <?= number_format($book['discounted_price']) ?>
+                    <?php if(!empty($book['cover_image'])): ?>
+                    <img src="<?= $book['cover_image'] ?>" class="card-img-top" alt="غلاف الكتاب"
+                        style="height: 300px; object-fit: cover;">
+                    <?php endif; ?>
+                    
+                    <div class="card-body">
+                        <h5 class="card-title"><?= htmlspecialchars($book['title']) ?></h5>
+                        <p class="text-muted"><?= htmlspecialchars($book['author']) ?></p>
+                        
+                        <!-- عرض الأسعار -->
+                    
+                        <div class="d-flex justify-content-between align-items-center">
+                            <span class="badge bg-info">
+                                <i class="fas fa-calendar-alt"></i>
+                                <?= date('Y-m-d', strtotime($book['created_at'])) ?>
                             </span>
-                            <span class="text-decoration-line-through text-muted ms-2">
-                                <?= number_format($book['price']) ?>
-                            </span>
+                            <!-- التقييم -->
+                                
+                                
+                            
+                        </div>
+                        
+                        <!-- الأيقونات -->
+                        <div class="d-flex justify-content-between mt-3">
+
+                            <!-- أيقونة التفاصيل -->
+                            <button class="btn btn-info btn-sm"
+                                onclick="window.location.href='details.php?id=<?= $book['id'] ?>'">
+                                <i class="fas fa-info"></i>
+                            </button>
+                            <!-- داخل كل بطاقة كتاب -->
+                        
+                            <button
+                                class="btn btn-sm <?= $is_favorite ? 'btn-danger' : 'btn-outline-danger' ?> toggle-favorite"
+                                data-book-id="<?= $book['id'] ?>">
+                                <i class="fas fa-heart"></i>
+                            </button>
+
+
+                            <?php if(isset($_SESSION['user_id'])): ?>
+                            <!-- استعارة الكتاب -->
+                            <form method="POST" action="process.php" class="d-inline">
+                                <input type="hidden" name="csrf_token" value="<?= $_SESSION['csrf_token'] ?>">
+                                <input type="hidden" name="book_id" value="<?= $book['id'] ?>">
+                                <input type="hidden" name="action" value="borrow">
+                                <button type="submit" class="btn btn-primary btn-sm">
+                                    <i class="fas fa-hand-holding"></i>
+                                </button>
+                            </form>
+
+                            <!-- شراء الكتاب -->
+                            <button class="btn btn-success btn-sm add-to-cart" 
+                                data-book-id="<?= $book['id'] ?>"
+                                data-book-title="<?= htmlspecialchars($book['title']) ?>"
+                                data-book-price="<?= $book['price'] ?>"
+                                data-book-image="<?= $book['cover_image'] ?>">
+                            <i class="fas fa-cart-plus"></i>
+                            </button>
+                            <?php else: ?>
+                            <a href="login.php" class="btn btn-secondary btn-sm">
+            <i class="fas fa-sign-in-alt"></i>
+        </a>
+                            <?php endif; ?>
+
                         </div>
                     </div>
-                    <!-- الأيقونات -->
-                    <div class="d-flex justify-content-between mt-3">
 
-                        <!-- أيقونة التفاصيل -->
-                        <button class="btn btn-info btn-sm"
-                            onclick="window.location.href='details.php?id=<?= $book['id'] ?>'">
-                            <i class="fas fa-info"></i>
-                        </button>
-                        <!-- داخل كل بطاقة كتاب -->
-                        <button
-                            class="btn btn-sm <?= $is_favorite ? 'btn-danger' : 'btn-outline-danger' ?> toggle-favorite"
-                            data-book-id="<?= $book['id'] ?>">
-                            <i class="fas fa-heart"></i>
-                        </button>
 
-                        <?php if(isset($_SESSION['user_id'])): ?>
-                        <!-- استعارة الكتاب -->
-                        <form method="POST" action="process.php" class="d-inline">
-                            <input type="hidden" name="csrf_token" value="<?= $_SESSION['csrf_token'] ?>">
-                            <input type="hidden" name="book_id" value="<?= $book['id'] ?>">
-                            <input type="hidden" name="action" value="borrow">
-                            <button type="submit" class="btn btn-primary btn-sm">
-                                <i class="fas fa-hand-holding"></i>
-                            </button>
-                        </form>
-
-                        <!-- شراء الكتاب -->
-                        <button class="btn btn-success btn-sm add-to-cart" 
-                            data-book-id="<?= $book['id'] ?>"
-                            data-book-title="<?= htmlspecialchars($book['title']) ?>"
-                            data-book-price="<?= $book['price'] ?>"
-                            data-book-image="<?= $book['cover_image'] ?>">
-                        <i class="fas fa-cart-plus"></i>
-                        </button>
-                        <?php else: ?>
-                          <a href="login.php" class="btn btn-secondary btn-sm">
-        <i class="fas fa-sign-in-alt"></i>
-    </a>
-                        <?php endif; ?>
-                    </div>
                 </div>
             </div>
+            <?php endwhile; ?>
         </div>
-        <?php endwhile; ?>
+        <!-- زر المزيد -->
+        <div class="text-center mt-3">
+            <a href="all_books.php?type=new" class="btn btn-outline-primary load-more">
+                عرض المزيد </i>
+            </a>
+        </div>
+        <?php else: ?>
+        <div class="alert alert-info">لا توجد كتب جديدة</div>
+        <?php endif; ?>
     </div>
-    <!-- زر المزيد -->
-    <div class="text-center mt-3">
-        <a href="all_books.php?type=discounted" class="btn btn-outline-primary load-more">
-            عرض المزيد </i>
-        </a>
-    </div>
+    <!-- الكتب المخفضة -->
+    <div class="container my-5">
+        <div class="divider">
+        <?php if ($discounted_books_result->num_rows > 0): ?>
+        <span class="divider-text"><?= __('discounts')?></span>
+        </div>
+        <div class="owl-carousel owl-theme">
+            <?php while($book = $discounted_books_result->fetch_assoc()):
+                $book_id = $book['id'];
+                $is_favorite = in_array($book_id, $favorites);
+                ?>
+            <div class="item">
+                <div class="card h-100 shadow position-relative">
+                    <!-- شريط الخصم -->
+                    <div class="discount-ribbon">
+                        خصم <?= $book['discount_percentage'] ?>%
+                    </div>
+                    <div class="evel">
+                    <?php
+                        $rating = $book['evaluation'];
+                        for ($i = 1; $i <= 5; $i++) {
+                            echo $i <= $rating ? '★' : '☆';
+                        }
+                        ?>
+                    </div>
 
-    <?php else: ?>
-    <div class="alert alert-info text-center">لا توجد عروض خاصة حالياً</div>
-    <?php endif; ?>
-</div>
+                    <?php if(!empty($book['cover_image'])): ?>
+                    <img src="<?= BASE_URL . $book['cover_image'] ?>" class="card-img-top" alt="غلاف الكتاب"
+                        style="height: 300px; object-fit: cover;">
+                    <?php endif; ?>
 
-      <!--  التصنيفات -->
-<div class="cat-wrapper">
-    <div class="cat-card" style="background-image: url('assets/1.jpeg');">  
-        <a href="all_books.php?type=&search=&category=8&author=&rating=0" class="static-card-link" style="text-decoration: none; color: inherit;">
-        <h1>أطفال</h1>
-    </a>
-    </div>
-     <div class="cat-card" style="background-image: url('assets/1.jpeg');">  
-        <a href="all_books.php?type=&search=&category=4&author=&rating=0" class="static-card-link" style="text-decoration: none; color: inherit;">
-        <h1>برمجة</h1>
-    </a>
-    </div>
-     <div class="cat-card" style="background-image: url('assets/1.jpeg');">  
-       <a href="all_books.php?type=&search=&category=5&author=&rating=0" class="static-card-link" style="text-decoration: none; color: inherit;">
-        <h1>ذكاء</h1>
-    </a>
-    </div>
-  
-</div>
+                    <div class="card-body">
+                        <h5 class="card-title"><?= htmlspecialchars($book['title']) ?></h5>
+                        <p class="text-muted"><?= htmlspecialchars($book['author']) ?></p>
 
- 
-<!-- قسم الكتب الأكثر مبيعًا -->
-<div class="container my-5">
-    <div class="divider">
-    <?php if ($bestsellers_result->num_rows > 0): ?>
-    <span class="divider-text"><?=  __('bestsellers') ?></span>
-    </div>
-    <div class="owl-carousel owl-theme bestsellers-carousel">
-        <?php while($book = $bestsellers_result->fetch_assoc()): 
-            $is_discounted = ($book['has_discount'] == 1);
-             $book_id = $book['id'];
-            $is_favorite = in_array($book_id, $favorites);
-        ?>
-        <div class="item">
-            <div class="card h-100 shadow">
-                <?php if($is_discounted): ?>
-                <div class="discount-ribbon">
-                    خصم <?= $book['discount_percentage'] ?>%
-                </div>
-                <?php endif; ?>
-                
-                <?php if(!empty($book['cover_image'])): ?>
-                <img src="<?= BASE_URL . $book['cover_image'] ?>" class="card-img-top" alt="غلاف الكتاب"
-                    style="height: 300px; object-fit: cover;">
-                <?php endif; ?>
-                
-                <div class="card-body">
-                    <h5 class="card-title"><?= htmlspecialchars($book['title']) ?></h5>
-                    <p class="text-muted"><?= htmlspecialchars($book['author']) ?></p>
-                    
-                    <div class="d-flex justify-content-between align-items-center">
-                        <span class="badge bg-danger"> <?= $book['sales_count'] ?></span>
-                        
-                        <?php if($is_discounted): ?>
+                        <div class="d-flex justify-content-between align-items-center">
                             <div>
                                 <span class="text-danger fs-5 fw-bold">
                                     <?= number_format($book['discounted_price']) ?>
@@ -766,199 +683,272 @@ Swal.fire({
                                 <span class="text-decoration-line-through text-muted ms-2">
                                     <?= number_format($book['price']) ?>
                                 </span>
+                                
+                                
+                            
                             </div>
-                        <?php else: ?>
-                            <span class="text-success"><?= number_format($book['price']) ?> ل.س</span>
-                        <?php endif; ?>
-                    </div>
-                    <!-- الأيقونات -->
-                    <div class="d-flex justify-content-between mt-3">
+                        </div>
+                        <!-- الأيقونات -->
+                        <div class="d-flex justify-content-between mt-3">
 
-                        <!-- أيقونة التفاصيل -->
-                        <button class="btn btn-info btn-sm"
-                            onclick="window.location.href='details.php?id=<?= $book['id'] ?>'">
-                            <i class="fas fa-info"></i>
-                        </button>
-                        <!-- داخل كل بطاقة كتاب -->
-                        <button
-                            class="btn btn-sm <?= $is_favorite ? 'btn-danger' : 'btn-outline-danger' ?> toggle-favorite"
-                            data-book-id="<?= $book['id'] ?>">
-                            <i class="fas fa-heart"></i>
-                        </button>
-
-                        <?php if(isset($_SESSION['user_id'])): ?>
-                        <!-- استعارة الكتاب -->
-                        <form method="POST" action="process.php" class="d-inline">
-                            <input type="hidden" name="csrf_token" value="<?= $_SESSION['csrf_token'] ?>">
-                            <input type="hidden" name="book_id" value="<?= $book['id'] ?>">
-                            <input type="hidden" name="action" value="borrow">
-                            <button type="submit" class="btn btn-primary btn-sm">
-                                <i class="fas fa-hand-holding"></i>
+                            <!-- أيقونة التفاصيل -->
+                            <button class="btn btn-info btn-sm"
+                                onclick="window.location.href='details.php?id=<?= $book['id'] ?>'">
+                                <i class="fas fa-info"></i>
                             </button>
-                        </form>
+                            <!-- داخل كل بطاقة كتاب -->
+                            <button
+                                class="btn btn-sm <?= $is_favorite ? 'btn-danger' : 'btn-outline-danger' ?> toggle-favorite"
+                                data-book-id="<?= $book['id'] ?>">
+                                <i class="fas fa-heart"></i>
+                            </button>
+
+                            <?php if(isset($_SESSION['user_id'])): ?>
+                            <!-- استعارة الكتاب -->
+                            <form method="POST" action="process.php" class="d-inline">
+                                <input type="hidden" name="csrf_token" value="<?= $_SESSION['csrf_token'] ?>">
+                                <input type="hidden" name="book_id" value="<?= $book['id'] ?>">
+                                <input type="hidden" name="action" value="borrow">
+                                <button type="submit" class="btn btn-primary btn-sm">
+                                    <i class="fas fa-hand-holding"></i>
+                                </button>
+                            </form>
+
+                            <!-- شراء الكتاب -->
+                            <button class="btn btn-success btn-sm add-to-cart" 
+                                data-book-id="<?= $book['id'] ?>"
+                                data-book-title="<?= htmlspecialchars($book['title']) ?>"
+                                data-book-price="<?= $book['price'] ?>"
+                                data-book-image="<?= $book['cover_image'] ?>">
+                            <i class="fas fa-cart-plus"></i>
+                            </button>
+                            <?php else: ?>
+                            <a href="login.php" class="btn btn-secondary btn-sm">
+            <i class="fas fa-sign-in-alt"></i>
+        </a>
+                            <?php endif; ?>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <?php endwhile; ?>
+        </div>
+        <!-- زر المزيد -->
+        <div class="text-center mt-3">
+            <a href="all_books.php?type=discounted" class="btn btn-outline-primary load-more">
+                عرض المزيد </i>
+            </a>
+        </div>
+
+        <?php else: ?>
+        <div class="alert alert-info text-center">لا توجد عروض خاصة حالياً</div>
+        <?php endif; ?>
+    </div>
+    <!-- قسم الكتب الأكثر مبيعًا -->
+    <div class="container my-5">
+        <div class="divider">
+        <?php if ($bestsellers_result->num_rows > 0): ?>
+        <span class="divider-text"><?=  __('bestsellers') ?></span>
+        </div>
+        <div class="owl-carousel owl-theme bestsellers-carousel">
+            <?php while($book = $bestsellers_result->fetch_assoc()): 
+                $is_discounted = ($book['has_discount'] == 1);
+                $book_id = $book['id'];
+                $is_favorite = in_array($book_id, $favorites);
+            ?>
+            <div class="item">
+                <div class="card h-100 shadow">
+                    <?php if($is_discounted): ?>
+                    <div class="discount-ribbon">
+                        خصم <?= $book['discount_percentage'] ?>%
+                    </div>
+                    <?php endif; ?>
+                    <div class="evel">
+                    <?php
+                        $rating = $book['evaluation'];
+                        for ($i = 1; $i <= 5; $i++) {
+                            echo $i <= $rating ? '★' : '☆';
+                        }
+                        ?>
+                    </div>
+                    
+                    <?php if(!empty($book['cover_image'])): ?>
+                    <img src="<?= BASE_URL . $book['cover_image'] ?>" class="card-img-top" alt="غلاف الكتاب"
+                        style="height: 300px; object-fit: cover;">
+                    <?php endif; ?>
+                    
+                    <div class="card-body">
+                        <h5 class="card-title"><?= htmlspecialchars($book['title']) ?></h5>
+                        <p class="text-muted"><?= htmlspecialchars($book['author']) ?></p>
+                        
+                        <div class="d-flex justify-content-between align-items-center">
+                            <span class="badge bg-danger"> <?= $book['sales_count'] ?></span>
+                        
+                            
+                            
+                        </div>
+                        <!-- الأيقونات -->
+                        <div class="d-flex justify-content-between mt-3">
+
+                            <!-- أيقونة التفاصيل -->
+                            <button class="btn btn-info btn-sm"
+                                onclick="window.location.href='details.php?id=<?= $book['id'] ?>'">
+                                <i class="fas fa-info"></i>
+                            </button>
+                            <!-- داخل كل بطاقة كتاب -->
+                            <button
+                                class="btn btn-sm <?= $is_favorite ? 'btn-danger' : 'btn-outline-danger' ?> toggle-favorite"
+                                data-book-id="<?= $book['id'] ?>">
+                                <i class="fas fa-heart"></i>
+                            </button>
+
+                            <?php if(isset($_SESSION['user_id'])): ?>
+                            <!-- استعارة الكتاب -->
+                            <form method="POST" action="process.php" class="d-inline">
+                                <input type="hidden" name="csrf_token" value="<?= $_SESSION['csrf_token'] ?>">
+                                <input type="hidden" name="book_id" value="<?= $book['id'] ?>">
+                                <input type="hidden" name="action" value="borrow">
+                                <button type="submit" class="btn btn-primary btn-sm">
+                                    <i class="fas fa-hand-holding"></i>
+                                </button>
+                            </form>
+
+                            <!-- شراء الكتاب -->
+                            <button class="btn btn-success btn-sm add-to-cart" 
+                                data-book-id="<?= $book['id'] ?>"
+                                data-book-title="<?= htmlspecialchars($book['title']) ?>"
+                                data-book-price="<?= $book['price'] ?>"
+                                data-book-image="<?= $book['cover_image'] ?>">
+                            <i class="fas fa-cart-plus"></i>
+                            </button>
+                            <?php else: ?>
+                            <a href="login.php" class="btn btn-secondary btn-sm">
+            <i class="fas fa-sign-in-alt"></i>
+        </a>
+                            <?php endif; ?>
+
+                        </div>
+
+
+                    </div>
+                </div>
+            </div>
+            <?php endwhile; ?>
+        </div>
+        <!-- زر المزيد -->
+        <div class="text-center mt-3">
+            <a href="all_books.php?type=bestsellers&section=bestsellers" class="btn btn-outline-primary load-more">
+                عرض المزيد </i>
+            </a>
+        </div>
+
+
+
+        <?php else: ?>
+        <div class="alert alert-info">لا توجد بيانات عن الكتب الأكثر مبيعًا</div>
+        <?php endif; ?>
+    </div>
+    <!-- قسم كل محتويات المكتبة -->
+    <div class="container my-5">
+        <div class="divider">
+        <?php if ($books_result->num_rows > 0): ?>
+        <span class="divider-text"><?=  __('library')  ?></span>
+        </div>
+    
+        <div class="owl-carousel owl-theme">
+            <?php while($book = $books_result->fetch_assoc()): 
+                $is_discounted = ($book['has_discount'] == 1);
+                $book_id = $book['id'];
+                $is_favorite = in_array($book_id, $favorites);
+            ?>
+            <div class="item">
+                <div class="card h-100 shadow">
+                    <?php if($is_discounted): ?>
+                    <div class="discount-ribbon">
+                        خصم <?= $book['discount_percentage'] ?>%
+                    </div>
+                    <?php endif; ?>
+                    <div class="evel">
+                    <?php
+                        $rating = $book['evaluation'];
+                        for ($i = 1; $i <= 5; $i++) {
+                            echo $i <= $rating ? '★' : '☆';
+                        }
+                        ?>
+                    </div>
+                    <?php if(!empty($book['cover_image'])): ?>
+                    <img src="<?= BASE_URL . $book['cover_image'] ?>" class="card-img-top" alt="غلاف الكتاب"
+                        style="height: 300px; object-fit: cover;">
+                    <?php endif; ?>
+                    
+                    <div class="card-body">
+                        <h5 class="card-title"><?= htmlspecialchars($book['title']) ?></h5>
+                        <p class="text-muted"><?= htmlspecialchars($book['author']) ?></p>
+                        
+                        <div class="d-flex justify-content-between">
+                            <span class="badge bg-primary"><?= $book['material_type'] ?></span>
+        
+                        
+                        </div>
+                        
+
+                        <!-- الأيقونات -->
+                        <div class="d-flex justify-content-between mt-3">
+
+                            <!-- أيقونة التفاصيل -->
+                            <button class="btn btn-info btn-sm"
+                                onclick="window.location.href='details.php?id=<?= $book['id'] ?>'">
+                                <i class="fas fa-info"></i>
+                            </button>
+                            <!-- داخل كل بطاقة كتاب -->
+                            <button
+                                class="btn btn-sm <?= $is_favorite ? 'btn-danger' : 'btn-outline-danger' ?> toggle-favorite"
+                                data-book-id="<?= $book['id'] ?>">
+                                <i class="fas fa-heart"></i>
+                            </button>
+
+                            <?php if(isset($_SESSION['user_id'])): ?>
+                            <!-- استعارة الكتاب -->
+                            <form method="POST" action="process.php" class="d-inline">
+                                <input type="hidden" name="csrf_token" value="<?= $_SESSION['csrf_token'] ?>">
+                                <input type="hidden" name="book_id" value="<?= $book['id'] ?>">
+                                <input type="hidden" name="action" value="borrow">
+                                <button type="submit" class="btn btn-primary btn-sm">
+                                    <i class="fas fa-hand-holding"></i>
+                                </button>
+                            </form>
 
                         <!-- شراء الكتاب -->
-                        <button class="btn btn-success btn-sm add-to-cart" 
-                            data-book-id="<?= $book['id'] ?>"
-                            data-book-title="<?= htmlspecialchars($book['title']) ?>"
-                            data-book-price="<?= $book['price'] ?>"
-                            data-book-image="<?= $book['cover_image'] ?>">
-                        <i class="fas fa-cart-plus"></i>
-                        </button>
-                        <?php else: ?>
-                          <a href="login.php" class="btn btn-secondary btn-sm">
-        <i class="fas fa-sign-in-alt"></i>
-    </a>
-                        <?php endif; ?>
-
-                    </div>
-
-
-                </div>
-            </div>
-        </div>
-        <?php endwhile; ?>
-    </div>
-    <!-- زر المزيد -->
-    <div class="text-center mt-3">
-        <a href="all_books.php?type=bestsellers&section=bestsellers" class="btn btn-outline-primary load-more">
-            عرض المزيد </i>
-        </a>
-    </div>
-
-
-
-    <?php else: ?>
-    <div class="alert alert-info">لا توجد بيانات عن الكتب الأكثر مبيعًا</div>
-    <?php endif; ?>
-</div>
-
-      <!--  التصنيفات -->
-<div class="cat-wrapper">
-    <div class="cat-card" style="background-image: url('assets/1.jpeg');">  
-        <a href="all_books.php?type=&search=&category=13&author=&rating=0" class="static-card-link" style="text-decoration: none; color: inherit;">
-        <h1>سياسة</h1>
-    </a>
-    </div>
-     <div class="cat-card" style="background-image: url('assets/1.jpeg');">  
-        <a href="all_books.php?type=&search=&category=10&author=&rating=0" class="static-card-link" style="text-decoration: none; color: inherit;">
-        <h1>أقتصاد</h1>
-    </a>
-    </div>
-     <div class="cat-card" style="background-image: url('assets/1.jpeg');">  
-       <a href="all_books.php?type=&search=&category=12&author=&rating=0" class="static-card-link" style="text-decoration: none; color: inherit;">
-        <h1>فنون</h1>
-    </a>
-    </div>
-  
-</div>
-
- 
-<!-- قسم كل محتويات المكتبة -->
-<div class="container my-5">
-     <div class="divider">
-    <?php if ($books_result->num_rows > 0): ?>
-    <span class="divider-text"><?=  __('library')  ?></span>
-    </div>
-  
-    <div class="owl-carousel owl-theme">
-        <?php while($book = $books_result->fetch_assoc()): 
-            $is_discounted = ($book['has_discount'] == 1);
-             $book_id = $book['id'];
-            $is_favorite = in_array($book_id, $favorites);
-        ?>
-        <div class="item">
-            <div class="card h-100 shadow">
-                <?php if($is_discounted): ?>
-                <div class="discount-ribbon">
-                    خصم <?= $book['discount_percentage'] ?>%
-                </div>
-                <?php endif; ?>
-                
-                <?php if(!empty($book['cover_image'])): ?>
-                <img src="<?= BASE_URL . $book['cover_image'] ?>" class="card-img-top" alt="غلاف الكتاب"
-                    style="height: 300px; object-fit: cover;">
-                <?php endif; ?>
-                
-                <div class="card-body">
-                    <h5 class="card-title"><?= htmlspecialchars($book['title']) ?></h5>
-                    <p class="text-muted"><?= htmlspecialchars($book['author']) ?></p>
-                    
-                    <div class="d-flex justify-content-between">
-                        <span class="badge bg-primary"><?= $book['material_type'] ?></span>
-                        
-                        <?php if($is_discounted): ?>
-                            <div>
-                                <span class="text-danger fs-5 fw-bold">
-                                    <?= number_format($book['discounted_price']) ?>
-                                </span>
-                                <span class="text-decoration-line-through text-muted ms-2">
-                                    <?= number_format($book['price']) ?>
-                                </span>
-                            </div>
-                        <?php else: ?>
-                            <span class="text-success"><?= number_format($book['price']) ?> ل.س</span>
-                        <?php endif; ?>
-                    </div>
-                    
-
-                    <!-- الأيقونات -->
-                    <div class="d-flex justify-content-between mt-3">
-
-                        <!-- أيقونة التفاصيل -->
-                        <button class="btn btn-info btn-sm"
-                            onclick="window.location.href='details.php?id=<?= $book['id'] ?>'">
-                            <i class="fas fa-info"></i>
-                        </button>
-                        <!-- داخل كل بطاقة كتاب -->
-                        <button
-                            class="btn btn-sm <?= $is_favorite ? 'btn-danger' : 'btn-outline-danger' ?> toggle-favorite"
-                            data-book-id="<?= $book['id'] ?>">
-                            <i class="fas fa-heart"></i>
-                        </button>
-
-                        <?php if(isset($_SESSION['user_id'])): ?>
-                        <!-- استعارة الكتاب -->
-                        <form method="POST" action="process.php" class="d-inline">
-                            <input type="hidden" name="csrf_token" value="<?= $_SESSION['csrf_token'] ?>">
-                            <input type="hidden" name="book_id" value="<?= $book['id'] ?>">
-                            <input type="hidden" name="action" value="borrow">
-                            <button type="submit" class="btn btn-primary btn-sm">
-                                <i class="fas fa-hand-holding"></i>
+                            <button class="btn btn-success btn-sm add-to-cart" 
+                                data-book-id="<?= $book['id'] ?>"
+                                data-book-title="<?= htmlspecialchars($book['title']) ?>"
+                                data-book-price="<?= $book['price'] ?>"
+                                data-book-image="<?= $book['cover_image'] ?>">
+                            <i class="fas fa-cart-plus"></i>
                             </button>
-                        </form>
+                            <?php else: ?>
+                            <a href="login.php" class="btn btn-secondary btn-sm">
+            <i class="fas fa-sign-in-alt"></i>
+        </a>
+                            <?php endif; ?>
 
-                       <!-- شراء الكتاب -->
-                        <button class="btn btn-success btn-sm add-to-cart" 
-                            data-book-id="<?= $book['id'] ?>"
-                            data-book-title="<?= htmlspecialchars($book['title']) ?>"
-                            data-book-price="<?= $book['price'] ?>"
-                            data-book-image="<?= $book['cover_image'] ?>">
-                        <i class="fas fa-cart-plus"></i>
-                        </button>
-                        <?php else: ?>
-                          <a href="login.php" class="btn btn-secondary btn-sm">
-        <i class="fas fa-sign-in-alt"></i>
-    </a>
-                        <?php endif; ?>
+                        </div>
 
                     </div>
-
                 </div>
             </div>
+            <?php endwhile; ?>
         </div>
-        <?php endwhile; ?>
+        <!-- زر المزيد -->
+        <div class="text-center mt-3">
+            <a href="all_books.php" class="btn btn-outline-primary load-more">
+                عرض المزيد </i>
+            </a>
+        </div>
+        <?php else: ?>
+        <div class="alert alert-warning">لا توجد كتب متاحة حالياً</div>
+        <?php endif; ?>
     </div>
-    <!-- زر المزيد -->
-    <div class="text-center mt-3">
-        <a href="all_books.php" class="btn btn-outline-primary load-more">
-            عرض المزيد </i>
-        </a>
-    </div>
-    <?php else: ?>
-    <div class="alert alert-warning">لا توجد كتب متاحة حالياً</div>
-    <?php endif; ?>
-</div>
 
 <!-- قبل إغلاق body -->
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
@@ -966,155 +956,154 @@ Swal.fire({
 
 
 <script>
- 
-document.addEventListener('DOMContentLoaded', function() {
-    const slides = document.querySelectorAll('.mySlides');
-    if (slides.length === 0) return;
-
-    let currentIndex = 0;
-    let slideInterval;
-
-    function showSlide(index) {
-    // إخفاء جميع الشرائح
-    slides.forEach(slide => {
-        slide.classList.remove('active');
-    });
     
-    // إظهار الشريحة المطلوبة
-    slides[index].classList.add('active');
-    currentIndex = index;
-    
-    // تحديث المؤشرات
-    const indicators = document.querySelectorAll('.indicator');
-    indicators.forEach((indicator, i) => {
-        if (i === index) {
-            indicator.classList.add('active');
-        } else {
-            indicator.classList.remove('active');
+    document.addEventListener('DOMContentLoaded', function() {
+        const slides = document.querySelectorAll('.mySlides');
+        if (slides.length === 0) return;
+
+        let currentIndex = 0;
+        let slideInterval;
+
+        function showSlide(index) {
+        // إخفاء جميع الشرائح
+        slides.forEach(slide => {
+            slide.classList.remove('active');
+        });
+        
+        // إظهار الشريحة المطلوبة
+        slides[index].classList.add('active');
+        currentIndex = index;
+        
+        // تحديث المؤشرات
+        const indicators = document.querySelectorAll('.indicator');
+        indicators.forEach((indicator, i) => {
+            if (i === index) {
+                indicator.classList.add('active');
+            } else {
+                indicator.classList.remove('active');
+            }
+        });
+    }
+        function nextSlide() {
+            let nextIndex = (currentIndex + 1) % slides.length;
+            showSlide(nextIndex);
         }
-    });
-}
-    function nextSlide() {
-        let nextIndex = (currentIndex + 1) % slides.length;
-        showSlide(nextIndex);
-    }
 
-    function startAutoSlide() {
-        if (slides.length > 1) {
-            slideInterval = setInterval(nextSlide, 7000);
+        function startAutoSlide() {
+            if (slides.length > 1) {
+                slideInterval = setInterval(nextSlide, 7000);
+            }
         }
+
+        function stopAutoSlide() {
+            clearInterval(slideInterval);
+        }
+
+        // بدء التمرير التلقائي
+        startAutoSlide();
+        
+        // إيقاف التمرير عند تحويم الماوس
+        const sliderContainer = document.querySelector('.slideshow-container');
+        if (sliderContainer) {
+            sliderContainer.addEventListener('mouseenter', stopAutoSlide);
+            sliderContainer.addEventListener('mouseleave', startAutoSlide);
+        }
+        window.changeSlide = function(n) {
+        stopAutoSlide();
+        let newIndex = currentIndex + n;
+        
+        if (newIndex < 0) newIndex = slides.length - 1;
+        else if (newIndex >= slides.length) newIndex = 0;
+        
+        showSlide(newIndex);
+        startAutoSlide();
     }
 
-    function stopAutoSlide() {
-        clearInterval(slideInterval);
+    window.showSlide = function(index) {
+        stopAutoSlide();
+        showSlide(index);
+        startAutoSlide();
     }
+    });
+    // الكاروسيل
+    $(document).ready(function() {
+        $('.owl-carousel').each(function() {
+            var $carousel = $(this);
+            var itemCount = $carousel.find('.item').length;
 
-    // بدء التمرير التلقائي
-    startAutoSlide();
-    
-    // إيقاف التمرير عند تحويم الماوس
-    const sliderContainer = document.querySelector('.slideshow-container');
-    if (sliderContainer) {
-        sliderContainer.addEventListener('mouseenter', stopAutoSlide);
-        sliderContainer.addEventListener('mouseleave', startAutoSlide);
-    }
-    window.changeSlide = function(n) {
-    stopAutoSlide();
-    let newIndex = currentIndex + n;
-    
-    if (newIndex < 0) newIndex = slides.length - 1;
-    else if (newIndex >= slides.length) newIndex = 0;
-    
-    showSlide(newIndex);
-    startAutoSlide();
-}
-
-window.showSlide = function(index) {
-    stopAutoSlide();
-    showSlide(index);
-    startAutoSlide();
-}
-});
-// الكاروسيل
-$(document).ready(function() {
-    $('.owl-carousel').each(function() {
-        var $carousel = $(this);
-        var itemCount = $carousel.find('.item').length;
-
-        // تحديد الإعدادات الديناميكية
-        var options = {
-            rtl: true,
-            margin: 20,
-            nav: true,
-            dots: false,
-            responsive: {
-                0: {
-                    items: 1
+            // تحديد الإعدادات الديناميكية
+            var options = {
+                rtl: true,
+                margin: 20,
+                nav: true,
+                dots: false,
+                responsive: {
+                    0: {
+                        items: 1
+                    },
+                    600: {
+                        items: 3
+                    },
+                    1000: {
+                        items: 5
+                    }
                 },
-                600: {
-                    items: 3
-                },
-                1000: {
-                    items: 5
+                navText: [
+                    '<i class="fas fa-chevron-right"></i>',
+                    '<i class="fas fa-chevron-left"></i>'
+                ]
+            };
+
+            // تعطيل التكرار إذا كانت العناصر أقل من الحد الأقصى
+            if (itemCount <= options.responsive[1000].items) {
+                options.loop = false;
+                options.nav = (itemCount > options.responsive[0]
+                    .items); // تعطيل الأسهم إذا كانت العناصر أقل من عرض الشاشة
+            } else {
+                options.loop = true;
+            }
+
+            $carousel.owlCarousel(options);
+        });
+    });
+    // إضافة/إزالة من المفضلة
+    $(document).on('click', '.toggle-favorite', function() {
+        <?php if(!isset($_SESSION['user_id'])): ?>
+        Swal.fire('تنبيه!', 'يجب تسجيل الدخول أولاً', 'warning');
+        return;
+        <?php endif; ?>
+
+        const button = $(this);
+        const bookId = button.data('book-id');
+
+        $.ajax({
+            url: 'toggle_favorite.php',
+            method: 'POST',
+            data: {
+                book_id: bookId,
+                csrf_token: '<?= $_SESSION['csrf_token'] ?>'
+            },
+            dataType: 'json',
+            success: function(response) {
+                if (response.success) {
+                    if (response.is_favorite) {
+                        button.removeClass('btn-outline-danger').addClass('btn-danger');
+                        Swal.fire('تم!', 'أضيف إلى المفضلة', 'success');
+                    } else {
+                        button.removeClass('btn-danger').addClass('btn-outline-danger');
+                        Swal.fire('تم!', 'حُذف من المفضلة', 'info');
+                    }
+                } else {
+                    Swal.fire('خطأ!', response.message || 'فشلت العملية', 'error');
                 }
             },
-            navText: [
-                '<i class="fas fa-chevron-right"></i>',
-                '<i class="fas fa-chevron-left"></i>'
-            ]
-        };
-
-        // تعطيل التكرار إذا كانت العناصر أقل من الحد الأقصى
-        if (itemCount <= options.responsive[1000].items) {
-            options.loop = false;
-            options.nav = (itemCount > options.responsive[0]
-                .items); // تعطيل الأسهم إذا كانت العناصر أقل من عرض الشاشة
-        } else {
-            options.loop = true;
-        }
-
-        $carousel.owlCarousel(options);
-    });
-});
-// إضافة/إزالة من المفضلة
-$(document).on('click', '.toggle-favorite', function() {
-    <?php if(!isset($_SESSION['user_id'])): ?>
-    Swal.fire('تنبيه!', 'يجب تسجيل الدخول أولاً', 'warning');
-    return;
-    <?php endif; ?>
-
-    const button = $(this);
-    const bookId = button.data('book-id');
-
-    $.ajax({
-        url: 'toggle_favorite.php',
-        method: 'POST',
-        data: {
-            book_id: bookId,
-            csrf_token: '<?= $_SESSION['csrf_token'] ?>'
-        },
-        dataType: 'json',
-        success: function(response) {
-            if (response.success) {
-                if (response.is_favorite) {
-                    button.removeClass('btn-outline-danger').addClass('btn-danger');
-                    Swal.fire('تم!', 'أضيف إلى المفضلة', 'success');
-                } else {
-                    button.removeClass('btn-danger').addClass('btn-outline-danger');
-                    Swal.fire('تم!', 'حُذف من المفضلة', 'info');
-                }
-            } else {
-                Swal.fire('خطأ!', response.message || 'فشلت العملية', 'error');
+            error: function(xhr, status, error) {
+                console.error('AJAX Error:', status, error, xhr.responseText);
+                Swal.fire('خطأ!', 'حدث خطأ في الاتصال بالخادم: ' + xhr.responseText, 'error');
             }
-        },
-        error: function(xhr, status, error) {
-            console.error('AJAX Error:', status, error, xhr.responseText);
-            Swal.fire('خطأ!', 'حدث خطأ في الاتصال بالخادم: ' + xhr.responseText, 'error');
-        }
+        });
     });
-});
-    </script>
+</script>
 
-<?php
 
-require __DIR__ . '/includes/footer.php';?>
+<?php require __DIR__ . '/includes/footer.php';?>

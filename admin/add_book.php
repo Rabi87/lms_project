@@ -58,10 +58,7 @@ $categories = $conn->query("SELECT * FROM categories");
             </div>
 
             <!-- الكمية والسعر -->
-            <div class="col-md-4">
-                <label class="form-label">الكمية <span class="text-danger">*</span></label>
-                <input type="number" name="quantity" class="form-control" required>
-            </div>
+           
 
             <div class="col-md-4">
                 <label class="form-label">السعر (ل.س) <span class="text-danger">*</span></label>

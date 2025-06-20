@@ -354,13 +354,26 @@ Swal.fire({
                         
                             <!-- عرض عدد المبيعات للأكثر مبيعًا -->
                            <?php if ($section === 'bestsellers'): ?>
-    <div class="d-flex align-items-center mb-2">
-        <span class="badge bg-danger me-2">
-            <i class="fas fa-fire"></i>
-            <?= (int)$book['sales_count'] ?> مبيعًا
-        </span>
-    </div>
-<?php endif; ?>   <!-- التقييم -->
+                            <div class="d-flex align-items-center mb-2">
+                                <span class="badge bg-danger me-2">
+                                    <i class="fas fa-fire"></i>
+                                    <?= (int)$book['sales_count'] ?> مبيعًا
+                                </span>
+                            </div>
+                            <?php endif; ?>  
+                             <?php if($is_discounted): ?>
+                            <div>
+                                <span class="text-danger fs-5 fw-bold">
+                                    <?= number_format($book['discounted_price']) ?>
+                                </span>
+                                <span class="text-decoration-line-through text-muted ms-2">
+                                    <?= number_format($book['price']) ?>
+                                </span>
+                            </div>
+                        <?php else: ?>
+                            <span class="text-success"><?= number_format($book['price']) ?> ل.س</span>
+                        <?php endif; ?>
+                             <!-- التقييم -->
                             <div class="mt-2">
                                 <?php
                                 $rating = $book['evaluation'];

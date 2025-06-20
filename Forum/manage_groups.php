@@ -5,14 +5,22 @@ if (session_status() === PHP_SESSION_NONE) {
 error_reporting(E_ALL);
 ini_set('display_errors', 1);
 ini_set('display_startup_errors', 1);
+
 require __DIR__ . '/../includes/config.php';
+
 if (!isset($_SESSION['user_id'])) {
     header('Location: ' . BASE_URL . 'index.php');
     exit();
 }
 
 // Fixed admin user ID
-define('ADMIN_USER_ID', 5);
+$admin_query = $conn->query("SELECT id FROM users WHERE user_type = 'admin' LIMIT 1");
+$admin_user = $admin_query->fetch_assoc();
+$adminUserId = $admin_user['id'] ?? 0;
+
+if(!$adminUserId) {
+    die("لم يتم العثور على أي مدير في النظام!");
+}
 
 // دالة لجلب عدد أعضاء المجموعة
 function get_member_count($group_id) {
@@ -34,18 +42,21 @@ function get_book_count($group_id) {
     return $result['count'] ?? 0;
 }
 
+
 // ------ معالجة طلبات POST ------
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     // إنشاء مجموعة جديدة
     if (isset($_POST['group_name'])) {
         $groupName = $_POST['group_name'];
         $ownerId = $_SESSION['user_id'];
+        $co_owner_id = $adminUserId; // استخدام معرف المدير مباشرة
         $uniqueCode = bin2hex(random_bytes(16));
 
-        $stmt = $conn->prepare("INSERT INTO users_groups (group_name, owner_id, unique_code) VALUES (?, ?, ?)");
-        $stmt->bind_param("sis", $groupName, $ownerId, $uniqueCode);
+        // إنشاء المجموعة مع تعيين المالكين
+        $stmt = $conn->prepare("INSERT INTO users_groups (group_name, owner_id, co_owner_id, unique_code) VALUES (?, ?, ?, ?)");
+        $stmt->bind_param("siis", $groupName, $ownerId, $co_owner_id, $uniqueCode);
         $stmt->execute();
-
+        
         $group_id = $stmt->insert_id;
         
         // إضافة المالك إلى المجموعة
@@ -53,19 +64,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $stmt->bind_param("ii", $group_id, $ownerId);
         $stmt->execute();
         
-        // إضافة الإداري الثابت (ADMIN_USER_ID) إلى المجموعة
-        if ($ownerId != ADMIN_USER_ID) {
-            $stmt = $conn->prepare("INSERT INTO group_members (group_id, user_id) VALUES (?, ?)");
-            $stmt->bind_param("ii", $group_id, ADMIN_USER_ID);
-            $stmt->execute();
-        }
+        // إضافة المالك المشارك (المدير) إلى المجموعة
+        $stmt = $conn->prepare("INSERT INTO group_members (group_id, user_id) VALUES (?, ?)");
+        $stmt->bind_param("ii", $group_id, $co_owner_id);
+        $stmt->execute();
 
-        $_SESSION['message'] = "تم إنشاء المجموعة! الرابط: " . BASE_URL . "Forum/join_group.php?code=" . $uniqueCode;
+        //$_SESSION['message'] = "تم إنشاء المجموعة! الرابط: " . BASE_URL . "Forum/join_group.php?code=" . $uniqueCode;
+        $_SESSION['message'] = "تم إنشاء المجموعة!";
         header("Location: manage_groups.php");
         exit();
     }
-
-    // طلب الانضمام إلى مجموعة
+     // طلب الانضمام إلى مجموعة
     if (isset($_POST['join_group'])) {
         $groupId = intval($_POST['group_id']);
         $userId = $_SESSION['user_id'];
@@ -83,18 +92,21 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $groupId = intval($_POST['group_id']);
         $userId = $_SESSION['user_id'];
 
-        $stmt = $conn->prepare("SELECT owner_id FROM users_groups WHERE group_id = ?");
+        $stmt = $conn->prepare("SELECT owner_id, co_owner_id FROM users_groups WHERE group_id = ?");
         $stmt->bind_param("i", $groupId);
         $stmt->execute();
-        $ownerId = $stmt->get_result()->fetch_assoc()['owner_id'];
+        $result = $stmt->get_result()->fetch_assoc();
+        $ownerId = $result['owner_id'];
+        $co_owner_id = $result['co_owner_id'];
 
-        if ($ownerId != $userId) {
+        // لا يمكن للمالك أو المالك المشارك المغادرة
+        if ($ownerId != $userId && $co_owner_id != $userId) {
             $stmt = $conn->prepare("DELETE FROM group_members WHERE group_id = ? AND user_id = ?");
             $stmt->bind_param("ii", $groupId, $userId);
             $stmt->execute();
             $_SESSION['message'] = "تم مغادرة المجموعة بنجاح!";
         } else {
-            $_SESSION['message'] = "لا يمكنك مغادرة المجموعة لأنك المالك!";
+            $_SESSION['message'] = "لا يمكنك مغادرة المجموعة لأنك مالك أو مالك مشارك!";
         }
 
         header("Location: manage_groups.php");
@@ -102,9 +114,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 }
 
+
 // ------ جلب البيانات ------
 // جميع المجموعات
-$stmt = $conn->prepare("SELECT group_id, group_name, owner_id, unique_code FROM users_groups");
+$stmt = $conn->prepare("SELECT group_id, group_name, owner_id, co_owner_id, unique_code FROM users_groups");
 $stmt->execute();
 $allGroups = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
 // مجموعات المستخدم الحالي
@@ -125,18 +138,27 @@ $pendingRequestsStmt->bind_param("i", $_SESSION['user_id']);
 $pendingRequestsStmt->execute();
 $pendingRequests = $pendingRequestsStmt->get_result()->fetch_all(MYSQLI_ASSOC);
 $pendingGroupIds = array_column($pendingRequests, 'group_id');
+
 // ━━━━━━━━━━ معالجة حذف المجموعة ━━━━━━━━━━
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['delete_group'])) {
     $groupId = (int)$_POST['group_id'];
     $userId = $_SESSION['user_id'];
 
-    // التحقق من ملكية المجموعة
-    $stmt = $conn->prepare("SELECT owner_id FROM users_groups WHERE group_id = ?");
+    // التحقق إذا كان المستخدم مديراً
+    $isAdmin = false;
+    $adminCheck = $conn->query("SELECT id FROM users WHERE id = $userId AND user_type = 'admin'");
+    if ($adminCheck->num_rows > 0) {
+        $isAdmin = true;
+    }
+
+    $stmt = $conn->prepare("SELECT owner_id, co_owner_id FROM users_groups WHERE group_id = ?");
     $stmt->bind_param("i", $groupId);
     $stmt->execute();
-    $ownerId = $stmt->get_result()->fetch_assoc()['owner_id'];
+    $group = $stmt->get_result()->fetch_assoc();
+    $ownerId = $group['owner_id'];
+    $co_owner_id = $group['co_owner_id'];
 
-    if ($ownerId == $userId) {
+    if ($ownerId == $userId || $co_owner_id == $userId || $isAdmin) {
         try {
             // حذف المجموعة (مع ON DELETE CASCADE في قاعدة البيانات)
             $stmt = $conn->prepare("DELETE FROM users_groups WHERE group_id = ?");
@@ -154,9 +176,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['delete_group'])) {
     header("Location: manage_groups.php");
     exit();
 }
-
 require __DIR__ . '/../includes/header.php';
 ?>
+
 <?php if (isset($_SESSION['error'])): ?>
 <div class="alert alert-danger alert-dismissible fade show">
     <?= $_SESSION['error'] ?>
@@ -169,7 +191,7 @@ require __DIR__ . '/../includes/header.php';
 <script>
 Swal.fire({
     icon: 'success',
-    title: 'مبروك.. !',
+    title: 'نجحت العملية !',
     text: '<?= $_SESSION['message'] ?>'
 });
 </script>
@@ -196,18 +218,20 @@ Swal.fire({
             <i class="fas fa-plus-circle me-2"></i>مجموعة جديدة
         </button>
     </div>
-
-
-
-
     <!-- بطاقات المجموعات -->
     <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4">
         <?php foreach ($allGroups as $group): 
-            $isMember = in_array($group['group_id'], $userGroupIds);
-            $isPending = in_array($group['group_id'], $pendingGroupIds);
-            $isOwner = ($group['owner_id'] == $_SESSION['user_id']);
-        ?>
-
+    $isMember = in_array($group['group_id'], $userGroupIds);
+    $isPending = in_array($group['group_id'], $pendingGroupIds);
+    $isOwner = ($group['owner_id'] == $_SESSION['user_id']);
+    
+    // التحقق إذا كان المستخدم مديراً
+    $isAdmin = false;
+    $adminCheck = $conn->query("SELECT id FROM users WHERE id = {$_SESSION['user_id']} AND user_type = 'admin'");
+    if ($adminCheck->num_rows > 0) {
+        $isAdmin = true;
+    }
+?>
         <div class="col">
             <div class="card shadow-sm h-100 border-0">
                 <!-- رأس البطاقة -->
@@ -222,15 +246,15 @@ Swal.fire({
                         </div>
 
                         <!-- الجانب الأيمن: زر الحذف -->
-                        <?php if ($isOwner): ?>
-                        <form method="POST" class="d-inline" onsubmit="return confirmDelete()">
-                            <input type="hidden" name="delete_group" value="1">
-                            <input type="hidden" name="group_id" value="<?= $group['group_id'] ?>">
-                            <button type="submit" class="btn btn-link p-0">
-                                <i class="fas fa-trash-alt text-warning"></i>
-                            </button>
-                        </form>
-                        <?php endif; ?>
+                        <?php if ($isOwner || $isAdmin): ?>
+    <form method="POST" class="d-inline" onsubmit="return confirmDelete()">
+        <input type="hidden" name="delete_group" value="1">
+        <input type="hidden" name="group_id" value="<?= $group['group_id'] ?>">
+        <button type="submit" class="btn btn-link p-0">
+            <i class="fas fa-trash-alt text-warning"></i>
+        </button>
+    </form>
+<?php endif; ?>
                     </div>
                 </div>
 
@@ -257,16 +281,16 @@ Swal.fire({
                             <i class="fas fa-book-open"></i>
                         </a>
 
-                        <?php if (!$isOwner): ?>
-                        <!-- أيقونة مغادرة المجموعة -->
-                        <form method="POST" class="d-inline">
-                            <input type="hidden" name="group_id" value="<?= $group['group_id'] ?>">
-                            <button type="submit" name="leave_group" class="btn btn-sm btn-outline- rounded-circle"
-                                data-bs-toggle="tooltip" title="مغادرة المجموعة">
-                                <i class="fas fa-sign-out-alt"></i>
-                            </button>
-                        </form>
-                        <?php endif; ?>
+                       <?php if (!$isOwner && !$isAdmin): ?>
+    <!-- أيقونة مغادرة المجموعة -->
+    <form method="POST" class="d-inline">
+        <input type="hidden" name="group_id" value="<?= $group['group_id'] ?>">
+        <button type="submit" name="leave_group" class="btn btn-sm btn-outline- rounded-circle"
+            data-bs-toggle="tooltip" title="مغادرة المجموعة">
+            <i class="fas fa-sign-out-alt"></i>
+        </button>
+    </form>
+<?php endif; ?>
 
                         <?php elseif ($isPending): ?>
                         <!-- أيقونة انتظار الموافقة -->
@@ -285,7 +309,7 @@ Swal.fire({
                         </form>
                         <?php endif; ?>
 
-                        <?php if ($isOwner): ?>
+                       <?php if ($isOwner || $isAdmin): ?>
                         <!-- أيقونة إدارة الطلبات -->
                         <a href="manage_requests.php?group_id=<?= $group['group_id'] ?>"
                             class="btn btn-sm btn-outline-dark rounded-circle" data-bs-toggle="tooltip"
@@ -306,9 +330,6 @@ Swal.fire({
         </div>
         <?php endforeach; ?>
     </div>
-
-
-
 </div>
 
 <!-- مودال إنشاء المجموعة (بنفس تصميم personal.php) -->
